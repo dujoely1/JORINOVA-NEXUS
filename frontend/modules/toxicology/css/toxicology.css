@@ -1,0 +1,55 @@
+/* JORINOVA NEXUS ALIS-X — Toxicology Module */
+.tox-main  { display:flex; flex-direction:column; flex:1; overflow:hidden; }
+.tox-tab-nav { padding:0 var(--space-xl); background:var(--bg-deep); border-bottom:1px solid var(--border-dim); flex-shrink:0; }
+.tox-body  { flex:1; overflow-y:auto; }
+.tox-iso-pill { display:inline-flex;align-items:center;gap:8px;padding:5px 13px;border-radius:var(--radius-full);background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.22);font-size:11px;font-weight:600;color:#c084fc;letter-spacing:.04em; }
+
+.tox-two-col { display:grid; grid-template-columns:380px 1fr; min-height:calc(100vh - 200px); }
+.tox-input-panel { border-right:1px solid var(--border-dim); display:flex; flex-direction:column; overflow:hidden; }
+.tox-panel-title { padding:var(--space-md) var(--space-lg); background:var(--bg-deep); border-bottom:1px solid var(--border-dim); font-family:var(--font-display); font-size:var(--text-sm); font-weight:700; color:var(--text-primary); letter-spacing:.04em; }
+.tox-result-panel { background:var(--bg-surface); overflow-y:auto; }
+.tox-result-empty { display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:var(--space-md);color:var(--text-muted);font-size:var(--text-sm);text-align:center;padding:var(--space-2xl);min-height:300px; }
+
+/* UDS Drug Grid */
+.uds-drug-grid { display:flex; flex-direction:column; gap:6px; }
+.uds-drug-row { display:grid; grid-template-columns:130px 1fr; align-items:center; gap:var(--space-sm); padding:6px var(--space-sm); border-radius:var(--radius-sm); background:var(--bg-glass); }
+.uds-drug-name { font-size:11px; font-weight:600; color:var(--text-secondary); }
+.uds-drug-buttons { display:flex; gap:4px; }
+.uds-btn { padding:4px 10px; border-radius:var(--radius-sm); border:1px solid var(--border-mid); background:var(--bg-surface); font-size:10px; font-weight:700; cursor:pointer; transition:all var(--duration-fast); color:var(--text-muted); }
+.uds-btn.selected-neg { background:rgba(0,230,118,.12); border-color:var(--alert-green); color:var(--alert-green); }
+.uds-btn.selected-pos { background:rgba(255,23,68,.12); border-color:var(--alert-red); color:var(--alert-red); animation:pulse-red 1.2s infinite; }
+.uds-btn.selected-inv { background:var(--bg-surface); border-color:var(--border-mid); color:var(--text-muted); }
+@keyframes pulse-red { 0%,100%{box-shadow:0 0 0 0 rgba(255,23,68,0)} 50%{box-shadow:0 0 0 4px rgba(255,23,68,.15)} }
+
+/* TDM Range Bar */
+.tdm-range-container { position:relative; height:32px; border-radius:var(--radius-md); overflow:hidden; display:flex; margin:var(--space-md) 0; }
+.tdm-zone { height:100%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; letter-spacing:.04em; }
+.tdm-zone-subtherapeutic { background:rgba(0,153,255,.25); color:var(--blue-glow); }
+.tdm-zone-therapeutic     { background:rgba(0,230,118,.25); color:var(--alert-green); }
+.tdm-zone-toxic           { background:rgba(255,109,0,.25); color:var(--alert-orange); }
+.tdm-zone-critical        { background:rgba(255,23,68,.30); color:var(--alert-red); animation:pulse-red 1s infinite; }
+.tdm-pointer {
+  position:absolute; top:0; bottom:0; width:3px; background:#fff;
+  box-shadow:0 0 8px rgba(255,255,255,.8); transform:translateX(-50%);
+  transition:left .5s var(--ease-out);
+}
+.tdm-pointer::after { content:'▲'; position:absolute; bottom:-14px; left:50%; transform:translateX(-50%); font-size:10px; color:#fff; white-space:nowrap; }
+
+/* Poison */
+.poison-severity-badge { display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:var(--radius-full);font-family:var(--font-display);font-size:var(--text-base);font-weight:700;letter-spacing:.04em;border:1px solid; }
+.poison-mild     { color:var(--alert-yellow);border-color:var(--alert-yellow);background:rgba(255,214,0,.08); }
+.poison-moderate { color:var(--alert-orange);border-color:var(--alert-orange);background:rgba(255,109,0,.08); }
+.poison-severe   { color:var(--alert-red);   border-color:var(--alert-red);   background:rgba(255,23,68,.08); }
+.poison-fatal    { color:#ff0000;border-color:#ff0000;background:rgba(255,0,0,.12);animation:pulse-red .7s infinite; }
+
+.antidote-card { padding:var(--space-md);border-radius:var(--radius-md);background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.20);color:var(--alert-green); }
+.notify-clinical { padding:var(--space-md);border-radius:var(--radius-md);background:rgba(255,23,68,.09);border:2px solid var(--alert-red);color:var(--alert-red);font-weight:700;animation:pulse-red 1s infinite; }
+
+/* Result content */
+.tox-result-content { padding:var(--space-xl); display:flex; flex-direction:column; gap:var(--space-lg); }
+.tox-interp-section { background:var(--bg-glass);border:1px solid var(--border-dim);border-radius:var(--radius-md);padding:var(--space-md); }
+.tox-section-title { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:var(--space-sm); }
+.tox-finding { font-size:var(--text-sm);color:var(--text-secondary);line-height:1.6; }
+.iso-disclaimer { padding:var(--space-sm) var(--space-md);border-radius:var(--radius-sm);background:rgba(0,153,255,.05);border:1px solid rgba(0,153,255,.15);font-size:10px;color:var(--text-muted);letter-spacing:.03em; }
+
+@media (max-width:900px) { .tox-two-col { grid-template-columns:1fr; } }

@@ -1,0 +1,323 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}🦠 Epidemic Surveillance — NEXUS ALIS-X{% endblock %}
+{% block module_id %}epidemic{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/surveillance/css/surveillance.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="surv-main">
+
+  <header class="page-header surv-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(255,23,68,0.09);border-color:rgba(255,23,68,0.22);color:var(--alert-red)">
+        <span style="font-size:20px">🦠</span>
+      </div>
+      <div>
+        <h1 class="page-title">Epidemic Surveillance &amp; Disease Control</h1>
+        <div class="page-subtitle">{{ today|date:"l, d F Y" }} · NEXUS AI Outbreak Detection · Rwanda Biomedical Centre</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <div class="surv-alert-indicator" id="surv-threat-level">
+        <div class="surv-threat-dot low"></div>
+        <span class="surv-threat-label">🟢 Threat Level: LOW</span>
+      </div>
+      <button class="btn btn-sm" style="background:rgba(255,23,68,0.1);border-color:rgba(255,23,68,0.28);color:var(--alert-red)">
+        <span>📡</span> Report Outbreak
+      </button>
+    </div>
+  </header>
+
+  <!-- Alert banner (conditionally visible) -->
+  <div class="surv-alert-banner" id="surv-alert-banner" style="display:none">
+    <i class="fas fa-triangle-exclamation"></i>
+    <strong>OUTBREAK ALERT:</strong>
+    <span id="surv-alert-msg">Elevated cholera cases detected in Kigali — 3 districts affected</span>
+    <button class="btn btn-xs btn-danger">🔍 Investigate</button>
+    <button class="surv-banner-close" onclick="this.parentElement.style.display='none'">✕</button>
+  </div>
+
+  <!-- Disease KPI strip -->
+  <div class="surv-kpi-strip">
+    <div class="surv-kpi surv-kpi-red">
+      <span class="surv-kpi-emoji">🚨</span>
+      <div class="surv-kpi-val" id="sk-active-outbreaks">0</div>
+      <div class="surv-kpi-lbl">Active Outbreaks</div>
+    </div>
+    <div class="surv-kpi surv-kpi-orange">
+      <span class="surv-kpi-emoji">⚠️</span>
+      <div class="surv-kpi-val" id="sk-suspected">—</div>
+      <div class="surv-kpi-lbl">Suspected Cases (7d)</div>
+    </div>
+    <div class="surv-kpi surv-kpi-yellow">
+      <span class="surv-kpi-emoji">🧪</span>
+      <div class="surv-kpi-val" id="sk-confirmed">—</div>
+      <div class="surv-kpi-lbl">Lab-Confirmed</div>
+    </div>
+    <div class="surv-kpi surv-kpi-blue">
+      <span class="surv-kpi-emoji">🌍</span>
+      <div class="surv-kpi-val" id="sk-districts">—</div>
+      <div class="surv-kpi-lbl">Districts Affected</div>
+    </div>
+    <div class="surv-kpi surv-kpi-green">
+      <span class="surv-kpi-emoji">✅</span>
+      <div class="surv-kpi-val" id="sk-resolved">—</div>
+      <div class="surv-kpi-lbl">Resolved This Month</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-nav surv-tabs">
+    <button class="tab-btn active" data-pane="sv-map">🗺️ Disease Map</button>
+    <button class="tab-btn" data-pane="sv-cases">📋 Case Registry</button>
+    <button class="tab-btn" data-pane="sv-signals">🤖 AI Signal Detection</button>
+    <button class="tab-btn" data-pane="sv-reports">📄 HMIS Reports</button>
+    <button class="tab-btn" data-pane="sv-pathogens">🦠 Pathogen Tracker</button>
+  </div>
+
+  <div class="surv-body">
+
+    <!-- ── MAP ── -->
+    <div class="tab-pane active" id="sv-map">
+      <div class="surv-map-layout">
+
+        <!-- Map placeholder (would integrate Leaflet.js in production) -->
+        <div class="surv-map-container glass-panel">
+          <div class="surv-map-placeholder">
+            <div class="surv-map-rwanda">
+              <div class="surv-map-title">🗺️ Rwanda Disease Distribution Map</div>
+              <div class="surv-map-svg-wrap">
+                <!-- Visual district representation -->
+                <div class="rw-map-grid">
+                  <div class="rw-district normal" title="Kigali City"><span>🏙️</span><div>Kigali</div><div class="rw-case-count">0</div></div>
+                  <div class="rw-district normal" title="Northern Province"><span>🏔️</span><div>Northern</div><div class="rw-case-count">0</div></div>
+                  <div class="rw-district normal" title="Southern Province"><span>🌿</span><div>Southern</div><div class="rw-case-count">0</div></div>
+                  <div class="rw-district normal" title="Eastern Province"><span>🌾</span><div>Eastern</div><div class="rw-case-count">0</div></div>
+                  <div class="rw-district normal" title="Western Province"><span>🌊</span><div>Western</div><div class="rw-case-count">0</div></div>
+                </div>
+                <div class="surv-map-legend">
+                  <div class="surv-legend-item"><span class="surv-legend-dot" style="background:var(--alert-green)"></span> 0 Cases</div>
+                  <div class="surv-legend-item"><span class="surv-legend-dot" style="background:var(--alert-yellow)"></span> 1–9 Cases</div>
+                  <div class="surv-legend-item"><span class="surv-legend-dot" style="background:var(--alert-orange)"></span> 10–49 Cases</div>
+                  <div class="surv-legend-item"><span class="surv-legend-dot" style="background:var(--alert-red)"></span> 50+ Cases</div>
+                </div>
+              </div>
+              <p style="color:var(--text-muted);font-size:11px;text-align:center;margin-top:var(--space-sm)">
+                Interactive Leaflet.js map with real-time case plotting — connects to RHMIS national database
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Active disease monitoring -->
+        <div class="surv-disease-panel">
+          <div class="surv-panel-title"><span>🦠</span> Monitored Pathogens</div>
+          {% for d in "12345678" %}
+          <div class="surv-disease-card {% cycle '' '' '' '' '' '' '' '' %}">
+            <div class="surv-disease-icon">{% cycle "🦠" "🤒" "💧" "🦟" "🫁" "🧬" "🤧" "🩸" %}</div>
+            <div class="surv-disease-info">
+              <div class="surv-disease-name">{% cycle "COVID-19 (SARS-CoV-2)" "Mpox (Orthopoxvirus)" "Cholera (V. cholerae)" "Malaria (P. falciparum)" "Tuberculosis" "Viral Hemorrhagic Fever" "Influenza A/H3N2" "Typhoid Fever" %}</div>
+              <div class="surv-disease-meta">{% cycle "IHR Notifiable · Variant tracking" "WHO PHEIC · Contact tracing" "WASH priority · Water analysis" "Sentinel sites · RDT network" "DOTS programme · Drug resistance" "Biosafety Level 3 · Isolation" "Sentinel surveillance · Flu season" "Blood culture · Drug sensitivity" %}</div>
+            </div>
+            <div class="surv-disease-status">
+              <span class="surv-status-badge {% cycle 'active' 'watch' 'watch' 'active' 'endemic' 'watch' 'seasonal' 'endemic' %}">
+                {% cycle "📡 Active" "👁️ Watch" "👁️ Watch" "📡 Active" "🔵 Endemic" "👁️ Watch" "🌀 Seasonal" "🔵 Endemic" %}
+              </span>
+              <div class="surv-disease-count">{% cycle "0" "0" "0" "12" "8" "0" "4" "2" %} cases</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div><!-- /map -->
+
+    <!-- ── CASE REGISTRY ── -->
+    <div class="tab-pane" id="sv-cases">
+      <div class="glass-panel" style="overflow:hidden">
+        <div class="chart-header">
+          <div class="chart-title"><span>📋</span> Case Registry — Notifiable Diseases</div>
+          <div style="display:flex;gap:var(--space-sm);margin-left:auto;flex-wrap:wrap">
+            <div class="search-wrap" style="max-width:220px">
+              <i class="fas fa-magnifying-glass search-icon"></i>
+              <input type="text" class="fi" placeholder="🔍 Patient, disease, district…">
+            </div>
+            <select class="fi" style="width:auto;font-size:var(--text-xs)">
+              <option>All diseases</option><option>COVID-19</option><option>Malaria</option><option>TB</option>
+            </select>
+            <button class="btn btn-primary btn-sm"><span>➕</span> Add Case</button>
+          </div>
+        </div>
+        <table class="nx-table">
+          <thead><tr>
+            <th>🔖 Case ID</th><th>👤 Patient</th><th>🦠 Disease</th>
+            <th>🌍 District</th><th>📅 Onset</th><th>🧪 Lab Status</th>
+            <th>📋 Case Status</th><th>🔗 Contact Tracing</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td style="font-family:var(--font-mono);font-size:11px">EPI-2025-0041</td>
+              <td>DEMO — Uwimana J.</td>
+              <td><span class="badge badge-orange">🤒 Mpox</span></td>
+              <td>Kigali — Nyarugenge</td>
+              <td style="font-family:var(--font-mono);font-size:11px">{{ today|date:"d M Y" }}</td>
+              <td><span class="badge badge-green">✅ Confirmed</span></td>
+              <td><span class="badge badge-yellow">⏳ Under investigation</span></td>
+              <td><span class="badge badge-blue">3 contacts</span></td>
+            </tr>
+            <tr>
+              <td style="font-family:var(--font-mono);font-size:11px">EPI-2025-0040</td>
+              <td>DEMO — Habimana P.</td>
+              <td><span class="badge badge-red">🦟 Malaria</span></td>
+              <td>Eastern — Rwamagana</td>
+              <td style="font-family:var(--font-mono);font-size:11px">{{ today|date:"d M Y" }}</td>
+              <td><span class="badge badge-green">✅ Confirmed (RDT+)</span></td>
+              <td><span class="badge badge-green">✅ Treatment started</span></td>
+              <td><span class="badge badge-grey">N/A</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── AI SIGNAL DETECTION ── -->
+    <div class="tab-pane" id="sv-signals">
+      <div class="surv-ai-layout">
+        <div class="surv-ai-feed glass-panel">
+          <div class="surv-panel-title"><span>🤖</span> AI Anomaly Detection Feed <div class="tat-live-dot" style="margin-left:8px"></div></div>
+          <div class="surv-ai-signals" id="ai-signal-list">
+            <div class="ai-signal ai-signal-low">
+              <div class="ai-sig-icon">🔍</div>
+              <div class="ai-sig-content">
+                <div class="ai-sig-title">Cluster analysis: 3 TB cases in Musanze district</div>
+                <div class="ai-sig-meta">Confidence: 72% · Pattern: Spatial clustering · Action: Enhanced surveillance</div>
+                <div class="ai-sig-time">{{ today|date:"d M Y" }} 08:14 · Morning Shift</div>
+              </div>
+              <span class="badge badge-blue">📊 Low Signal</span>
+            </div>
+            <div class="ai-signal ai-signal-medium">
+              <div class="ai-sig-icon">⚠️</div>
+              <div class="ai-sig-content">
+                <div class="ai-sig-title">Malaria positivity rate trending upward — Eastern Province</div>
+                <div class="ai-sig-meta">Confidence: 85% · Pattern: Temporal trend +15% · Seasonal adjustment applied</div>
+                <div class="ai-sig-time">{{ today|date:"d M Y" }} 06:00 · Start of morning shift</div>
+              </div>
+              <span class="badge badge-yellow">⚠️ Watch</span>
+            </div>
+            <div class="ai-signal ai-signal-low">
+              <div class="ai-sig-icon">🔬</div>
+              <div class="ai-sig-content">
+                <div class="ai-sig-title">Sequencing data: New SARS-CoV-2 variant detected (Lineage JN.1.x)</div>
+                <div class="ai-sig-meta">Confidence: 91% · 2 sequences · GISAID submission pending · WHO notified</div>
+                <div class="ai-sig-time">Yesterday 23:12 · Night Shift</div>
+              </div>
+              <span class="badge badge-purple">🧬 Genomic</span>
+            </div>
+            <div class="ai-signal ai-signal-resolved">
+              <div class="ai-sig-icon">✅</div>
+              <div class="ai-sig-content">
+                <div class="ai-sig-title">Cholera alert RESOLVED — Nyagatare district</div>
+                <div class="ai-sig-meta">Duration: 18 days · Cases: 14 confirmed · No fatalities · Water source treated</div>
+                <div class="ai-sig-time">3 days ago · Resolved by District Health Officer</div>
+              </div>
+              <span class="badge badge-green">✅ Resolved</span>
+            </div>
+          </div>
+        </div>
+        <div class="surv-ai-sidebar glass-panel">
+          <div class="surv-panel-title"><span>📊</span> Detection Model Status</div>
+          <div class="surv-model-card">
+            <div class="surv-model-name">🤖 NEXUS EpiAI v2.1</div>
+            <div class="surv-model-status"><div class="tat-live-dot"></div> Running</div>
+          </div>
+          <div class="surv-model-metrics">
+            <div class="smm-row"><span>Sensitivity</span><span class="smm-val" style="color:var(--alert-green)">94.2%</span></div>
+            <div class="smm-row"><span>Specificity</span><span class="smm-val" style="color:var(--alert-green)">88.7%</span></div>
+            <div class="smm-row"><span>Lead time</span><span class="smm-val" style="color:var(--blue-glow)">3.2 days</span></div>
+            <div class="smm-row"><span>Data sources</span><span class="smm-val">7 integrated</span></div>
+            <div class="smm-row"><span>Last trained</span><span class="smm-val">{{ today|date:"d M Y" }}</span></div>
+          </div>
+          <div class="surv-panel-title" style="margin-top:var(--space-md)"><span>📡</span> Data Sources</div>
+          <div class="surv-source-list">
+            <div class="surv-source"><div class="tat-live-dot"></div><span>RHMIS National DB</span></div>
+            <div class="surv-source"><div class="tat-live-dot"></div><span>Lab Results Feed</span></div>
+            <div class="surv-source"><div class="tat-live-dot"></div><span>Community Health Workers</span></div>
+            <div class="surv-source"><div class="tat-live-dot" style="background:var(--alert-yellow)"></div><span>GISAID Genomics</span></div>
+            <div class="surv-source"><div class="tat-live-dot"></div><span>Weather Data (REMA)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── HMIS REPORTS ── -->
+    <div class="tab-pane" id="sv-reports">
+      <div class="surv-report-grid">
+        {% for r in "123456" %}
+        <div class="surv-report-card glass-panel">
+          <div class="surv-rpt-icon">{% cycle "📄" "📊" "🌍" "🦠" "📈" "📋" %}</div>
+          <div class="surv-rpt-title">{% cycle "Weekly Epidemiological Report" "Monthly Disease Summary" "National Surveillance Report" "Outbreak Investigation Report" "Disease Trend Analysis" "IHR Annual Notification" %}</div>
+          <div class="surv-rpt-meta">{% cycle "Due: Every Monday" "Due: 1st of month" "Due: Quarterly" "On demand" "Monthly" "Annually" %}</div>
+          <div style="margin-top:auto;display:flex;gap:var(--space-sm)">
+            <button class="btn btn-primary btn-xs">📤 Generate</button>
+            <button class="btn btn-ghost btn-xs">👁️ Preview</button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ── PATHOGEN TRACKER ── -->
+    <div class="tab-pane" id="sv-pathogens">
+      <div class="glass-panel" style="overflow:hidden">
+        <div class="chart-header">
+          <div class="chart-title"><span>🦠</span> Pathogen Intelligence Database</div>
+        </div>
+        <table class="nx-table">
+          <thead><tr>
+            <th>🦠 Pathogen</th><th>📋 Category</th><th>🌍 Geographic Risk</th>
+            <th>🔬 Detection Method</th><th>💊 Treatment</th><th>📊 Incidence (YTD)</th><th>🚨 Alert Level</th>
+          </tr></thead>
+          <tbody>
+            {% for p in "12345678" %}
+            <tr>
+              <td style="font-weight:600">{% cycle "SARS-CoV-2" "Plasmodium falciparum" "M. tuberculosis" "Vibrio cholerae" "Orthopoxvirus (Mpox)" "Dengue virus" "Neisseria meningitidis" "Ebola virus" %}</td>
+              <td><span class="badge badge-{% cycle 'blue' 'red' 'orange' 'cyan' 'orange' 'yellow' 'purple' 'red' %}">{% cycle "Viral" "Parasitic" "Bacterial" "Bacterial" "Viral" "Viral" "Bacterial" "Viral" %}</span></td>
+              <td>{% cycle "Global · IHR" "Endemic · East Africa" "Endemic · National" "Seasonal · High risk" "Emerging · Regional" "Low risk · Travel" "Seasonal · Dry season" "High risk · DRC border" %}</td>
+              <td>{% cycle "RT-PCR · Ag-RDT" "RDT · Microscopy" "GeneXpert · Culture" "Culture · Serology" "PCR · Clinical" "NS1 Ag · PCR" "Culture · PCR" "RT-PCR · ELISA" %}</td>
+              <td>{% cycle "Antivirals/Supportive" "ACT (Artemether)" "DOTS 6-month" "ORS · Antibiotics" "Supportive · TPOXX" "Supportive" "Ceftriaxone" "Supportive" %}</td>
+              <td style="font-family:var(--font-mono)">{% cycle "0" "12" "8" "0" "1" "0" "0" "0" %}</td>
+              <td><span class="badge {% cycle 'badge-grey' 'badge-orange' 'badge-yellow' 'badge-grey' 'badge-orange' 'badge-grey' 'badge-grey' 'badge-red' %}">{% cycle "🟢 Monitor" "🟠 Active" "🟡 Endemic" "🟢 Monitor" "🟠 Active" "🟢 Monitor" "🟢 Monitor" "🔴 High Risk" %}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /surv-body -->
+</div><!-- /surv-main -->
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.surv-tabs .tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.surv-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.surv-body .tab-pane').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.pane)?.classList.add('active');
+    });
+  });
+  var kpis = {'sk-active-outbreaks':0,'sk-suspected':34,'sk-confirmed':13,'sk-districts':3,'sk-resolved':8};
+  Object.entries(kpis).forEach(([id,v])=>{var el=document.getElementById(id);if(el)el.textContent=v;});
+});
+</script>
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/surveillance/js/surveillance.js' %}" defer></script>
+{% endblock %}

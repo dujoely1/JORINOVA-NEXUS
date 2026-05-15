@@ -1,0 +1,272 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}📐 Quality Management — NEXUS ALIS-X{% endblock %}
+{% block module_id %}quality{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/quality/css/quality.css' %}">
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="quality-main">
+
+  <header class="page-header quality-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(0,200,255,0.08);border-color:rgba(0,200,255,0.22);color:var(--cyan)">
+        <span style="font-size:20px">📐</span>
+      </div>
+      <div>
+        <h1 class="page-title">📐 Quality Management System</h1>
+        <div class="page-subtitle">{{ today|date:"l, d F Y" }} · IQC · EQA · SOP · CAPA · ISO 15189</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <div class="qm-iso-badge">ISO 15189:2022</div>
+    </div>
+  </header>
+
+  <div class="tab-nav qm-tab-nav" role="tablist">
+    <button class="tab-btn active" data-pane="qm-dashboard-pane">📊 Dashboard</button>
+    <button class="tab-btn" data-pane="qm-iqc-pane">📐 IQC</button>
+    <button class="tab-btn" data-pane="qm-eqa-pane">🌍 EQA</button>
+    <button class="tab-btn" data-pane="qm-sop-pane">📝 SOPs</button>
+    <button class="tab-btn" data-pane="qm-ncr-pane">🚨 NCR &amp; CAPA</button>
+    <button class="tab-btn" data-pane="qm-iso-pane">🏆 ISO 15189</button>
+  </div>
+
+  <div class="qm-body">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div class="tab-pane active" id="qm-dashboard-pane">
+      <div class="qm-kpi-strip">
+        <div class="qm-kpi-card">
+          <div class="qm-kpi-icon">📐</div>
+          <div>
+            <div class="qm-kpi-val" id="kpi-iqc-pass" style="color:var(--alert-green)">—</div>
+            <div class="qm-kpi-lbl">IQC Pass Rate</div>
+          </div>
+        </div>
+        <div class="qm-kpi-card">
+          <div class="qm-kpi-icon">🌍</div>
+          <div>
+            <div class="qm-kpi-val" id="kpi-eqa-pass" style="color:var(--alert-green)">—</div>
+            <div class="qm-kpi-lbl">EQA Pass Rate</div>
+          </div>
+        </div>
+        <div class="qm-kpi-card">
+          <div class="qm-kpi-icon">🚨</div>
+          <div>
+            <div class="qm-kpi-val" id="kpi-open-ncr" style="color:var(--alert-orange)">—</div>
+            <div class="qm-kpi-lbl">Open NCRs</div>
+          </div>
+        </div>
+        <div class="qm-kpi-card">
+          <div class="qm-kpi-icon">⏰</div>
+          <div>
+            <div class="qm-kpi-val" id="kpi-overdue-capa" style="color:var(--alert-red)">—</div>
+            <div class="qm-kpi-lbl">Overdue CAPAs</div>
+          </div>
+        </div>
+        <div class="qm-kpi-card">
+          <div class="qm-kpi-icon">🏆</div>
+          <div>
+            <div class="qm-kpi-val" id="kpi-iso-score" style="color:var(--cyan)">—</div>
+            <div class="qm-kpi-lbl">ISO Compliance</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:var(--space-lg);padding:var(--space-xl)">
+        <div class="glass-panel" style="padding:var(--space-lg)">
+          <div class="chart-header"><div class="chart-title">📐 IQC — Glucose Control (Last 20 runs)</div></div>
+          <div style="height:180px"><canvas id="lj-dash-chart"></canvas></div>
+          <div id="lj-dash-rule" style="margin-top:var(--space-sm)"></div>
+        </div>
+        <div class="glass-panel" style="padding:var(--space-lg)">
+          <div class="chart-header"><div class="chart-title">📋 Recent Non-Conformities</div></div>
+          <div id="ncr-dash-list" style="margin-top:var(--space-sm)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ IQC ══ -->
+    <div class="tab-pane" id="qm-iqc-pane">
+      <div class="iqc-controls">
+        <select class="fi" id="iqc-analyte" style="width:180px">
+          <option value="glucose">Glucose</option><option value="creatinine">Creatinine</option>
+          <option value="hgb">Haemoglobin</option><option value="sodium">Sodium</option>
+          <option value="potassium">Potassium</option><option value="cholesterol">Cholesterol</option>
+          <option value="alt">ALT</option><option value="ast">AST</option>
+        </select>
+        <select class="fi" id="iqc-level" style="width:120px">
+          <option value="low">Low Control</option><option value="normal">Normal Control</option><option value="high">High Control</option>
+        </select>
+        <select class="fi" id="iqc-days" style="width:120px">
+          <option value="20">Last 20 runs</option><option value="30">Last 30 runs</option><option value="60">Last 60 runs</option>
+        </select>
+        <button class="btn btn-primary btn-sm" id="iqc-load-btn">📐 Load IQC Data</button>
+      </div>
+
+      <div class="iqc-stats-row" id="iqc-stats-row" style="display:none">
+        <div class="iqc-stat"><div class="iqc-stat-lbl">Mean</div><div class="iqc-stat-val" id="iqc-mean">—</div></div>
+        <div class="iqc-stat"><div class="iqc-stat-lbl">SD</div><div class="iqc-stat-val" id="iqc-sd">—</div></div>
+        <div class="iqc-stat"><div class="iqc-stat-lbl">CV%</div><div class="iqc-stat-val" id="iqc-cv">—</div></div>
+        <div class="iqc-stat"><div class="iqc-stat-lbl">Bias%</div><div class="iqc-stat-val" id="iqc-bias">—</div></div>
+        <div class="iqc-stat"><div class="iqc-stat-lbl">Runs</div><div class="iqc-stat-val" id="iqc-runs">—</div></div>
+        <div class="iqc-stat"><div class="iqc-stat-lbl">Westgard Violations</div><div class="iqc-stat-val" id="iqc-violations" style="color:var(--alert-red)">—</div></div>
+      </div>
+
+      <div id="iqc-westgard-alert" style="display:none" class="westgard-alert"></div>
+
+      <div class="lj-chart-container">
+        <canvas id="lj-main-chart"></canvas>
+      </div>
+
+      <div class="iqc-legend">
+        <span class="lj-legend-item"><span class="lj-dot" style="background:#00E676"></span> Pass</span>
+        <span class="lj-legend-item"><span class="lj-dot" style="background:#FFD600"></span> 1:2S Warning</span>
+        <span class="lj-legend-item"><span class="lj-dot" style="background:#FF1744"></span> Reject</span>
+        <span class="lj-legend-item"><span style="display:inline-block;width:24px;height:2px;background:#FFD600;vertical-align:middle;margin-right:4px"></span> ±2SD</span>
+        <span class="lj-legend-item"><span style="display:inline-block;width:24px;height:2px;background:#FF1744;vertical-align:middle;margin-right:4px"></span> ±3SD</span>
+      </div>
+    </div>
+
+    <!-- ══ EQA ══ -->
+    <div class="tab-pane" id="qm-eqa-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-lg)">
+          <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary)">🌍 EQA Participation Register</h2>
+          <button class="btn btn-primary btn-sm">➕ Add Program</button>
+        </div>
+        <table class="nx-table">
+          <thead><tr>
+            <th>🌍 Program</th><th>Provider</th><th>Analytes</th><th>Cycle</th>
+            <th>Submission Deadline</th><th>Z-Score</th><th>Status</th><th>Action</th>
+          </tr></thead>
+          <tbody id="eqa-table-body"></tbody>
+        </table>
+        <div style="margin-top:var(--space-xl)">
+          <div class="chart-header"><div class="chart-title">📊 Z-Score Performance (Last 4 cycles)</div></div>
+          <div style="height:200px;padding-top:var(--space-md)"><canvas id="eqa-zscore-chart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SOPs ══ -->
+    <div class="tab-pane" id="qm-sop-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-lg);flex-wrap:wrap;gap:var(--space-md)">
+          <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary)">📝 SOP Document Library</h2>
+          <div style="display:flex;gap:var(--space-sm)">
+            <input type="text" class="fi" id="sop-search" placeholder="🔍 Search SOPs…" style="width:220px">
+            <select class="fi" id="sop-filter-dept" style="width:140px">
+              <option value="">All Departments</option>
+              <option>Hematology</option><option>Chemistry</option><option>Microbiology</option>
+              <option>Blood Bank</option><option>Serology</option><option>Quality</option>
+            </select>
+            <button class="btn btn-primary btn-sm">➕ New SOP</button>
+          </div>
+        </div>
+        <table class="nx-table">
+          <thead><tr>
+            <th>📋 Code</th><th>Title</th><th>Department</th><th>Version</th>
+            <th>Review Date</th><th>Staff Signoffs</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="sop-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ NCR & CAPA ══ -->
+    <div class="tab-pane" id="qm-ncr-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-lg)">
+          <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary)">🚨 Non-Conformities &amp; CAPA</h2>
+          <button class="btn btn-primary btn-sm" id="new-ncr-btn">➕ Report NCR</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-lg)">
+          <div>
+            <div class="qm-section-title">📋 Open Non-Conformities</div>
+            <table class="nx-table" style="margin-top:var(--space-md)">
+              <thead><tr><th>NCR#</th><th>Type</th><th>Severity</th><th>Owner</th><th>Due</th><th>Status</th></tr></thead>
+              <tbody id="ncr-table-body"></tbody>
+            </table>
+          </div>
+          <div>
+            <div class="qm-section-title">🔧 CAPA Tracker</div>
+            <div id="capa-list" style="margin-top:var(--space-md)"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ISO 15189 ══ -->
+    <div class="tab-pane" id="qm-iso-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:var(--space-xl);align-items:start">
+          <div class="compliance-gauge-wrap">
+            <svg width="160" height="160" viewBox="0 0 160 160">
+              <circle cx="80" cy="80" r="68" fill="none" stroke="var(--border-dim)" stroke-width="14"/>
+              <circle cx="80" cy="80" r="68" fill="none" stroke="var(--cyan)" stroke-width="14"
+                stroke-dasharray="427" stroke-dashoffset="128" stroke-linecap="round"
+                transform="rotate(-90 80 80)" id="iso-gauge-arc"/>
+            </svg>
+            <div class="compliance-pct" id="iso-compliance-pct">70%</div>
+            <div class="compliance-label">ISO Compliance</div>
+          </div>
+          <div>
+            <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);margin-bottom:var(--space-lg)">🏆 ISO 15189:2022 Compliance Checklist</h2>
+            <div style="display:flex;gap:var(--space-sm);margin-bottom:var(--space-md);flex-wrap:wrap">
+              <button class="btn btn-ghost btn-sm iso-filter-btn active" data-filter="">All Clauses</button>
+              <button class="btn btn-ghost btn-sm iso-filter-btn" data-filter="non_compliant">❌ Non-Compliant</button>
+              <button class="btn btn-ghost btn-sm iso-filter-btn" data-filter="partial">⚠️ Partial</button>
+              <button class="btn btn-ghost btn-sm iso-filter-btn" data-filter="compliant">✅ Compliant</button>
+            </div>
+            <div id="iso-checklist"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /qm-body -->
+</div>
+
+<!-- New NCR Modal -->
+<div class="modal-overlay" id="ncr-modal-overlay" style="display:none" role="dialog">
+  <div class="modal glass-card" style="max-width:500px">
+    <div class="modal-header">
+      <h3 class="modal-title">🚨 Report Non-Conformity</h3>
+      <button class="btn-icon" id="ncr-modal-close"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-md)">
+      <div class="form-group"><label class="form-label">Type</label>
+        <select class="form-input" id="ncr-type">
+          <option>Pre-analytical</option><option>Analytical</option><option>Post-analytical</option>
+          <option>Administrative</option><option>Patient Safety</option><option>Equipment</option>
+        </select></div>
+      <div class="form-group"><label class="form-label">Severity</label>
+        <select class="form-input" id="ncr-severity">
+          <option value="minor">Minor</option><option value="moderate">Moderate</option>
+          <option value="major">Major</option><option value="critical">Critical</option>
+        </select></div>
+      <div class="form-group"><label class="form-label">Description</label>
+        <textarea class="form-input fi fi-ta" id="ncr-desc" placeholder="Describe the non-conformity…"></textarea></div>
+      <div class="form-group"><label class="form-label">Immediate Action Taken</label>
+        <textarea class="form-input fi fi-ta" id="ncr-action" placeholder="Immediate containment action…" style="min-height:60px"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="ncr-cancel-btn">Cancel</button>
+      <button class="btn btn-primary" id="ncr-submit-btn">📋 Submit NCR</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/quality/js/quality.js' %}" defer></script>
+{% endblock %}

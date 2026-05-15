@@ -1,0 +1,267 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}🔮 Reports — NEXUS ALIS-X{% endblock %}
+{% block module_id %}reports{% endblock %}
+{% block nav_active_reports %}active{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/reports/css/reports.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="reports-main">
+
+  <header class="page-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(255,214,0,0.08);border-color:rgba(255,214,0,0.18);color:var(--gold)">
+        <span style="font-size:20px">🔮</span>
+      </div>
+      <div>
+        <h1 class="page-title">Reports &amp; Analytics</h1>
+        <div class="page-subtitle">{{ today|date:"l, d F Y" }} · ALIS-X Intelligence</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <select class="fi" style="width:auto;padding:6px 12px;font-size:var(--text-xs)" id="report-period">
+        <option value="today">📅 Today</option>
+        <option value="week">📆 This Week</option>
+        <option value="month" selected>🗓️ This Month</option>
+        <option value="quarter">📊 Quarter</option>
+      </select>
+      <button class="btn btn-primary btn-sm" id="export-btn">
+        <span>📤</span> Export
+      </button>
+    </div>
+  </header>
+
+  <!-- Report nav tabs -->
+  <div class="tab-nav reports-tab-nav" role="tablist">
+    <button class="tab-btn active" data-pane="overview-pane" role="tab">📊 Overview</button>
+    <button class="tab-btn" data-pane="lab-results-pane" role="tab">📄 Lab Results</button>
+    <button class="tab-btn" data-pane="tat-pane" role="tab">⏱️ TAT Analysis</button>
+    <button class="tab-btn" data-pane="epi-pane" role="tab">🦠 Epidemiology</button>
+    <button class="tab-btn" data-pane="financial-pane" role="tab">💰 Financial</button>
+  </div>
+
+  <div class="reports-body">
+
+    <!-- ══ OVERVIEW ══ -->
+    <div class="tab-pane active" id="overview-pane">
+      <div class="reports-kpi-row">
+
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:rgba(0,153,255,0.1);border-color:rgba(0,153,255,0.2)">🧬</div>
+          <div class="kpi-value" id="kpi-patients">—</div>
+          <div class="kpi-label">Total Patients</div>
+          <div class="kpi-trend kpi-up"><i class="fas fa-arrow-trend-up"></i> Period total</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:rgba(0,230,118,0.09);border-color:rgba(0,230,118,0.18)">✅</div>
+          <div class="kpi-value" id="kpi-tests">—</div>
+          <div class="kpi-label">Tests Completed</div>
+          <div class="kpi-trend kpi-up"><i class="fas fa-arrow-trend-up"></i> All departments</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:rgba(255,109,0,0.08);border-color:rgba(255,109,0,0.18)">⏱️</div>
+          <div class="kpi-value" id="kpi-tat">—<span style="font-size:16px">m</span></div>
+          <div class="kpi-label">Avg TAT</div>
+          <div class="kpi-trend kpi-neutral"><i class="fas fa-minus"></i> Turnaround time</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:rgba(255,23,68,0.08);border-color:rgba(255,23,68,0.18)">🚨</div>
+          <div class="kpi-value" id="kpi-critical">—</div>
+          <div class="kpi-label">Critical Results</div>
+          <div class="kpi-trend kpi-down"><i class="fas fa-arrow-trend-down"></i> Flagged results</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:rgba(0,255,221,0.07);border-color:rgba(0,255,221,0.14)">💰</div>
+          <div class="kpi-value" id="kpi-revenue">—</div>
+          <div class="kpi-label">Revenue (RWF)</div>
+          <div class="kpi-trend kpi-up"><i class="fas fa-arrow-trend-up"></i> Billed amount</div>
+        </div>
+
+      </div><!-- /kpi-row -->
+
+      <!-- Charts section -->
+      <div class="reports-charts-row">
+        <div class="chart-card report-chart-lg">
+          <div class="chart-header">
+            <div class="chart-title"><span>📈</span> Daily Test Volume — {{ today|date:"F Y" }}</div>
+          </div>
+          <div class="chart-body">
+            <div class="chart-canvas-wrap" style="height:240px">
+              <canvas id="rpt-bar-chart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title"><span>🍩</span> Dept Distribution</div>
+          </div>
+          <div class="chart-body">
+            <div class="chart-canvas-wrap" style="height:200px">
+              <canvas id="rpt-dept-pie"></canvas>
+            </div>
+            <div class="pie-legend" id="rpt-dept-legend"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Department summary table -->
+      <div class="glass-panel" style="margin-top:var(--space-lg);overflow:hidden">
+        <div class="chart-header">
+          <div class="chart-title"><span>🧩</span> Department Breakdown</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="nx-table" id="dept-summary-table">
+            <thead>
+              <tr>
+                <th>🧩 Department</th>
+                <th>🧬 Tests</th>
+                <th>✅ Completed</th>
+                <th>⏳ Pending</th>
+                <th>🚨 Critical</th>
+                <th>⏱️ Avg TAT</th>
+                <th>📊 Completion %</th>
+              </tr>
+            </thead>
+            <tbody id="dept-summary-tbody">
+              <tr><td colspan="7"><div class="empty-state" style="padding:var(--space-xl)">
+                <div class="empty-state-icon" style="font-size:28px">📊</div>
+                <p>Loading department data…</p>
+              </div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /overview-pane -->
+
+    <!-- ══ LAB RESULTS ══ -->
+    <div class="tab-pane" id="lab-results-pane">
+      <div class="glass-panel" style="overflow:hidden">
+        <div class="chart-header">
+          <div class="chart-title"><span>📄</span> Lab Results Log</div>
+          <div style="display:flex;gap:var(--space-sm);align-items:center">
+            <div class="search-wrap" style="max-width:220px">
+              <i class="fas fa-magnifying-glass search-icon"></i>
+              <input type="text" class="fi" id="results-search" placeholder="Search patient, test…">
+            </div>
+            <select class="fi" style="width:auto;font-size:var(--text-xs);padding:6px 10px" id="results-filter">
+              <option value="">All results</option>
+              <option value="critical">🚨 Critical only</option>
+              <option value="abnormal">⚠️ Abnormal</option>
+              <option value="normal">✅ Normal</option>
+            </select>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="nx-table" id="results-table">
+            <thead>
+              <tr>
+                <th>🔖 Lab ID</th>
+                <th>🧬 Patient</th>
+                <th>🧪 Test</th>
+                <th>📊 Result</th>
+                <th>📏 Reference</th>
+                <th>⚡ Flag</th>
+                <th>👤 Validated By</th>
+                <th>🕐 Date</th>
+              </tr>
+            </thead>
+            <tbody id="results-tbody">
+              <tr><td colspan="8"><div class="empty-state" style="padding:var(--space-xl)">
+                <div class="empty-state-icon" style="font-size:28px">📄</div>
+                <p>Select a period and click Refresh to load results.</p>
+              </div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TAT ANALYSIS ══ -->
+    <div class="tab-pane" id="tat-pane">
+      <div class="reports-charts-row">
+        <div class="chart-card report-chart-lg">
+          <div class="chart-header">
+            <div class="chart-title"><span>⏱️</span> TAT by Department</div>
+          </div>
+          <div class="chart-body">
+            <div class="chart-canvas-wrap" style="height:260px">
+              <canvas id="tat-bar-chart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title"><span>📊</span> SLA Compliance</div>
+          </div>
+          <div class="chart-body">
+            <div class="chart-canvas-wrap" style="height:200px">
+              <canvas id="sla-pie-chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ EPIDEMIOLOGY ══ -->
+    <div class="tab-pane" id="epi-pane">
+      <div class="epi-coming-soon glass-panel" style="padding:var(--space-3xl);text-align:center">
+        <div style="font-size:64px;margin-bottom:var(--space-md)">🦠</div>
+        <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);margin-bottom:var(--space-sm)">
+          Epidemiological Surveillance
+        </h2>
+        <p style="color:var(--text-secondary);font-size:var(--text-sm);max-width:400px;margin:0 auto;line-height:1.7">
+          AI-powered outbreak detection, disease trend mapping, and national surveillance reporting.
+          Integrated with Rwanda Biomedical Centre reporting pipeline.
+        </p>
+        <div style="display:flex;gap:var(--space-md);justify-content:center;margin-top:var(--space-xl);flex-wrap:wrap">
+          <div class="epi-badge"><span>🌍</span> Disease Mapping</div>
+          <div class="epi-badge"><span>📡</span> Real-time Alerts</div>
+          <div class="epi-badge"><span>🤖</span> AI Detection</div>
+          <div class="epi-badge"><span>📋</span> HMIS Reports</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ FINANCIAL ══ -->
+    <div class="tab-pane" id="financial-pane">
+      <div class="glass-panel" style="padding:var(--space-3xl);text-align:center">
+        <div style="font-size:64px;margin-bottom:var(--space-md)">💰</div>
+        <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);margin-bottom:var(--space-sm)">
+          Financial Reports
+        </h2>
+        <p style="color:var(--text-secondary);font-size:var(--text-sm);max-width:400px;margin:0 auto;line-height:1.7">
+          Revenue analysis, payment tracking, insurance claims summary, and daily/monthly financial reconciliation.
+        </p>
+      </div>
+    </div>
+
+  </div><!-- /reports-body -->
+</div>
+{% endblock %}
+
+{% block module_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+<script>
+'use strict';
+document.addEventListener('DOMContentLoaded', function() {
+  /* Tab switching */
+  document.querySelectorAll('.reports-tab-nav .tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.reports-tab-nav .tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      var pane = document.getElementById(btn.dataset.pane);
+      if (pane) pane.classList.add('active');
+    });
+  });
+});
+</script>
+{% endblock %}

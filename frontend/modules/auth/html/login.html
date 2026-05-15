@@ -1,0 +1,229 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#020818">
+  <title>{{ page_title|default:"Secure Login — ALIS-X" }}</title>
+  <link rel="stylesheet" href="{% static 'modules/auth/css/login.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
+</head>
+<body>
+
+<div class="login-page">
+
+  <!-- ══════ LEFT — BRAND PANEL ══════ -->
+  <div class="brand-panel">
+
+    <!-- Top logo -->
+    <div class="brand-top">
+      <div class="brand-logo-mark">N</div>
+      <div class="brand-logo-text">
+        <span class="brand-name">JORINOVA NEXUS</span>
+        <span class="brand-sub">ALIS-X · v{{ system_version|default:"1.0" }}</span>
+      </div>
+    </div>
+
+    <!-- Center copy -->
+    <div class="brand-center">
+      <h1 class="brand-headline">
+        Advanced<br>
+        <span>Laboratory</span><br>
+        Intelligence
+      </h1>
+      <p class="brand-tagline">Precision · Speed · Intelligence</p>
+      <p class="brand-desc">
+        A unified medical laboratory operating system — real-time sample tracking,
+        AI-assisted diagnostics, genomics, and outbreak surveillance in one platform.
+      </p>
+
+      <div class="brand-features">
+        <div class="feature-pill">
+          <i class="fas fa-flask"></i>
+          <div><span>Multi-Department Lab Worklist</span> — Hematology, Chemistry, Microbiology &amp; more</div>
+        </div>
+        <div class="feature-pill">
+          <i class="fas fa-dna"></i>
+          <div><span>Genomic Intelligence</span> — DNA sequencing &amp; variant detection</div>
+        </div>
+        <div class="feature-pill">
+          <i class="fas fa-shield-virus"></i>
+          <div><span>Epidemic Surveillance</span> — AI outbreak detection &amp; national reporting</div>
+        </div>
+        <div class="feature-pill">
+          <i class="fas fa-clock"></i>
+          <div><span>Shift Intelligence</span> — Real-time TAT tracking across all shifts</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom hospital badge -->
+    <div class="brand-bottom">
+      <div class="hospital-badge">
+        <div class="hospital-icon">
+          {% if hospital_logo %}
+          <img src="{{ hospital_logo }}" alt="{{ hospital_name }} logo">
+          {% else %}
+          <i class="fas fa-hospital"></i>
+          {% endif %}
+        </div>
+        <div>
+          <div class="hospital-name">{{ hospital_name|default:"General Hospital" }}</div>
+          <div class="hospital-meta">NEXUS ALIS-X · Secure Access Portal</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /brand-panel -->
+
+  <!-- ══════ RIGHT — FORM PANEL ══════ -->
+  <div class="form-panel">
+    <div class="login-card">
+
+      <!-- Card header -->
+      <div class="card-header">
+        <div class="card-icon"><i class="fas fa-lock"></i></div>
+        <h2 class="card-title">Secure Sign In</h2>
+        <p class="card-subtitle">Enter your NEXUS credentials to continue</p>
+      </div>
+
+      <!-- Session timeout banner -->
+      {% if session_timeout %}
+      <div class="alert-banner alert-timeout" role="alert" id="timeout-banner">
+        <i class="fas fa-clock"></i>
+        <span>Your session expired due to inactivity. Please sign in again.</span>
+      </div>
+      {% endif %}
+
+      <!-- Error banner -->
+      {% if error %}
+      <div class="alert-banner alert-error" role="alert" id="error-banner">
+        <i class="fas fa-triangle-exclamation"></i>
+        <span>{{ error }}</span>
+      </div>
+      {% endif %}
+
+      <!-- Login form -->
+      <form class="login-form" method="post" action="" id="login-form" novalidate>
+        {% csrf_token %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+        <!-- Username -->
+        <div class="field-group">
+          <label class="field-label" for="id_username">Username or Employee ID</label>
+          <div class="field-input-wrap">
+            <input
+              type="text"
+              id="id_username"
+              name="username"
+              class="field-input {% if error %}field-error{% endif %}"
+              placeholder="username or EMP-001"
+              value="{{ request.POST.username|default:'' }}"
+              autocomplete="username"
+              autocorrect="off"
+              autocapitalize="none"
+              spellcheck="false"
+              required
+              autofocus>
+            <i class="fas fa-user field-icon"></i>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="field-group">
+          <label class="field-label" for="id_password">Password</label>
+          <div class="field-input-wrap">
+            <input
+              type="password"
+              id="id_password"
+              name="password"
+              class="field-input {% if error %}field-error{% endif %}"
+              placeholder="••••••••••••"
+              autocomplete="current-password"
+              required>
+            <i class="fas fa-key field-icon"></i>
+            <button type="button" class="pwd-toggle" id="pwd-toggle" aria-label="Toggle password visibility">
+              <i class="fas fa-eye" id="pwd-icon"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Options row -->
+        <div class="form-options">
+          <label class="remember-label">
+            <input type="checkbox" name="remember_me" id="remember-me">
+            <span class="check-box"><i class="fas fa-check"></i></span>
+            <span>Remember me</span>
+          </label>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="btn-signin" id="btn-signin">
+          <i class="fas fa-right-to-bracket"></i>
+          <span class="btn-text">Sign In to NEXUS</span>
+        </button>
+
+      </form><!-- /login-form -->
+
+      <!-- Security note -->
+      <div class="security-note">
+        <i class="fas fa-shield-halved"></i>
+        <span>256-bit encrypted · Session-secured · Audit-logged</span>
+      </div>
+
+    </div><!-- /login-card -->
+
+    <!-- Footer -->
+    <div class="form-footer">
+      JORINOVA NEXUS ALIS-X · {{ hospital_name|default:"General Hospital" }}<br>
+      Authorized personnel only — All access is monitored and recorded
+    </div>
+
+  </div><!-- /form-panel -->
+
+</div><!-- /login-page -->
+
+<script>
+(function() {
+  /* Password visibility toggle */
+  const pwdInput  = document.getElementById('id_password');
+  const pwdToggle = document.getElementById('pwd-toggle');
+  const pwdIcon   = document.getElementById('pwd-icon');
+  pwdToggle?.addEventListener('click', () => {
+    const isHidden = pwdInput.type === 'password';
+    pwdInput.type  = isHidden ? 'text' : 'password';
+    pwdIcon.className = isHidden ? 'fas fa-eye-slash' : 'fas fa-eye';
+  });
+
+  /* Loading state on submit */
+  const form   = document.getElementById('login-form');
+  const btnIn  = document.getElementById('btn-signin');
+  form?.addEventListener('submit', e => {
+    const u = document.getElementById('id_username').value.trim();
+    const p = document.getElementById('id_password').value;
+    if (!u || !p) {
+      e.preventDefault();
+      document.getElementById('id_username').classList.toggle('field-error', !u);
+      document.getElementById('id_password').classList.toggle('field-error', !p);
+      return;
+    }
+    btnIn.classList.add('loading');
+    btnIn.disabled = true;
+  });
+
+  /* Auto-dismiss banners */
+  ['error-banner', 'timeout-banner'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) setTimeout(() => {
+      b.style.transition = 'opacity 0.4s';
+      b.style.opacity = '0';
+      setTimeout(() => b.remove(), 400);
+    }, 7000);
+  });
+})();
+</script>
+
+</body>
+</html>

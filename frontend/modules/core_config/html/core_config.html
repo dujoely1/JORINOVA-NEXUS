@@ -1,0 +1,195 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}⚙️ Core Configuration — NEXUS ALIS-X{% endblock %}
+{% block module_id %}core-config{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/core_config/css/core_config.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="cfg-main">
+
+  <header class="page-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(255,200,0,0.09);border-color:rgba(255,200,0,0.22);color:#FFC800">
+        <span style="font-size:20px">⚙️</span>
+      </div>
+      <div>
+        <h1 class="page-title">⚙️ Core Configuration</h1>
+        <div class="page-subtitle">Hospital Setup · Departments · Test Catalog · Shifts · Users · Reference Ranges</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <span class="badge badge-blue">{{ hospital.name|default:"NEXUS LAB" }}</span>
+    </div>
+  </header>
+
+  <div class="tab-nav cfg-tab-nav" role="tablist">
+    <button class="tab-btn active" data-pane="cfg-hospital-pane">🏥 Hospital</button>
+    <button class="tab-btn" data-pane="cfg-departments-pane">🧪 Departments</button>
+    <button class="tab-btn" data-pane="cfg-catalog-pane">📋 Test Catalog</button>
+    <button class="tab-btn" data-pane="cfg-shifts-pane">🕐 Shifts</button>
+    <button class="tab-btn" data-pane="cfg-users-pane">👥 Users</button>
+    <button class="tab-btn" data-pane="cfg-refrange-pane">📊 Reference Ranges</button>
+    <button class="tab-btn" data-pane="cfg-labels-pane">🏷️ Label Templates</button>
+  </div>
+
+  <div class="cfg-body">
+
+    <!-- HOSPITAL -->
+    <div class="tab-pane active" id="cfg-hospital-pane">
+      <div style="max-width:700px;margin:0 auto;padding:var(--space-xl)">
+        <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);margin-bottom:var(--space-lg)">🏥 Hospital Profile</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-lg)">
+          <div class="form-group"><label class="form-label">Hospital Name</label><input class="form-input" value="{{ hospital.name|default:'' }}" id="cfg-hosp-name"></div>
+          <div class="form-group"><label class="form-label">Abbreviation / Code</label><input class="form-input" value="{{ hospital.code|default:'' }}" id="cfg-hosp-code"></div>
+          <div class="form-group"><label class="form-label">Address</label><input class="form-input" value="{{ hospital.address|default:'' }}"></div>
+          <div class="form-group"><label class="form-label">District / Province</label><input class="form-input" value="{{ hospital.district|default:'' }}"></div>
+          <div class="form-group"><label class="form-label">Phone</label><input class="form-input" value="{{ hospital.phone|default:'' }}"></div>
+          <div class="form-group"><label class="form-label">Email</label><input class="form-input" value="{{ hospital.email|default:'' }}"></div>
+          <div class="form-group"><label class="form-label">License Number</label><input class="form-input" placeholder="MOH lab license…"></div>
+          <div class="form-group"><label class="form-label">ISO Accreditation</label>
+            <select class="form-input"><option>ISO 15189:2022 (Pursuing)</option><option>ISO 15189:2022 (Accredited)</option><option>CAP Accredited</option><option>None</option></select>
+          </div>
+          <div class="form-group" style="grid-column:1/-1"><label class="form-label">🖊️ Authorized Signatory (Administrative Docs)</label>
+            <input class="form-input" placeholder="Name of Lab Director / Authorized Signatory for post-quantum signature…"></div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:var(--space-lg)" id="cfg-save-hosp-btn">💾 Save Hospital Settings</button>
+      </div>
+    </div>
+
+    <!-- DEPARTMENTS -->
+    <div class="tab-pane" id="cfg-departments-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-lg)">
+          <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary)">🧪 Laboratory Departments</h2>
+          <button class="btn btn-primary btn-sm" id="add-dept-btn">➕ Add Department</button>
+        </div>
+        <table class="nx-table">
+          <thead><tr><th>Code</th><th>Name</th><th>Abbreviation</th><th>Color</th><th>Tube Color</th><th>Tests</th><th>Active</th><th>Actions</th></tr></thead>
+          <tbody id="dept-table-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TEST CATALOG -->
+    <div class="tab-pane" id="cfg-catalog-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:var(--space-lg);flex-wrap:wrap">
+          <div class="worklist-search-wrap" style="flex:1;max-width:300px">
+            <i class="fas fa-magnifying-glass"></i>
+            <input type="text" id="catalog-search" class="worklist-search" placeholder="Search tests…">
+          </div>
+          <select class="filter-select" id="catalog-dept-filter"><option value="">All departments</option></select>
+          <select class="filter-select"><option>All statuses</option><option>Active</option><option>Inactive</option></select>
+          <button class="btn btn-primary btn-sm">➕ Add Test</button>
+          <button class="btn btn-ghost btn-sm">📤 Import CSV</button>
+        </div>
+        <table class="nx-table">
+          <thead><tr>
+            <th>Code</th><th>Test Name</th><th>Short Name</th><th>Department</th>
+            <th>Tube Type</th><th>Specimen</th><th>TAT (hrs)</th><th>Price (RWF)</th><th>Active</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="catalog-table-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SHIFTS -->
+    <div class="tab-pane" id="cfg-shifts-pane">
+      <div style="max-width:600px;margin:0 auto;padding:var(--space-xl)">
+        <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);margin-bottom:var(--space-lg)">🕐 Shift Intelligence Configuration</h2>
+        <div id="shifts-config"></div>
+        <button class="btn btn-primary" style="margin-top:var(--space-lg)">💾 Save Shift Times</button>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="tab-pane" id="cfg-users-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-lg)">
+          <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary)">👥 User Management</h2>
+          <button class="btn btn-primary btn-sm">➕ Add User</button>
+        </div>
+        <table class="nx-table">
+          <thead><tr><th>👤 Name</th><th>Email</th><th>Role</th><th>Department</th><th>Last Login</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="users-table-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REFERENCE RANGES -->
+    <div class="tab-pane" id="cfg-refrange-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:var(--space-lg);flex-wrap:wrap">
+          <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);flex:1">📊 Reference Range Configuration</h2>
+          <select class="filter-select" id="refrange-test-filter"><option>Glucose</option><option>CBC</option><option>Creatinine</option></select>
+          <button class="btn btn-primary btn-sm">➕ Add Range</button>
+        </div>
+        <div style="background:rgba(0,153,255,.05);border:1px solid rgba(0,153,255,.15);border-radius:var(--radius-md);padding:var(--space-md);margin-bottom:var(--space-lg);font-size:var(--text-xs);color:var(--text-secondary)">
+          🧬 Reference ranges are age/gender/condition specific. Configure separate ranges for Adult Male, Adult Female, Paediatric, Neonatal, Pregnancy.
+        </div>
+        <table class="nx-table">
+          <thead><tr><th>Test</th><th>Population</th><th>Gender</th><th>Age From</th><th>Age To</th><th>Low</th><th>High</th><th>Critical Low</th><th>Critical High</th><th>Unit</th><th>Actions</th></tr></thead>
+          <tbody id="refrange-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LABEL TEMPLATES -->
+    <div class="tab-pane" id="cfg-labels-pane">
+      <div style="padding:var(--space-xl)">
+        <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);margin-bottom:var(--space-lg)">🏷️ Specimen Label Configuration</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-xl)">
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:var(--space-md)">Label Settings</div>
+            <div style="display:flex;flex-direction:column;gap:var(--space-md)">
+              <div class="form-group"><label class="form-label">Label Width (mm)</label><input class="form-input" value="50" type="number"></div>
+              <div class="form-group"><label class="form-label">Label Height (mm)</label><input class="form-input" value="25" type="number"></div>
+              <div class="form-group"><label class="form-label">Barcode Type</label>
+                <select class="form-input"><option>Code 128</option><option>QR Code</option><option>Code 39</option><option>DataMatrix</option></select>
+              </div>
+              <div class="form-group"><label class="form-label">Fields to Print</label>
+                <div style="display:flex;flex-direction:column;gap:5px">
+                  <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer"><input type="checkbox" checked> Patient Name</label>
+                  <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer"><input type="checkbox" checked> PID / LID</label>
+                  <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer"><input type="checkbox" checked> Lab ID (Barcode)</label>
+                  <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer"><input type="checkbox" checked> Department</label>
+                  <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer"><input type="checkbox" checked> Tube Type + Color</label>
+                  <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer"><input type="checkbox" checked> Collection Date/Time</label>
+                  <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer"><input type="checkbox" checked> Shift Identifier</label>
+                  <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer"><input type="checkbox"> ☣️ Biohazard (if high-risk)</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:var(--space-md)">Label Preview</div>
+            <div class="cfg-label-preview">
+              <div class="cfg-label-tube" id="cfg-preview-tube" style="background:#9B59B6"></div>
+              <div class="cfg-label-content">
+                <div class="cfg-label-patient">KAMANZI Jean · M 34y</div>
+                <div class="cfg-label-pid">PID-20240515-A3X2 | LID: NXS-LID-2024-0000142</div>
+                <div class="cfg-label-dept">HEMATOLOGY — Purple EDTA</div>
+                <div class="cfg-label-barcode">||||| |||| ||||||||| ||||</div>
+                <div class="cfg-label-meta">15/05/2026 09:32 | ☀️ Morning Shift</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:var(--space-sm);margin-top:var(--space-md)">
+              <button class="btn btn-primary btn-sm">🖨️ Print Test Label</button>
+              <button class="btn btn-ghost btn-sm">💾 Save Template</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /cfg-body -->
+</div>
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/core_config/js/core_config.js' %}" defer></script>
+{% endblock %}

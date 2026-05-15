@@ -1,0 +1,198 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}🏷️ Specimen Tracking — NEXUS ALIS-X{% endblock %}
+{% block module_id %}specimen-tracking{% endblock %}
+{% block nav_active_reception %}active{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/specimen_tracking/css/specimen_tracking.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="spec-track-main">
+
+  <header class="page-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(0,230,200,0.09);border-color:rgba(0,230,200,0.22);color:#00E6C8">
+        <span style="font-size:20px">🏷️</span>
+      </div>
+      <div>
+        <h1 class="page-title">🏷️ Specimen Tracking &amp; Labeling</h1>
+        <div class="page-subtitle">{{ today|date:"l, d F Y" }} · Barcode Labels · Chain of Custody · AI Verification · QR Tracking</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <button class="btn btn-primary btn-sm" id="scan-barcode-btn">📷 Scan Barcode</button>
+    </div>
+  </header>
+
+  <div class="tab-nav spec-tab-nav" role="tablist">
+    <button class="tab-btn active" data-pane="spec-labels-pane">🏷️ Print Labels</button>
+    <button class="tab-btn" data-pane="spec-tracking-pane">🔍 Track Sample</button>
+    <button class="tab-btn" data-pane="spec-custody-pane">⛓️ Chain of Custody</button>
+    <button class="tab-btn" data-pane="spec-rejection-pane">❌ Rejection Workflow</button>
+    <button class="tab-btn" data-pane="spec-ai-pane">🤖 AI Verification</button>
+  </div>
+
+  <div class="spec-body">
+
+    <!-- ══ PRINT LABELS ══ -->
+    <div class="tab-pane active" id="spec-labels-pane">
+      <div style="display:grid;grid-template-columns:350px 1fr;min-height:calc(100vh - 180px)">
+        <div style="border-right:1px solid var(--border-dim);padding:var(--space-xl);display:flex;flex-direction:column;gap:var(--space-md)">
+          <div style="font-family:var(--font-display);font-size:var(--text-sm);font-weight:700;color:var(--text-primary)">🏷️ Label Generator</div>
+          <div class="form-group"><label class="form-label">🔖 Lab Request ID</label>
+            <input type="text" class="form-input" id="label-lab-id" placeholder="Scan or enter Lab ID…"></div>
+          <div class="form-group"><label class="form-label">📐 Label Size</label>
+            <select class="form-input" id="label-size">
+              <option value="standard">Standard 50×25mm (Tube)</option>
+              <option value="large">Large 75×35mm (Container)</option>
+              <option value="small">Small 35×15mm (Micro-tube)</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">📱 Barcode Type</label>
+            <select class="form-input" id="label-barcode-type">
+              <option value="code128">Code 128 (Standard)</option>
+              <option value="qr">QR Code (Full data)</option>
+              <option value="datamatrix">DataMatrix (Compact)</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">🖨️ Copies</label>
+            <input type="number" class="form-input" id="label-copies" value="1" min="1" max="10"></div>
+          <div style="background:var(--bg-glass);border:1px solid var(--border-dim);border-radius:var(--radius-md);padding:var(--space-md)">
+            <label style="display:flex;align-items:center;gap:var(--space-sm);cursor:pointer;font-size:var(--text-xs)">
+              <input type="checkbox" id="label-ai-verify" checked> 🤖 AI specimen verification before printing
+            </label>
+          </div>
+          <button class="btn btn-primary" id="generate-labels-btn">🏷️ Generate &amp; Print Labels</button>
+          <button class="btn btn-ghost btn-sm" id="demo-label-btn">👁️ Preview Demo Label</button>
+        </div>
+
+        <!-- Label preview area -->
+        <div style="padding:var(--space-xl)">
+          <div style="font-family:var(--font-display);font-size:var(--text-sm);font-weight:700;color:var(--text-primary);margin-bottom:var(--space-lg)">Preview</div>
+          <div id="label-preview-area">
+            <div class="empty-state"><div style="font-size:40px">🏷️</div><p>Enter a Lab Request ID to generate specimen labels</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TRACK SAMPLE ══ -->
+    <div class="tab-pane" id="spec-tracking-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="max-width:500px;margin:0 auto 0 0">
+          <div style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);margin-bottom:var(--space-md)">🔍 Sample Status Tracker</div>
+          <div style="display:flex;gap:var(--space-sm);margin-bottom:var(--space-xl)">
+            <input type="text" class="form-input" id="track-input" placeholder="Scan or enter Sample ID / Barcode / Lab ID…" style="flex:1">
+            <button class="btn btn-primary" id="track-btn">🔍 Track</button>
+          </div>
+        </div>
+        <div id="track-result"></div>
+
+        <!-- Current worklist samples -->
+        <div style="margin-top:var(--space-xl)">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:var(--space-md)">📋 Today's Active Samples</div>
+          <table class="nx-table">
+            <thead><tr><th>Sample ID</th><th>Patient</th><th>Department</th><th>Tube</th><th>Current Status</th><th>TAT</th><th>Location</th></tr></thead>
+            <tbody id="active-samples-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ CHAIN OF CUSTODY ══ -->
+    <div class="tab-pane" id="spec-custody-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:var(--space-lg)">
+          <input type="text" class="form-input" id="custody-sample-id" placeholder="Enter Sample ID to view custody chain…" style="max-width:320px">
+          <button class="btn btn-primary" id="custody-load-btn">⛓️ Load Chain</button>
+        </div>
+        <div id="custody-chain"></div>
+
+        <!-- Recent custody events -->
+        <div style="margin-top:var(--space-xl)">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:var(--space-md)">📋 Recent Custody Events</div>
+          <table class="nx-table">
+            <thead><tr><th>Sample ID</th><th>Event</th><th>Location</th><th>By</th><th>Shift</th><th>Device</th><th>Time</th></tr></thead>
+            <tbody id="custody-events-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ REJECTION WORKFLOW ══ -->
+    <div class="tab-pane" id="spec-rejection-pane">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-xl);padding:var(--space-xl)">
+        <div>
+          <div style="font-family:var(--font-display);font-size:var(--text-lg);color:var(--text-primary);margin-bottom:var(--space-lg)">❌ Reject Sample</div>
+          <div style="display:flex;flex-direction:column;gap:var(--space-md)">
+            <div class="form-group"><label class="form-label">Sample ID / Barcode</label>
+              <input type="text" class="form-input" id="rej-sample-id" placeholder="Scan barcode…"></div>
+            <div class="form-group"><label class="form-label">Rejection Reason</label>
+              <select class="form-input" id="rej-reason">
+                <option value="">Select reason…</option>
+                <option value="haemolysed">🔴 Haemolysed</option>
+                <option value="clotted">🩸 Clotted</option>
+                <option value="insufficient">📉 Insufficient Volume</option>
+                <option value="wrong_tube">🧪 Wrong Tube Type</option>
+                <option value="unlabeled">🏷️ Unlabeled / Mislabeled</option>
+                <option value="contaminated">☣️ Contaminated</option>
+                <option value="expired">⏰ Expired / Delayed (&gt;24h)</option>
+                <option value="lipemic">🍥 Lipemic</option>
+                <option value="temp_deviation">🌡️ Temperature Deviation (Cold-chain breach)</option>
+                <option value="wrong_patient">⚠️ Patient ID Mismatch</option>
+                <option value="leaking">💧 Leaking Container</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Rejection Details</label>
+              <textarea class="form-input fi fi-ta" id="rej-details" rows="3" placeholder="Describe the issue in detail…"></textarea>
+            </div>
+            <label style="display:flex;align-items:center;gap:var(--space-sm);cursor:pointer;font-size:var(--text-xs);padding:var(--space-sm) var(--space-md);background:var(--bg-glass);border:1px solid var(--border-dim);border-radius:var(--radius-md)">
+              <input type="checkbox" id="rej-recollect" checked> ♻️ Notify requesting doctor for recollection
+            </label>
+            <button class="btn btn-danger" id="rej-submit-btn">❌ Reject Sample</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:var(--space-md)">📊 Rejections Today</div>
+          <table class="nx-table">
+            <thead><tr><th>Sample</th><th>Reason</th><th>AI Flag</th><th>Time</th><th>Notified</th></tr></thead>
+            <tbody id="rejections-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ AI VERIFICATION ══ -->
+    <div class="tab-pane" id="spec-ai-pane">
+      <div style="max-width:900px;margin:0 auto;padding:var(--space-xl)">
+        <div style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);margin-bottom:var(--space-sm)">🤖 AI Specimen Verification</div>
+        <div style="font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-xl)">AI analyses specimen photos to detect haemolysis, lipemia, clotting, insufficient volume, and tube mismatch before processing.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-xl)">
+          <div>
+            <div class="smear-upload-zone" id="spec-ai-upload" style="border:2px dashed var(--border-mid);border-radius:var(--radius-lg);padding:var(--space-xl);text-align:center;cursor:pointer">
+              <div style="font-size:40px">📷</div>
+              <div style="font-size:var(--text-sm);color:var(--text-secondary);margin-top:var(--space-sm)">Drop specimen photo here</div>
+              <div style="font-size:var(--text-xs);color:var(--text-muted);margin-top:4px">JPEG · PNG · Camera capture</div>
+              <button class="btn btn-ghost btn-sm" style="margin-top:var(--space-sm)">📁 Browse or Capture</button>
+            </div>
+            <div class="form-group" style="margin-top:var(--space-md)"><label class="form-label">Sample ID (optional)</label>
+              <input type="text" class="form-input" id="ai-verify-sample" placeholder="Link to sample ID…"></div>
+            <button class="btn btn-primary" id="ai-verify-btn" style="width:100%;margin-top:var(--space-sm)">🤖 Run AI Verification</button>
+          </div>
+          <div id="ai-verify-result">
+            <div class="empty-state"><div style="font-size:40px">🤖</div><p>Upload a specimen photo to run AI quality assessment</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /spec-body -->
+</div>
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/specimen_tracking/js/specimen_tracking.js' %}" defer></script>
+{% endblock %}

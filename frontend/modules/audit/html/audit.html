@@ -1,0 +1,186 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}🕵️ Audit Trail — NEXUS ALIS-X{% endblock %}
+{% block module_id %}audit{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/audit/css/audit.css' %}">
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="audit-main">
+
+  <header class="page-header audit-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(255,50,50,0.09);border-color:rgba(255,50,50,0.22);color:#FF5555">
+        <span style="font-size:20px">🕵️</span>
+      </div>
+      <div>
+        <h1 class="page-title">🕵️ Secure Audit Trail</h1>
+        <div class="page-subtitle">🔒 Restricted — Security Administrators Only · ISO 15189 · Forensic Traceability</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <div class="audit-secure-badge">🔐 FORENSIC MODE</div>
+      <button class="btn btn-danger btn-sm" id="audit-export-btn">📤 Export Forensic Report</button>
+    </div>
+  </header>
+
+  <!-- System stats bar -->
+  <div class="audit-stats-bar">
+    <div class="audit-stat"><span>💾</span><div><div class="audit-stat-val" id="as-total">—</div><div class="audit-stat-lbl">Total Events</div></div></div>
+    <div class="audit-stat"><span>⚠️</span><div><div class="audit-stat-val" id="as-suspicious" style="color:var(--alert-orange)">—</div><div class="audit-stat-lbl">Suspicious</div></div></div>
+    <div class="audit-stat"><span>🚨</span><div><div class="audit-stat-val" id="as-violations" style="color:var(--alert-red)">—</div><div class="audit-stat-lbl">Violations</div></div></div>
+    <div class="audit-stat"><span>🔒</span><div><div class="audit-stat-val" id="as-incidents" style="color:var(--alert-red)">—</div><div class="audit-stat-lbl">Incidents</div></div></div>
+    <div class="audit-stat"><span>⚡</span><div><div class="audit-stat-val" id="as-buffer" style="color:var(--alert-green)">—</div><div class="audit-stat-lbl">Buffer Queue</div></div></div>
+    <div class="audit-stat"><span>✅</span><div><div class="audit-stat-val" id="as-status" style="color:var(--alert-green)">Active</div><div class="audit-stat-lbl">Logger Status</div></div></div>
+  </div>
+
+  <div class="tab-nav audit-tab-nav" role="tablist">
+    <button class="tab-btn active" data-pane="audit-events-pane">📋 Event Log</button>
+    <button class="tab-btn" data-pane="audit-incidents-pane">🚨 Security Incidents</button>
+    <button class="tab-btn" data-pane="audit-anomaly-pane">🤖 AI Anomaly Monitor</button>
+    <button class="tab-btn" data-pane="audit-forensic-pane">🔍 Forensic Search</button>
+    <button class="tab-btn" data-pane="audit-integrity-pane">🔗 Chain Integrity</button>
+  </div>
+
+  <div class="audit-body">
+
+    <!-- ══ EVENT LOG ══ -->
+    <div class="tab-pane active" id="audit-events-pane">
+      <div class="audit-filter-bar">
+        <div class="worklist-search-wrap" style="flex:1;max-width:280px">
+          <i class="fas fa-magnifying-glass"></i>
+          <input type="text" id="audit-search" class="worklist-search" placeholder="Search user, action, description…">
+        </div>
+        <select class="filter-select" id="audit-cat-filter">
+          <option value="">All categories</option>
+          <option value="auth">🔐 Authentication</option>
+          <option value="result">📋 Results</option>
+          <option value="correction">✏️ Corrections</option>
+          <option value="deletion">🗑️ Deletions</option>
+          <option value="blood_bank">🩸 Blood Bank</option>
+          <option value="security">🔒 Security</option>
+          <option value="config">⚙️ Config</option>
+          <option value="ai_decision">🤖 AI Decisions</option>
+        </select>
+        <select class="filter-select" id="audit-risk-filter">
+          <option value="">All risk levels</option>
+          <option value="critical">🔴 Critical</option>
+          <option value="high">🟠 High</option>
+          <option value="medium">🟡 Medium</option>
+          <option value="low">🟢 Low</option>
+        </select>
+        <select class="filter-select" id="audit-suspicious-filter">
+          <option value="">All events</option>
+          <option value="1">⚠️ Suspicious only</option>
+        </select>
+        <input type="date" class="filter-select" id="audit-date-from">
+        <input type="date" class="filter-select" id="audit-date-to">
+        <button class="btn btn-primary btn-sm" id="audit-search-btn">🔍 Search</button>
+        <button class="btn btn-ghost btn-sm" id="audit-refresh-btn"><i class="fas fa-arrows-rotate"></i></button>
+      </div>
+
+      <div style="overflow-x:auto">
+        <table class="nx-table audit-event-table">
+          <thead><tr>
+            <th>↕</th><th>🕐 Timestamp</th><th>Category</th>
+            <th>⚡ Action</th><th>👤 User</th><th>🌐 IP</th>
+            <th>🎯 Object</th><th>⚠️ Risk</th><th>Hash</th>
+          </tr></thead>
+          <tbody id="audit-events-tbody">
+            <tr><td colspan="9"><div class="worklist-loading"><i class="fas fa-spinner"></i> Loading audit events…</div></td></tr>
+          </tbody>
+        </table>
+        <div id="audit-pagination" class="audit-pagination"></div>
+      </div>
+    </div>
+
+    <!-- ══ SECURITY INCIDENTS ══ -->
+    <div class="tab-pane" id="audit-incidents-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);margin-bottom:var(--space-lg)">🚨 AI-Detected Security Incidents</div>
+        <div id="audit-incidents-list"></div>
+      </div>
+    </div>
+
+    <!-- ══ AI ANOMALY MONITOR ══ -->
+    <div class="tab-pane" id="audit-anomaly-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-xl)">
+          <div class="glass-panel" style="padding:var(--space-lg)">
+            <div class="chart-title">📊 Event Volume (Last 24 Hours)</div>
+            <div style="height:200px;margin-top:var(--space-md)"><canvas id="audit-volume-chart"></canvas></div>
+          </div>
+          <div class="glass-panel" style="padding:var(--space-lg)">
+            <div class="chart-title">⚠️ Risk Distribution</div>
+            <div style="height:200px;margin-top:var(--space-md)"><canvas id="audit-risk-chart"></canvas></div>
+          </div>
+        </div>
+        <div style="margin-top:var(--space-xl)">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:var(--space-md)">🤖 Active Anomaly Baselines</div>
+          <div id="audit-baseline-grid" class="audit-baseline-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ FORENSIC SEARCH ══ -->
+    <div class="tab-pane" id="audit-forensic-pane">
+      <div style="max-width:800px;margin:0 auto;padding:var(--space-xl)">
+        <div style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);margin-bottom:var(--space-lg)">🔍 Forensic Investigation Search</div>
+        <div style="background:rgba(255,50,50,.05);border:1px solid rgba(255,50,50,.20);border-radius:var(--radius-md);padding:var(--space-md);margin-bottom:var(--space-lg);font-size:11px;color:var(--alert-red);font-weight:700">
+          ⚠️ Forensic search results are logged. Unauthorized access attempts will be reported.
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-lg);margin-bottom:var(--space-lg)">
+          <div class="form-group"><label class="form-label">👤 User ID / Username</label>
+            <input type="text" class="form-input" id="forensic-user" placeholder="User ID, email, or username…"></div>
+          <div class="form-group"><label class="form-label">🌐 IP Address</label>
+            <input type="text" class="form-input" id="forensic-ip" placeholder="192.168.x.x or partial…"></div>
+          <div class="form-group"><label class="form-label">🎯 Object Type</label>
+            <select class="form-input" id="forensic-obj-type">
+              <option value="">Any</option><option>LabResult</option><option>Patient</option>
+              <option>BloodBag</option><option>Invoice</option><option>AuditEvent</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">🕐 Time Range</label>
+            <div style="display:flex;gap:var(--space-sm)">
+              <input type="datetime-local" class="form-input" id="forensic-from">
+              <input type="datetime-local" class="form-input" id="forensic-to">
+            </div></div>
+          <div class="form-group"><label class="form-label">⚡ Action Pattern</label>
+            <input type="text" class="form-input" id="forensic-action" placeholder="e.g. result.*, deletion, correction…"></div>
+          <div class="form-group"><label class="form-label">⚠️ Risk Level</label>
+            <select class="form-input" id="forensic-risk">
+              <option value="">Any</option><option value="critical">Critical</option>
+              <option value="high">High</option><option value="medium">Medium</option>
+            </select></div>
+        </div>
+        <button class="btn btn-danger" id="forensic-search-btn">🔍 Run Forensic Investigation</button>
+        <div id="forensic-results" style="margin-top:var(--space-xl)"></div>
+      </div>
+    </div>
+
+    <!-- ══ CHAIN INTEGRITY ══ -->
+    <div class="tab-pane" id="audit-integrity-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);margin-bottom:var(--space-lg)">🔗 Hash Chain Integrity Verification</div>
+        <div style="background:rgba(0,230,118,.05);border:1px solid rgba(0,230,118,.20);border-radius:var(--radius-lg);padding:var(--space-xl);text-align:center;margin-bottom:var(--space-xl)">
+          <div style="font-size:48px;margin-bottom:var(--space-md)">✅</div>
+          <div style="font-family:var(--font-display);font-size:var(--text-xl);font-weight:700;color:var(--alert-green)">Chain Integrity: VERIFIED</div>
+          <div style="font-size:var(--text-xs);color:var(--text-muted);margin-top:var(--space-sm)">All audit event batches have been verified. No tampering detected.</div>
+        </div>
+        <div id="audit-batch-list"></div>
+      </div>
+    </div>
+
+  </div><!-- /audit-body -->
+</div>
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/audit/js/audit.js' %}" defer></script>
+{% endblock %}

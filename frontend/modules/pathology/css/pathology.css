@@ -1,0 +1,72 @@
+/* JORINOVA NEXUS ALIS-X — Anatomical Pathology & AI Vision */
+.path-main { display:flex; flex-direction:column; flex:1; overflow:hidden; }
+.path-tab-nav { padding:0 var(--space-xl); background:var(--bg-deep); border-bottom:1px solid var(--border-dim); flex-shrink:0; }
+.path-body  { flex:1; overflow-y:auto; }
+.path-iso-pill { display:inline-flex;align-items:center;gap:8px;padding:5px 13px;border-radius:var(--radius-full);background:rgba(138,43,226,.08);border:1px solid rgba(138,43,226,.22);font-size:11px;font-weight:600;color:#b87cff;letter-spacing:.04em; }
+
+/* Slide review layout */
+.path-slide-layout { display:grid; grid-template-columns:300px 1fr; min-height:calc(100vh - 180px); overflow:hidden; }
+.path-slide-left   { border-right:1px solid var(--border-dim); display:flex; flex-direction:column; overflow:hidden; }
+.path-slide-list   { flex:1; overflow-y:auto; }
+.path-slide-right  { display:flex; flex-direction:column; overflow:hidden; }
+
+.path-slide-item {
+  padding:var(--space-md) var(--space-lg); border-bottom:1px solid var(--border-dim);
+  cursor:pointer; transition:background var(--duration-fast);
+  display:flex; align-items:center; gap:var(--space-md);
+}
+.path-slide-item:hover, .path-slide-item.active { background:rgba(0,153,255,.06); }
+.path-slide-icon { font-size:24px; flex-shrink:0; }
+.path-slide-info-name { font-size:var(--text-sm); font-weight:600; color:var(--text-primary); }
+.path-slide-info-meta { font-size:11px; color:var(--text-muted); margin-top:2px; }
+
+.path-viewer-area {
+  flex:1; background:var(--bg-void); display:flex; align-items:center; justify-content:center;
+  position:relative; overflow:hidden; min-height:300px;
+}
+.path-viewer-placeholder { display:flex;flex-direction:column;align-items:center;gap:var(--space-md);color:var(--text-muted);font-size:var(--text-sm);text-align:center; }
+.path-viewer-image { width:100%; height:100%; object-fit:contain; }
+
+.path-mag-bar {
+  position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
+  display:flex; gap:4px; background:rgba(0,0,0,.7); padding:4px 8px; border-radius:var(--radius-md);
+}
+.mag-btn {
+  padding:3px 8px; border-radius:var(--radius-sm); background:var(--bg-surface);
+  border:1px solid var(--border-dim); color:var(--text-secondary); font-size:11px; font-weight:700; cursor:pointer;
+  transition:all var(--duration-fast);
+}
+.mag-btn.active { background:var(--blue-glow); color:#fff; border-color:var(--blue-glow); }
+
+.path-ai-output {
+  border-top:1px solid var(--border-dim); background:var(--bg-surface);
+  padding:var(--space-lg); overflow-y:auto; max-height:350px;
+}
+
+/* AI Vision output */
+.malignancy-gauge-wrap { display:flex; align-items:center; gap:var(--space-lg); }
+.malignancy-gauge-bar  { flex:1; height:20px; border-radius:var(--radius-full); background:var(--bg-glass); overflow:hidden; }
+.malignancy-gauge-fill { height:100%; border-radius:var(--radius-full); transition:width .8s var(--ease-out); }
+.malignancy-pct { font-family:var(--font-display); font-size:22px; font-weight:700; min-width:60px; }
+
+.ai-diff-row { display:flex; align-items:center; justify-content:space-between;
+  padding:5px 0; border-bottom:1px solid var(--border-dim); font-size:var(--text-xs); }
+.ai-diff-name { color:var(--text-secondary); flex:1; }
+.ai-conf-bar  { width:80px; height:6px; background:var(--bg-glass); border-radius:var(--radius-full); overflow:hidden; margin:0 var(--space-sm); }
+.ai-conf-fill { height:100%; background:var(--blue-glow); border-radius:var(--radius-full); }
+.ai-conf-pct  { font-family:var(--font-mono); font-size:11px; color:var(--text-muted); width:32px; text-align:right; }
+
+/* Workflow steps */
+.spec-workflow { display:flex; align-items:center; gap:4px; }
+.spec-step {
+  padding:3px 8px; border-radius:var(--radius-full); font-size:9px; font-weight:700;
+  letter-spacing:.04em; border:1px solid; white-space:nowrap;
+}
+.spec-step.done    { background:rgba(0,230,118,.10); color:var(--alert-green); border-color:var(--alert-green); }
+.spec-step.active  { background:rgba(0,153,255,.15); color:var(--blue-glow);   border-color:var(--blue-glow); animation:pulse-blue .8s infinite; }
+.spec-step.pending { background:transparent; color:var(--text-muted); border-color:var(--border-dim); }
+@keyframes pulse-blue { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+.frozen-alert { background:rgba(255,23,68,.10); border:2px solid var(--alert-red); color:var(--alert-red); padding:3px 10px; border-radius:var(--radius-full); font-size:10px; font-weight:700; animation:pulse-blue .6s infinite; }
+
+@media (max-width:900px) { .path-slide-layout { grid-template-columns:1fr; } }

@@ -1,0 +1,256 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}🌐 BioTrack — NEXUS ALIS-X{% endblock %}
+{% block module_id %}biotrack{% endblock %}
+{% block nav_active_biotrack %}active{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/biotrack/css/biotrack.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="biotrack-main">
+
+  <!-- ══ HEADER ══ -->
+  <header class="page-header biotrack-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(0,212,255,0.08);border-color:rgba(0,212,255,0.20);color:var(--cyan)">
+        <span style="font-size:22px">🌐</span>
+      </div>
+      <div>
+        <h1 class="page-title">🌐 BioTrack Intelligence</h1>
+        <div class="page-subtitle">GeoTrack · Drone · Robot · Field Surveillance · ISO 15189 DSS</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <div class="biotrack-iso-pill">
+        🔒 Decision Support Only — Human Authorization Required
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ KPI STRIP ══ -->
+  <div class="biotrack-kpi-strip">
+    <div class="biotrack-kpi">
+      <span class="biotrack-kpi-emoji">🗺️</span>
+      <div class="biotrack-kpi-val" id="bt-kpi-districts">—</div>
+      <div class="biotrack-kpi-lbl">Districts Monitored</div>
+    </div>
+    <div class="biotrack-kpi">
+      <span class="biotrack-kpi-emoji">🚁</span>
+      <div class="biotrack-kpi-val" id="bt-kpi-drones">—</div>
+      <div class="biotrack-kpi-lbl">Drone Assessments</div>
+    </div>
+    <div class="biotrack-kpi">
+      <span class="biotrack-kpi-emoji">🤖</span>
+      <div class="biotrack-kpi-val" id="bt-kpi-robots">—</div>
+      <div class="biotrack-kpi-lbl">Robot Routings</div>
+    </div>
+    <div class="biotrack-kpi">
+      <span class="biotrack-kpi-emoji">⚠️</span>
+      <div class="biotrack-kpi-val" id="bt-kpi-clusters" style="color:var(--alert-orange)">—</div>
+      <div class="biotrack-kpi-lbl">Active Clusters</div>
+    </div>
+  </div>
+
+  <!-- ══ TABS ══ -->
+  <div class="tab-nav biotrack-tab-nav" role="tablist">
+    <button class="tab-btn active" data-pane="bt-geotrack-pane">🗺️ GeoTrack</button>
+    <button class="tab-btn" data-pane="bt-drone-pane">🚁 Drone Transport</button>
+    <button class="tab-btn" data-pane="bt-robot-pane">🤖 Robot Routing</button>
+    <button class="tab-btn" data-pane="bt-field-pane">🔭 Field Surveillance</button>
+    <button class="tab-btn" data-pane="bt-isis-pane">🧮 ISIS / ERAVS Score</button>
+  </div>
+
+  <div class="biotrack-body">
+
+    <!-- ══════════════════════ GEOTRACK PANE ══════════════════════ -->
+    <div class="tab-pane active" id="bt-geotrack-pane">
+      <div class="bt-two-col">
+
+        <!-- Left: Form -->
+        <div class="bt-form-panel">
+          <div class="bt-panel-title">🗺️ Epidemiological Risk Assessment</div>
+          <div class="bt-form-body">
+            <div class="form-group">
+              <label class="form-label">🌍 Province</label>
+              <select class="form-input" id="gt-province">
+                <option>Kigali City</option>
+                <option>Western Province</option>
+                <option>Northern Province</option>
+                <option>Eastern Province</option>
+                <option>Southern Province</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">📍 District</label>
+              <input type="text" class="form-input" id="gt-district" placeholder="e.g. Rusizi, Nyagatare…" value="Kigali">
+            </div>
+            <div class="form-group">
+              <label class="form-label">🔖 Sample ID (optional)</label>
+              <input type="text" class="form-input" id="gt-sample-id" placeholder="SMP-2024…">
+            </div>
+            <button class="btn btn-primary" id="gt-assess-btn" style="width:100%">
+              🌐 Assess Epidemiological Risk
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Result -->
+        <div class="bt-result-panel" id="gt-result-panel">
+          <div class="bt-result-empty">
+            <div style="font-size:48px">🗺️</div>
+            <p>Enter location details and click Assess to evaluate epidemiological risk.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════ DRONE PANE ══════════════════════ -->
+    <div class="tab-pane" id="bt-drone-pane">
+      <div class="bt-two-col">
+        <div class="bt-form-panel">
+          <div class="bt-panel-title">🚁 Drone Transport Assessment</div>
+          <div class="bt-form-body">
+            <div class="form-group">
+              <label class="form-label">🧪 Sample Type</label>
+              <select class="form-input" id="dr-sample-type">
+                <option value="blood">Blood</option>
+                <option value="sputum">Sputum</option>
+                <option value="urine">Urine</option>
+                <option value="csf">CSF</option>
+                <option value="tissue_biopsy">Tissue Biopsy</option>
+                <option value="stool">Stool</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">📦 Containment Class</label>
+              <select class="form-input" id="dr-containment">
+                <option value="CAT_B">CAT B (Routine)</option>
+                <option value="CAT_A">CAT A (High Risk / UN2814)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">📏 Distance (km)</label>
+              <input type="number" class="form-input" id="dr-distance" value="15" min="1" max="300">
+            </div>
+            <div class="form-group">
+              <label class="form-label">⏱️ Expected Delay (min)</label>
+              <input type="number" class="form-input" id="dr-delay" value="30" min="0" max="240">
+            </div>
+            <div class="form-group">
+              <label class="form-label">🌤️ Origin Risk</label>
+              <select class="form-input" id="dr-origin-risk">
+                <option value="LOW">LOW</option>
+                <option value="MODERATE">MODERATE</option>
+                <option value="HIGH">HIGH</option>
+              </select>
+            </div>
+            <div class="bt-toggle-row">
+              <label class="form-label">🌡️ Temperature Sensitive</label>
+              <input type="checkbox" id="dr-temp-sensitive" checked class="bt-toggle">
+            </div>
+            <div class="bt-toggle-row">
+              <label class="form-label">☀️ Weather Favorable</label>
+              <input type="checkbox" id="dr-weather-ok" checked class="bt-toggle">
+            </div>
+            <button class="btn btn-primary" id="dr-assess-btn" style="width:100%;margin-top:var(--space-md)">
+              🚁 Evaluate Drone Transport
+            </button>
+          </div>
+        </div>
+        <div class="bt-result-panel" id="dr-result-panel">
+          <div class="bt-result-empty">
+            <div style="font-size:48px">🚁</div>
+            <p>Configure sample parameters and run the transport assessment.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════ ROBOT PANE ══════════════════════ -->
+    <div class="tab-pane" id="bt-robot-pane">
+      <div class="bt-form-panel" style="max-width:100%">
+        <div class="bt-panel-title">🤖 Robot Sample Routing</div>
+        <div style="padding:var(--space-lg)">
+          <p style="color:var(--text-secondary);font-size:var(--text-sm);margin-bottom:var(--space-md)">
+            Add samples to generate an automated routing plan. The AI sorts by risk level and assigns lab lanes.
+          </p>
+          <button class="btn btn-primary" id="robot-demo-btn">
+            🤖 Run Demo Routing (5 samples)
+          </button>
+        </div>
+        <div id="robot-result-area"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════ FIELD SURVEILLANCE PANE ══════════════════════ -->
+    <div class="tab-pane" id="bt-field-pane">
+      <div class="bt-form-panel" style="max-width:100%">
+        <div class="bt-panel-title">🔭 Field Surveillance Intelligence</div>
+        <div style="padding:var(--space-lg);display:flex;align-items:center;gap:var(--space-md)">
+          <button class="btn btn-primary" id="field-load-btn">🔭 Load Surveillance Feed</button>
+          <span class="text-xs text-muted-c" id="field-last-update"></span>
+        </div>
+        <div id="field-result-area"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════ ISIS / ERAVS PANE ══════════════════════ -->
+    <div class="tab-pane" id="bt-isis-pane">
+      <div class="bt-two-col">
+        <div class="bt-form-panel">
+          <div class="bt-panel-title">🧮 Integrated ISIS / ERAVS Score</div>
+          <div class="bt-form-body">
+            <div class="form-group">
+              <label class="form-label">📊 Sample Integrity Score (SIS) %</label>
+              <input type="number" class="form-input" id="isis-sis" value="85" min="0" max="100">
+            </div>
+            <div class="form-group">
+              <label class="form-label">🌍 Geographic Risk Level</label>
+              <select class="form-input" id="isis-geo-risk">
+                <option value="LOW">LOW</option>
+                <option value="MODERATE">MODERATE</option>
+                <option value="HIGH">HIGH</option>
+                <option value="CRITICAL">CRITICAL</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">⏱️ Transport Time (hours)</label>
+              <input type="number" class="form-input" id="isis-transport-h" value="1" min="0" max="72" step="0.5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">🧪 Lab Handling Quality</label>
+              <select class="form-input" id="isis-handling">
+                <option value="EXCELLENT">Excellent</option>
+                <option value="STANDARD" selected>Standard</option>
+                <option value="POOR">Poor</option>
+              </select>
+            </div>
+            <div class="bt-toggle-row">
+              <label class="form-label">🌡️ Temperature Breach Detected</label>
+              <input type="checkbox" id="isis-temp-breach" class="bt-toggle">
+            </div>
+            <button class="btn btn-primary" id="isis-compute-btn" style="width:100%;margin-top:var(--space-md)">
+              🧮 Compute ISIS / ERAVS
+            </button>
+          </div>
+        </div>
+        <div class="bt-result-panel" id="isis-result-panel">
+          <div class="bt-result-empty">
+            <div style="font-size:48px">🧮</div>
+            <p>Configure parameters to compute the Integrated Sample Integrity Score.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /biotrack-body -->
+</div><!-- /biotrack-main -->
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/biotrack/js/biotrack.js' %}" defer></script>
+{% endblock %}

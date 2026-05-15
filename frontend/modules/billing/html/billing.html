@@ -1,0 +1,175 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}💠 Billing — NEXUS ALIS-X{% endblock %}
+{% block module_id %}billing{% endblock %}
+{% block nav_active_billing %}active{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/billing/css/billing.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="billing-main">
+
+  <header class="page-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(0,255,65,0.07);border-color:rgba(0,255,65,0.14);color:var(--alert-green)">
+        <span style="font-size:20px">💠</span>
+      </div>
+      <div>
+        <h1 class="page-title">Billing &amp; Finance</h1>
+        <div class="page-subtitle">{{ today|date:"l, d F Y" }} · ALIS-X Finance Engine</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <button class="btn btn-primary btn-sm" id="new-invoice-btn">
+        <span>➕</span> New Invoice
+      </button>
+    </div>
+  </header>
+
+  <!-- Tab nav -->
+  <div class="tab-nav billing-tab-nav" role="tablist">
+    <button class="tab-btn active" data-pane="invoices-pane">💳 Invoices</button>
+    <button class="tab-btn" data-pane="payments-pane">💰 Payments</button>
+    <button class="tab-btn" data-pane="insurance-pane">🛡️ Insurance</button>
+    <button class="tab-btn" data-pane="summary-pane">📊 Daily Summary</button>
+  </div>
+
+  <div class="billing-body">
+
+    <!-- Invoices -->
+    <div class="tab-pane active" id="invoices-pane">
+      <div class="billing-stat-row">
+        <div class="billing-stat">
+          <div class="billing-stat-icon">💳</div>
+          <div>
+            <div class="billing-stat-val" id="bs-total">0</div>
+            <div class="billing-stat-lbl">Total Invoices</div>
+          </div>
+        </div>
+        <div class="billing-stat">
+          <div class="billing-stat-icon">✅</div>
+          <div>
+            <div class="billing-stat-val" id="bs-paid" style="color:var(--alert-green)">0</div>
+            <div class="billing-stat-lbl">Paid</div>
+          </div>
+        </div>
+        <div class="billing-stat">
+          <div class="billing-stat-icon">⏳</div>
+          <div>
+            <div class="billing-stat-val" id="bs-pending" style="color:var(--alert-yellow)">0</div>
+            <div class="billing-stat-lbl">Pending</div>
+          </div>
+        </div>
+        <div class="billing-stat">
+          <div class="billing-stat-icon">💰</div>
+          <div>
+            <div class="billing-stat-val" id="bs-revenue">0 RWF</div>
+            <div class="billing-stat-lbl">Today's Revenue</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-panel" style="overflow:hidden;margin-top:var(--space-md)">
+        <div class="chart-header" style="gap:var(--space-md)">
+          <div class="chart-title"><span>💳</span> Invoice Log</div>
+          <div class="search-wrap" style="max-width:220px;margin-left:auto">
+            <i class="fas fa-magnifying-glass search-icon"></i>
+            <input type="text" class="fi" placeholder="🔍 Search patient, invoice#…">
+          </div>
+          <select class="fi" style="width:auto;font-size:var(--text-xs);padding:6px 10px">
+            <option>All statuses</option>
+            <option>✅ Paid</option>
+            <option>⏳ Pending</option>
+            <option>❌ Cancelled</option>
+          </select>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="nx-table">
+            <thead>
+              <tr>
+                <th>🔖 Invoice #</th>
+                <th>🧬 Patient</th>
+                <th>🧪 Tests</th>
+                <th>💰 Amount (RWF)</th>
+                <th>🛡️ Insurance</th>
+                <th>📊 Status</th>
+                <th>🕐 Date</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="8">
+                <div class="empty-state" style="padding:var(--space-2xl)">
+                  <div class="empty-state-icon" style="font-size:32px">💳</div>
+                  <h3>No Invoices Yet</h3>
+                  <p>Create a new invoice or process a lab request to generate billing.</p>
+                </div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /invoices-pane -->
+
+    <!-- Payments -->
+    <div class="tab-pane" id="payments-pane">
+      <div class="glass-panel" style="padding:var(--space-3xl);text-align:center">
+        <div style="font-size:64px;margin-bottom:var(--space-md)">💰</div>
+        <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary)">Payment Processing</h2>
+        <p style="color:var(--text-secondary);font-size:var(--text-sm);max-width:380px;margin:16px auto;line-height:1.7">
+          Cash · Mobile Money (MTN/Airtel) · Bank Transfer · Insurance direct billing.
+          All transactions are logged and reconciled automatically.
+        </p>
+        <div style="display:flex;gap:var(--space-md);justify-content:center;flex-wrap:wrap;margin-top:var(--space-lg)">
+          <div class="epi-badge"><span>📱</span> MoMo Integration</div>
+          <div class="epi-badge"><span>🏦</span> Bank Transfer</div>
+          <div class="epi-badge"><span>💵</span> Cash Register</div>
+          <div class="epi-badge"><span>🛡️</span> RSSB / Insurance</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Insurance -->
+    <div class="tab-pane" id="insurance-pane">
+      <div class="glass-panel" style="padding:var(--space-3xl);text-align:center">
+        <div style="font-size:64px;margin-bottom:var(--space-md)">🛡️</div>
+        <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary)">Insurance Claims</h2>
+        <p style="color:var(--text-secondary);font-size:var(--text-sm);max-width:380px;margin:16px auto;line-height:1.7">
+          RSSB · Mutuelle de Santé · Private insurance claims processing and real-time eligibility verification.
+        </p>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="tab-pane" id="summary-pane">
+      <div class="glass-panel" style="padding:var(--space-3xl);text-align:center">
+        <div style="font-size:64px;margin-bottom:var(--space-md)">📊</div>
+        <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary)">Daily Summary</h2>
+        <p style="color:var(--text-secondary);font-size:var(--text-sm);max-width:380px;margin:16px auto;line-height:1.7">
+          End-of-day reconciliation, shift summary, and financial close reports.
+        </p>
+      </div>
+    </div>
+
+  </div><!-- /billing-body -->
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.billing-tab-nav .tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.billing-tab-nav .tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#billing-main .tab-pane, .billing-body .tab-pane').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      var pane = document.getElementById(btn.dataset.pane);
+      if (pane) pane.classList.add('active');
+    });
+  });
+});
+</script>
+{% endblock %}

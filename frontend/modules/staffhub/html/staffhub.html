@@ -1,0 +1,681 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}👥 StaffHub — NEXUS ALIS-X{% endblock %}
+{% block module_id %}staffhub{% endblock %}
+{% block nav_active_staffhub %}active{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/staffhub/css/staffhub.css' %}">
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="sh-main" id="sh-main">
+
+  <!-- ══ PAGE HEADER ══ -->
+  <header class="page-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(0,170,255,0.08);border-color:rgba(0,170,255,0.22);color:#00AAFF">
+        <span style="font-size:20px">👥</span>
+      </div>
+      <div>
+        <h1 class="page-title">StaffHub</h1>
+        <div class="page-subtitle">{{ today|date:"l, d F Y" }} · HR &amp; Workforce Management</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <button class="btn btn-secondary btn-sm" id="sh-export-btn"><span>📤</span> Export</button>
+      <button class="btn btn-primary btn-sm" id="sh-add-staff-btn"><span>➕</span> Add Staff</button>
+    </div>
+  </header>
+
+  <!-- ══ KPI STRIP ══ -->
+  <div class="sh-kpi-strip">
+    <div class="sh-kpi-card sh-kpi-blue">
+      <div class="sh-kpi-icon">👥</div>
+      <div class="sh-kpi-body">
+        <div class="sh-kpi-val" id="kpi-total">—</div>
+        <div class="sh-kpi-lbl">Total Staff</div>
+      </div>
+    </div>
+    <div class="sh-kpi-card sh-kpi-green">
+      <div class="sh-kpi-icon">✅</div>
+      <div class="sh-kpi-body">
+        <div class="sh-kpi-val" id="kpi-onduty">—</div>
+        <div class="sh-kpi-lbl">On Duty</div>
+      </div>
+    </div>
+    <div class="sh-kpi-card sh-kpi-yellow">
+      <div class="sh-kpi-icon">🌴</div>
+      <div class="sh-kpi-body">
+        <div class="sh-kpi-val" id="kpi-onleave">—</div>
+        <div class="sh-kpi-lbl">On Leave</div>
+      </div>
+    </div>
+    <div class="sh-kpi-card sh-kpi-orange">
+      <div class="sh-kpi-icon">⏳</div>
+      <div class="sh-kpi-body">
+        <div class="sh-kpi-val" id="kpi-pending">—</div>
+        <div class="sh-kpi-lbl">Pending Requests</div>
+      </div>
+    </div>
+    <div class="sh-kpi-card sh-kpi-purple">
+      <div class="sh-kpi-icon">🌙</div>
+      <div class="sh-kpi-body">
+        <div class="sh-kpi-val" id="kpi-night">—</div>
+        <div class="sh-kpi-lbl">Night Shift</div>
+      </div>
+    </div>
+    <div class="sh-kpi-card sh-kpi-cyan">
+      <div class="sh-kpi-icon">📊</div>
+      <div class="sh-kpi-body">
+        <div class="sh-kpi-val" id="kpi-avgperf">—</div>
+        <div class="sh-kpi-lbl">Avg Performance</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TAB NAV ══ -->
+  <div class="tab-nav sh-tab-nav" role="tablist" id="sh-tabs">
+    <button class="tab-btn active" data-pane="sh-pane-directory" role="tab">👥 Staff Directory</button>
+    <button class="tab-btn" data-pane="sh-pane-timetable" role="tab">📅 Timetable</button>
+    <button class="tab-btn" data-pane="sh-pane-leave" role="tab">🌴 Leave Management</button>
+    <button class="tab-btn" data-pane="sh-pane-performance" role="tab">⭐ Performance &amp; Marks</button>
+    <button class="tab-btn" data-pane="sh-pane-attendance" role="tab">⏰ Attendance &amp; Time</button>
+    <button class="tab-btn" data-pane="sh-pane-recognition" role="tab">🏆 Recognition &amp; Dev</button>
+  </div>
+
+  <div class="sh-body">
+
+    <!-- ══════════════════════════════════════════
+         TAB 1: 👥 STAFF DIRECTORY
+    ══════════════════════════════════════════ -->
+    <div class="tab-pane active" id="sh-pane-directory" role="tabpanel">
+      <div class="sh-filter-bar">
+        <div class="search-wrap sh-search-wrap">
+          <i class="fas fa-magnifying-glass search-icon"></i>
+          <input type="text" class="form-input sh-search-input" id="dir-search" placeholder="🔍 Search name, ID, department…">
+        </div>
+        <select class="form-input sh-filter-select" id="dir-dept-filter">
+          <option value="">🧩 All Departments</option>
+          <option value="Hematology">🔴 Hematology</option>
+          <option value="Chemistry">🧫 Chemistry</option>
+          <option value="Microbiology">🦠 Microbiology</option>
+          <option value="Blood Bank">🩸 Blood Bank</option>
+          <option value="Reception">📡 Reception</option>
+          <option value="Phlebotomy">💉 Phlebotomy</option>
+        </select>
+        <select class="form-input sh-filter-select" id="dir-role-filter">
+          <option value="">🏷️ All Roles</option>
+          <option value="Lab Technician">🔬 Lab Technician</option>
+          <option value="Lab Manager">🗂️ Lab Manager</option>
+          <option value="Pathologist">🥼 Pathologist</option>
+          <option value="Nurse">👩‍⚕️ Nurse</option>
+          <option value="Receptionist">📡 Receptionist</option>
+          <option value="Phlebotomist">💉 Phlebotomist</option>
+        </select>
+        <select class="form-input sh-filter-select" id="dir-shift-filter">
+          <option value="">⏱️ All Shifts</option>
+          <option value="Morning">☀️ Morning</option>
+          <option value="Afternoon">🌤️ Afternoon</option>
+          <option value="Night">🌙 Night</option>
+          <option value="Off">🔴 Day Off</option>
+          <option value="Leave">🟡 On Leave</option>
+        </select>
+        <span class="sh-dir-count" id="dir-count">10 staff</span>
+      </div>
+
+      <div class="staff-grid" id="staff-grid">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         TAB 2: 📅 TIMETABLE / SCHEDULE
+    ══════════════════════════════════════════ -->
+    <div class="tab-pane" id="sh-pane-timetable" role="tabpanel">
+      <div class="timetable-container">
+
+        <!-- Controls bar -->
+        <div class="tt-controls">
+          <div class="tt-nav">
+            <button class="btn btn-ghost btn-sm" id="tt-prev-week">
+              <i class="fas fa-chevron-left"></i> Previous Week
+            </button>
+            <div class="tt-week-label" id="tt-week-label">Week of — — ——</div>
+            <button class="btn btn-ghost btn-sm" id="tt-next-week">
+              Next Week <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+          <div class="tt-actions">
+            <select class="form-input sh-filter-select" id="tt-dept-filter">
+              <option value="">🧩 All Departments</option>
+              <option value="Hematology">🔴 Hematology</option>
+              <option value="Chemistry">🧫 Chemistry</option>
+              <option value="Microbiology">🦠 Microbiology</option>
+              <option value="Blood Bank">🩸 Blood Bank</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" id="tt-copy-prev"><span>📋</span> Copy Previous Week</button>
+            <button class="btn btn-warning btn-sm" id="tt-publish"><span>📤</span> Publish Schedule</button>
+            <button class="btn btn-ghost btn-sm" id="tt-print"><span>🖨️</span> Print</button>
+          </div>
+        </div>
+
+        <!-- Stats bar -->
+        <div class="tt-stats-bar">
+          <div class="tt-stat">
+            <span class="tt-stat-val" id="tt-shifts-covered">—</span>
+            <span class="tt-stat-lbl">Shifts Covered</span>
+          </div>
+          <div class="tt-stat tt-stat-warn" id="tt-understaffed-wrap">
+            <span class="tt-stat-val" id="tt-understaffed">—</span>
+            <span class="tt-stat-lbl">Understaffed Days</span>
+          </div>
+          <div class="tt-stat">
+            <span class="tt-stat-val" id="tt-leave-count">—</span>
+            <span class="tt-stat-lbl">On Leave This Week</span>
+          </div>
+          <div class="sh-published-badge" id="tt-published-badge" style="display:none">
+            🔒 Published
+          </div>
+        </div>
+
+        <!-- Timetable grid -->
+        <div class="timetable-scroll">
+          <table class="timetable-table" id="timetable-table">
+            <thead id="tt-thead">
+              <!-- Rendered by JS -->
+            </thead>
+            <tbody id="tt-tbody">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Legend -->
+        <div class="tt-legend">
+          <div class="tt-legend-item">
+            <span class="shift-badge shift-morning">☀️ Morning</span>
+            <span class="tt-legend-time">06:00–14:00</span>
+          </div>
+          <div class="tt-legend-item">
+            <span class="shift-badge shift-afternoon">🌤️ Afternoon</span>
+            <span class="tt-legend-time">14:00–22:00</span>
+          </div>
+          <div class="tt-legend-item">
+            <span class="shift-badge shift-night">🌙 Night</span>
+            <span class="tt-legend-time">22:00–06:00</span>
+          </div>
+          <div class="tt-legend-item">
+            <span class="shift-badge shift-off">🔴 Day Off</span>
+          </div>
+          <div class="tt-legend-item">
+            <span class="shift-badge shift-leave">🟡 Leave</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shift Picker Dropdown (floating) -->
+      <div class="shift-picker" id="shift-picker" style="display:none">
+        <div class="shift-picker-title">Assign Shift</div>
+        <button class="shift-picker-opt" data-shift="Morning">☀️ Morning</button>
+        <button class="shift-picker-opt" data-shift="Afternoon">🌤️ Afternoon</button>
+        <button class="shift-picker-opt" data-shift="Night">🌙 Night</button>
+        <button class="shift-picker-opt" data-shift="Off">🔴 Day Off</button>
+        <button class="shift-picker-opt" data-shift="Leave">🟡 Leave</button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         TAB 3: 🌴 LEAVE MANAGEMENT
+    ══════════════════════════════════════════ -->
+    <div class="tab-pane" id="sh-pane-leave" role="tabpanel">
+      <div class="sh-leave-layout">
+        <!-- Pending requests -->
+        <div class="glass-panel sh-leave-panel">
+          <div class="sh-panel-header">
+            <span class="sh-panel-title">🌴 Leave Requests</span>
+            <div style="display:flex;gap:var(--space-sm);align-items:center">
+              <select class="form-input sh-filter-select" id="leave-status-filter">
+                <option value="pending">⏳ Pending</option>
+                <option value="approved">✅ Approved</option>
+                <option value="rejected">❌ Rejected</option>
+                <option value="">📋 All</option>
+              </select>
+              <button class="btn btn-primary btn-sm" id="sh-new-leave-btn"><span>➕</span> New Request</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="nx-table" id="leave-table">
+              <thead>
+                <tr>
+                  <th>👤 Staff</th>
+                  <th>🏷️ Role</th>
+                  <th>📋 Leave Type</th>
+                  <th>📅 From</th>
+                  <th>📅 To</th>
+                  <th>⏱️ Days</th>
+                  <th>📝 Reason</th>
+                  <th>📊 Status</th>
+                  <th>⚙️ Action</th>
+                </tr>
+              </thead>
+              <tbody id="leave-tbody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Leave balance + mini calendar -->
+        <div class="sh-leave-sidebar">
+          <div class="glass-panel sh-leave-balance">
+            <div class="sh-panel-header">
+              <span class="sh-panel-title">💼 Leave Balances</span>
+              <select class="form-input sh-filter-select" id="leave-balance-staff" style="max-width:160px">
+                <!-- Populated by JS -->
+              </select>
+            </div>
+            <div class="sh-balance-grid" id="leave-balance-grid">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <div class="glass-panel sh-leave-calendar">
+            <div class="sh-panel-header">
+              <span class="sh-panel-title">📅 Approved Leaves — <span id="leave-cal-month">—</span></span>
+            </div>
+            <div class="sh-mini-calendar" id="leave-mini-calendar">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         TAB 4: ⭐ PERFORMANCE & MARKS
+    ══════════════════════════════════════════ -->
+    <div class="tab-pane" id="sh-pane-performance" role="tabpanel">
+      <div class="sh-perf-layout">
+
+        <!-- Left: Staff selector + scorecard -->
+        <div class="sh-perf-main">
+          <div class="glass-panel sh-perf-selector-card">
+            <div class="sh-panel-header">
+              <span class="sh-panel-title">⭐ Performance Scorecard</span>
+              <div style="display:flex;gap:var(--space-sm);align-items:center">
+                <select class="form-input sh-filter-select" id="perf-staff-select" style="min-width:200px">
+                  <!-- Populated by JS -->
+                </select>
+                <select class="form-input sh-filter-select" id="perf-month-select">
+                  <option value="0">January</option>
+                  <option value="1">February</option>
+                  <option value="2">March</option>
+                  <option value="3">April</option>
+                  <option value="4" selected>May</option>
+                  <option value="5">June</option>
+                  <option value="6">July</option>
+                  <option value="7">August</option>
+                  <option value="8">September</option>
+                  <option value="9">October</option>
+                  <option value="10">November</option>
+                  <option value="11">December</option>
+                </select>
+                <button class="btn btn-primary btn-sm" id="perf-gen-report"><span>📤</span> Generate Report</button>
+              </div>
+            </div>
+            <div class="sh-perf-scorecard" id="perf-scorecard">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Trend chart -->
+          <div class="glass-panel sh-perf-chart-card">
+            <div class="sh-panel-header">
+              <span class="sh-panel-title">📈 Monthly Performance Trend</span>
+            </div>
+            <div class="sh-chart-wrap">
+              <canvas id="perf-trend-chart" height="180"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Fault log panel -->
+        <div class="sh-perf-sidebar">
+          <div class="glass-panel sh-fault-panel">
+            <div class="sh-panel-header">
+              <span class="sh-panel-title">⚠️ Error &amp; Fault Log</span>
+              <div class="sh-fault-mode-toggle">
+                <button class="sh-fault-mode-btn active" id="fault-mode-auto" data-mode="auto">🤖 Auto</button>
+                <button class="sh-fault-mode-btn" id="fault-mode-manual" data-mode="manual">✍️ Manual</button>
+              </div>
+            </div>
+
+            <!-- Manual input form -->
+            <div class="sh-fault-form" id="sh-fault-form" style="display:none">
+              <div class="form-group">
+                <label class="form-label">👤 Staff Member</label>
+                <select class="form-input" id="fault-staff-sel"><!-- JS --></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">📋 Fault Type</label>
+                <select class="form-input" id="fault-type-sel">
+                  <option value="">Select type…</option>
+                  <optgroup label="🔬 Analytical">
+                    <option value="incorrect_result">Incorrect Result</option>
+                    <option value="qc_failure">QC Failure</option>
+                    <option value="calibration_error">Calibration Error</option>
+                  </optgroup>
+                  <optgroup label="📋 Pre-analytical">
+                    <option value="wrong_tube">Wrong Tube</option>
+                    <option value="insufficient_volume">Insufficient Volume</option>
+                    <option value="sample_rejection">Sample Rejection</option>
+                  </optgroup>
+                  <optgroup label="📝 Documentation">
+                    <option value="missing_entry">Missing Entry</option>
+                    <option value="wrong_patient">Wrong Patient</option>
+                    <option value="incomplete_data">Incomplete Data</option>
+                  </optgroup>
+                  <optgroup label="⏱️ TAT">
+                    <option value="tat_missed">TAT Deadline Missed</option>
+                    <option value="delay_reporting">Delay in Reporting</option>
+                  </optgroup>
+                  <optgroup label="🛡️ Safety">
+                    <option value="biosafety_breach">Biosafety Breach</option>
+                    <option value="ppe_violation">PPE Violation</option>
+                    <option value="spill_unreported">Spill Not Reported</option>
+                  </optgroup>
+                  <optgroup label="🤝 Conduct">
+                    <option value="absence">Unauthorised Absence</option>
+                    <option value="insubordination">Insubordination</option>
+                    <option value="patient_complaint">Patient Complaint</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">🎯 Severity</label>
+                <div class="sh-severity-btns" id="fault-severity-btns">
+                  <button class="sh-sev-btn" data-sev="Minor">Minor <span>−2pts</span></button>
+                  <button class="sh-sev-btn active" data-sev="Major">Major <span>−5pts</span></button>
+                  <button class="sh-sev-btn sh-sev-critical" data-sev="Critical">Critical <span>−15pts</span></button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">📝 Description</label>
+                <textarea class="form-input" id="fault-desc" rows="2" placeholder="Describe the incident…"></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">🏥 Impact on Patient/Lab</label>
+                <input type="text" class="form-input" id="fault-impact" placeholder="Describe impact…">
+              </div>
+              <div class="form-group">
+                <label class="form-label">✅ Action Taken</label>
+                <input type="text" class="form-input" id="fault-action" placeholder="Corrective action taken…">
+              </div>
+              <div style="display:flex;gap:var(--space-sm);justify-content:flex-end;margin-top:var(--space-sm)">
+                <button class="btn btn-ghost btn-sm" id="fault-form-cancel">Cancel</button>
+                <button class="btn btn-danger btn-sm" id="fault-submit-btn"><span>⚠️</span> Log Fault</button>
+              </div>
+            </div>
+
+            <!-- Add positive mark form -->
+            <div class="sh-positive-form" id="sh-positive-form" style="display:none">
+              <div class="form-group">
+                <label class="form-label">👤 Staff Member</label>
+                <select class="form-input" id="pos-staff-sel"><!-- JS --></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">🌟 Achievement Type</label>
+                <select class="form-input" id="pos-type-sel">
+                  <option value="exceptional_care">Exceptional Patient Care (+2pts)</option>
+                  <option value="innovation">Innovation / Suggestion Adopted (+5pts)</option>
+                  <option value="training">Training Completion (+1pt)</option>
+                  <option value="commendation">Peer Commendation (+1pt)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">📝 Notes</label>
+                <textarea class="form-input" id="pos-notes" rows="2" placeholder="Describe the achievement…"></textarea>
+              </div>
+              <div style="display:flex;gap:var(--space-sm);justify-content:flex-end;margin-top:var(--space-sm)">
+                <button class="btn btn-ghost btn-sm" id="pos-form-cancel">Cancel</button>
+                <button class="btn btn-success btn-sm" id="pos-submit-btn"><span>🌟</span> Add Mark</button>
+              </div>
+            </div>
+
+            <!-- Fault log list -->
+            <div class="sh-fault-actions" id="sh-fault-actions">
+              <button class="btn btn-danger btn-sm" id="log-fault-btn"><span>⚠️</span> Log Fault</button>
+              <button class="btn btn-success btn-sm" id="add-positive-btn"><span>🌟</span> Add Positive Mark</button>
+            </div>
+            <div class="sh-fault-list" id="sh-fault-list">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         TAB 5: ⏰ ATTENDANCE & TIME
+    ══════════════════════════════════════════ -->
+    <div class="tab-pane" id="sh-pane-attendance" role="tabpanel">
+
+      <!-- Daily board -->
+      <div class="sh-att-layout">
+        <div class="glass-panel sh-att-board">
+          <div class="sh-panel-header">
+            <span class="sh-panel-title">⏰ Daily Attendance Board</span>
+            <div style="display:flex;gap:var(--space-sm);align-items:center">
+              <input type="date" class="form-input sh-filter-select" id="att-date" value="{{ today|date:'Y-m-d' }}">
+              <button class="btn btn-primary btn-sm" id="att-export"><span>📤</span> Export</button>
+            </div>
+          </div>
+          <div class="sh-att-status-row" id="att-status-row">
+            <!-- Populated by JS -->
+          </div>
+          <div style="overflow-x:auto">
+            <table class="nx-table" id="att-log-table">
+              <thead>
+                <tr>
+                  <th>👤 Staff</th>
+                  <th>🏷️ Role</th>
+                  <th>🕐 Check In</th>
+                  <th>🕐 Check Out</th>
+                  <th>⏱️ Hours</th>
+                  <th>📊 Status</th>
+                  <th>📝 Note</th>
+                </tr>
+              </thead>
+              <tbody id="att-log-tbody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Monthly summary -->
+        <div class="sh-att-summary">
+          <div class="glass-panel">
+            <div class="sh-panel-header">
+              <span class="sh-panel-title">📊 Monthly Summary</span>
+              <select class="form-input sh-filter-select" id="att-summary-staff" style="max-width:160px">
+                <!-- JS -->
+              </select>
+            </div>
+            <div class="sh-att-month-stats" id="att-month-stats">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         TAB 6: 🏆 RECOGNITION & DEVELOPMENT
+    ══════════════════════════════════════════ -->
+    <div class="tab-pane" id="sh-pane-recognition" role="tabpanel">
+      <div class="sh-recog-layout">
+
+        <!-- Leaderboard -->
+        <div class="glass-panel sh-leaderboard">
+          <div class="sh-panel-header">
+            <span class="sh-panel-title">🏆 Top Performers — <span id="recog-month-label">May 2026</span></span>
+          </div>
+          <div class="sh-leaderboard-list" id="leaderboard-list">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- CPD Tracker -->
+        <div class="glass-panel sh-cpd-panel">
+          <div class="sh-panel-header">
+            <span class="sh-panel-title">📚 CPD Points Tracker</span>
+            <button class="btn btn-primary btn-sm" id="cpd-add-btn"><span>➕</span> Log CPD</button>
+          </div>
+          <div class="sh-cpd-list" id="cpd-list">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Training schedule -->
+        <div class="glass-panel sh-training-panel">
+          <div class="sh-panel-header">
+            <span class="sh-panel-title">🎓 Training Schedule</span>
+            <button class="btn btn-primary btn-sm" id="training-add-btn"><span>➕</span> Add Training</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="nx-table" id="training-table">
+              <thead>
+                <tr>
+                  <th>📋 Programme</th>
+                  <th>👤 Staff</th>
+                  <th>📅 Date</th>
+                  <th>⏱️ Duration</th>
+                  <th>📊 Status</th>
+                </tr>
+              </thead>
+              <tbody id="training-tbody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Certificates -->
+        <div class="glass-panel sh-certs-panel">
+          <div class="sh-panel-header">
+            <span class="sh-panel-title">🎖️ Achievements &amp; Certificates</span>
+          </div>
+          <div class="sh-cert-grid" id="cert-grid">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /sh-body -->
+
+</div><!-- /sh-main -->
+
+<!-- ══════════════════════════════════════════
+     STAFF DETAIL FLYOUT
+══════════════════════════════════════════ -->
+<div class="sh-flyout-overlay" id="sh-flyout-overlay"></div>
+<div class="sh-flyout" id="sh-flyout" role="dialog" aria-modal="true">
+  <div class="sh-flyout-header">
+    <div class="sh-flyout-title" id="flyout-title">Staff Profile</div>
+    <button class="btn-icon btn-icon-sm" id="sh-flyout-close"><i class="fas fa-xmark"></i></button>
+  </div>
+  <div class="sh-flyout-body" id="sh-flyout-body">
+    <!-- Populated by JS -->
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     ADD STAFF MODAL
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="add-staff-modal">
+  <div class="modal glass-card" style="max-width:560px;width:95%">
+    <div class="modal-header">
+      <h3 class="modal-title">➕ Add New Staff Member</h3>
+      <button class="btn-icon btn-icon-sm modal-close-btn" data-modal="add-staff-modal"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+        <div class="form-group"><label class="form-label">First Name</label><input type="text" class="form-input" id="add-fname" placeholder="First name"></div>
+        <div class="form-group"><label class="form-label">Last Name</label><input type="text" class="form-input" id="add-lname" placeholder="Last name"></div>
+        <div class="form-group"><label class="form-label">Role</label>
+          <select class="form-input" id="add-role">
+            <option>Lab Technician</option><option>Lab Manager</option><option>Pathologist</option>
+            <option>Nurse</option><option>Receptionist</option><option>Phlebotomist</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Department</label>
+          <select class="form-input" id="add-dept">
+            <option>Hematology</option><option>Chemistry</option><option>Microbiology</option>
+            <option>Blood Bank</option><option>Reception</option><option>Phlebotomy</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="add-email" placeholder="staff@hospital.com"></div>
+        <div class="form-group"><label class="form-label">Phone</label><input type="tel" class="form-input" id="add-phone" placeholder="+250 xxx xxx xxx"></div>
+        <div class="form-group"><label class="form-label">Default Shift</label>
+          <select class="form-input" id="add-shift">
+            <option value="Morning">☀️ Morning</option>
+            <option value="Afternoon">🌤️ Afternoon</option>
+            <option value="Night">🌙 Night</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Start Date</label><input type="date" class="form-input" id="add-start"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-modal="add-staff-modal">Cancel</button>
+      <button class="btn btn-primary" id="add-staff-confirm"><span>✅</span> Save Staff Member</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     NEW LEAVE REQUEST MODAL
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="new-leave-modal">
+  <div class="modal glass-card" style="max-width:500px;width:95%">
+    <div class="modal-header">
+      <h3 class="modal-title">🌴 New Leave Request</h3>
+      <button class="btn-icon btn-icon-sm modal-close-btn" data-modal="new-leave-modal"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">👤 Staff Member</label><select class="form-input" id="leave-staff-sel"><!-- JS --></select></div>
+      <div class="form-group"><label class="form-label">📋 Leave Type</label>
+        <select class="form-input" id="leave-type-sel">
+          <option value="Annual Leave">🌴 Annual Leave</option>
+          <option value="Sick Leave">🏥 Sick Leave</option>
+          <option value="Maternity">🤱 Maternity</option>
+          <option value="Emergency">🚨 Emergency</option>
+          <option value="Study">📚 Study Leave</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+        <div class="form-group"><label class="form-label">📅 From</label><input type="date" class="form-input" id="leave-from"></div>
+        <div class="form-group"><label class="form-label">📅 To</label><input type="date" class="form-input" id="leave-to"></div>
+      </div>
+      <div class="form-group"><label class="form-label">📝 Reason</label><textarea class="form-input" id="leave-reason" rows="3" placeholder="Reason for leave…"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-modal="new-leave-modal">Cancel</button>
+      <button class="btn btn-primary" id="submit-leave-btn"><span>📤</span> Submit Request</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/staffhub/js/staffhub.js' %}" defer></script>
+{% endblock %}

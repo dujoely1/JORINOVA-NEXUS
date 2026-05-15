@@ -1,0 +1,282 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}🧬 MedGenome — NEXUS ALIS-X{% endblock %}
+{% block module_id %}genome{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/genomics/css/genomics.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="genome-main" data-theme-mode="medgenome" id="app-main-inner">
+
+  <header class="page-header genome-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(139,92,246,0.12);border-color:rgba(139,92,246,0.28);color:#A78BFA">
+        <span style="font-size:20px">🧬</span>
+      </div>
+      <div>
+        <h1 class="page-title" style="color:#DDE4FF">MedGenome Intelligence</h1>
+        <div class="page-subtitle" style="color:rgba(139,92,246,0.7)">{{ today|date:"l, d F Y" }} · DNA Sequencing · Variant Analysis · Molecular Epidemiology</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <div class="genome-live-badge">
+        <div class="genome-live-dot"></div>
+        <span>🧬 Analysis Engine Live</span>
+      </div>
+      <button class="btn btn-sm" style="background:rgba(139,92,246,0.15);border-color:rgba(139,92,246,0.35);color:#A78BFA">
+        <span>➕</span> New Analysis
+      </button>
+    </div>
+  </header>
+
+  <!-- Genome KPI strip -->
+  <div class="genome-kpi-strip">
+    <div class="gkpi"><span class="gkpi-emoji">🧬</span><div class="gkpi-val">—</div><div class="gkpi-lbl">Samples Sequenced</div></div>
+    <div class="gkpi"><span class="gkpi-emoji">🔬</span><div class="gkpi-val">—</div><div class="gkpi-lbl">Variants Detected</div></div>
+    <div class="gkpi"><span class="gkpi-emoji">🚨</span><div class="gkpi-val" style="color:#FF6B8A">—</div><div class="gkpi-lbl">Pathogenic</div></div>
+    <div class="gkpi"><span class="gkpi-emoji">⚠️</span><div class="gkpi-val" style="color:#FFD600">—</div><div class="gkpi-lbl">VUS</div></div>
+    <div class="gkpi"><span class="gkpi-emoji">✅</span><div class="gkpi-val" style="color:#00E676">—</div><div class="gkpi-lbl">Benign</div></div>
+    <div class="gkpi"><span class="gkpi-emoji">⏳</span><div class="gkpi-val">—</div><div class="gkpi-lbl">In Pipeline</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-nav genome-tabs" style="background:rgba(4,6,16,0.9);border-bottom:1px solid rgba(130,80,240,0.18);padding:0 var(--space-xl)">
+    <button class="tab-btn active genome-tab" data-pane="gp-sequencing">🧬 Sequencing Queue</button>
+    <button class="tab-btn genome-tab" data-pane="gp-variants">🔬 Variant Report</button>
+    <button class="tab-btn genome-tab" data-pane="gp-phylo">🌳 Phylogenetics</button>
+    <button class="tab-btn genome-tab" data-pane="gp-mol-epi">🌍 Molecular Epi</button>
+    <button class="tab-btn genome-tab" data-pane="gp-qc">📊 QC Metrics</button>
+  </div>
+
+  <div class="genome-body">
+
+    <!-- ── SEQUENCING QUEUE ── -->
+    <div class="tab-pane active" id="gp-sequencing">
+      <div class="genome-queue-layout">
+        <div class="genome-table-wrap glass-panel" style="overflow:hidden;flex:1">
+          <div class="chart-header">
+            <div class="chart-title" style="color:#DDE4FF"><span>🧬</span> Active Sequencing Jobs</div>
+            <div style="display:flex;gap:var(--space-sm);margin-left:auto">
+              <select class="fi" style="width:auto;font-size:var(--text-xs);padding:6px 10px;background:rgba(14,22,60,0.8);border-color:rgba(130,80,240,0.25);color:#DDE4FF">
+                <option>All platforms</option><option>🔬 Illumina</option><option>🧪 Nanopore</option><option>💡 PacBio</option>
+              </select>
+            </div>
+          </div>
+          <table class="nx-table">
+            <thead><tr>
+              <th>🔖 Run ID</th><th>🧬 Sample</th><th>👤 Patient</th>
+              <th>🔬 Platform</th><th>🧪 Test Type</th><th>📊 Coverage</th>
+              <th>⏱️ Progress</th><th>📋 Status</th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td style="font-family:var(--font-mono);font-size:11px;color:#A78BFA">SEQ-2025-0041</td>
+                <td>SMP-A1044</td><td>DEMO — Uwimana J.</td>
+                <td><span class="badge" style="background:rgba(0,229,255,0.1);border-color:rgba(0,229,255,0.25);color:#00E5FF">Illumina NovaSeq</span></td>
+                <td>WGS 30×</td>
+                <td><div class="coverage-bar"><div class="coverage-fill" style="width:78%;background:linear-gradient(90deg,#8B5CF6,#A78BFA)"></div></div><span style="font-family:var(--font-mono);font-size:11px">28.4×</span></td>
+                <td>
+                  <div class="genome-progress-wrap">
+                    <div class="genome-progress-bar" style="--pct:78%"></div>
+                    <span style="font-family:var(--font-mono);font-size:11px;color:#A78BFA">78%</span>
+                  </div>
+                </td>
+                <td><span class="badge" style="background:rgba(0,229,255,0.08);border-color:rgba(0,229,255,0.2);color:#00E5FF;animation:pulse-normal 2.5s infinite">🔄 Running</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:var(--font-mono);font-size:11px;color:#A78BFA">SEQ-2025-0040</td>
+                <td>SMP-A1041</td><td>DEMO — Mutoni M.</td>
+                <td><span class="badge" style="background:rgba(139,92,246,0.1);border-color:rgba(139,92,246,0.25);color:#A78BFA">Nanopore MinION</span></td>
+                <td>WES 100×</td>
+                <td><div class="coverage-bar"><div class="coverage-fill" style="width:100%;background:linear-gradient(90deg,#00E676,#00C853)"></div></div><span style="font-family:var(--font-mono);font-size:11px">102.1×</span></td>
+                <td>
+                  <div class="genome-progress-wrap">
+                    <div class="genome-progress-bar" style="--pct:100%;background:linear-gradient(90deg,#00E676,#00C853)"></div>
+                    <span style="font-family:var(--font-mono);font-size:11px;color:#00E676">100%</span>
+                  </div>
+                </td>
+                <td><span class="badge badge-green">✅ Complete</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:var(--font-mono);font-size:11px;color:#A78BFA">SEQ-2025-0039</td>
+                <td>SMP-A1038</td><td>DEMO — Nzabahimana C.</td>
+                <td><span class="badge" style="background:rgba(0,229,255,0.1);border-color:rgba(0,229,255,0.25);color:#00E5FF">Illumina MiSeq</span></td>
+                <td>16S rRNA</td>
+                <td><div class="coverage-bar"><div class="coverage-fill" style="width:45%;background:linear-gradient(90deg,#FFD600,#FFA500)"></div></div><span style="font-family:var(--font-mono);font-size:11px">11.2×</span></td>
+                <td>
+                  <div class="genome-progress-wrap">
+                    <div class="genome-progress-bar" style="--pct:45%;background:linear-gradient(90deg,#FFD600,#FFA500)"></div>
+                    <span style="font-family:var(--font-mono);font-size:11px;color:#FFD600">45%</span>
+                  </div>
+                </td>
+                <td><span class="badge badge-blue" style="animation:pulse-normal 2.5s infinite">🔄 Aligning</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- Sidebar: QC quick view -->
+        <div class="genome-side-panel glass-panel">
+          <div class="genome-side-title">🔬 Live QC Metrics</div>
+          <div class="genome-qc-metric">
+            <div class="gqc-label">Q30 Score</div>
+            <div class="gqc-bar"><div class="gqc-fill" style="width:91%"></div></div>
+            <div class="gqc-val">91.2%</div>
+          </div>
+          <div class="genome-qc-metric">
+            <div class="gqc-label">Cluster Density</div>
+            <div class="gqc-bar"><div class="gqc-fill" style="width:85%;background:rgba(0,229,255,0.7)"></div></div>
+            <div class="gqc-val">1,120 k/mm²</div>
+          </div>
+          <div class="genome-qc-metric">
+            <div class="gqc-label">Yield (Gb)</div>
+            <div class="gqc-bar"><div class="gqc-fill" style="width:78%;background:rgba(0,230,118,0.7)"></div></div>
+            <div class="gqc-val">156 Gb</div>
+          </div>
+          <div class="genome-qc-metric">
+            <div class="gqc-label">Error Rate</div>
+            <div class="gqc-bar"><div class="gqc-fill" style="width:4%;background:rgba(255,23,68,0.7)"></div></div>
+            <div class="gqc-val" style="color:#FF6B8A">0.12%</div>
+          </div>
+          <div class="genome-side-title" style="margin-top:var(--space-md)">🧬 Variant Summary</div>
+          <div class="genome-variant-legend">
+            <div class="gv-row"><div class="gv-dot" style="background:#FF6B8A"></div><span>Pathogenic</span><span class="gv-count">7</span></div>
+            <div class="gv-row"><div class="gv-dot" style="background:#FFD600"></div><span>VUS</span><span class="gv-count">23</span></div>
+            <div class="gv-row"><div class="gv-dot" style="background:#00E676"></div><span>Benign</span><span class="gv-count">142</span></div>
+            <div class="gv-row"><div class="gv-dot" style="background:#7A88CC"></div><span>SNP (known)</span><span class="gv-count">891</span></div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /sequencing -->
+
+    <!-- ── VARIANT REPORT ── -->
+    <div class="tab-pane" id="gp-variants">
+      <div class="glass-panel" style="overflow:hidden">
+        <div class="chart-header">
+          <div class="chart-title" style="color:#DDE4FF"><span>🔬</span> Variant Classification Report</div>
+          <div style="display:flex;gap:var(--space-sm);margin-left:auto">
+            <select class="fi" style="width:auto;font-size:var(--text-xs);background:rgba(14,22,60,0.8);border-color:rgba(130,80,240,0.25);color:#DDE4FF">
+              <option>All classifications</option><option>🚨 Pathogenic</option><option>⚠️ VUS</option><option>✅ Benign</option>
+            </select>
+          </div>
+        </div>
+        <table class="nx-table">
+          <thead><tr>
+            <th>🔖 Variant ID</th><th>🧬 Gene</th><th>📋 Mutation</th>
+            <th>🌐 Chromosome</th><th>📊 Frequency</th><th>⚡ Classification</th>
+            <th>🔗 Database</th><th>📝 ACMG</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td style="font-family:var(--font-mono);font-size:11px">VAR-001-2025</td>
+              <td style="font-weight:600;color:#A78BFA">BRCA1</td>
+              <td style="font-family:var(--font-mono);font-size:11px">c.5266dupC</td>
+              <td>Chr17:43094692</td>
+              <td style="font-family:var(--font-mono)">0.002%</td>
+              <td><span class="badge" style="background:rgba(255,23,68,0.1);border-color:rgba(255,23,68,0.28);color:#FF6B8A">🚨 Pathogenic</span></td>
+              <td><span class="badge badge-cyan">ClinVar</span></td>
+              <td><span class="badge badge-red">Class V</span></td>
+            </tr>
+            <tr>
+              <td style="font-family:var(--font-mono);font-size:11px">VAR-002-2025</td>
+              <td style="font-weight:600;color:#A78BFA">TP53</td>
+              <td style="font-family:var(--font-mono);font-size:11px">p.Arg175His</td>
+              <td>Chr17:7675088</td>
+              <td style="font-family:var(--font-mono)">0.008%</td>
+              <td><span class="badge" style="background:rgba(255,23,68,0.1);border-color:rgba(255,23,68,0.28);color:#FF6B8A">🚨 Pathogenic</span></td>
+              <td><span class="badge badge-cyan">COSMIC</span></td>
+              <td><span class="badge badge-red">Class V</span></td>
+            </tr>
+            <tr>
+              <td style="font-family:var(--font-mono);font-size:11px">VAR-003-2025</td>
+              <td style="font-weight:600;color:#A78BFA">CFTR</td>
+              <td style="font-family:var(--font-mono);font-size:11px">c.1521_1523del</td>
+              <td>Chr7:117548628</td>
+              <td style="font-family:var(--font-mono)">1.2%</td>
+              <td><span class="badge badge-yellow">⚠️ VUS</span></td>
+              <td><span class="badge badge-grey">dbSNP</span></td>
+              <td><span class="badge badge-yellow">Class III</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── PHYLOGENETICS ── -->
+    <div class="tab-pane" id="gp-phylo">
+      <div class="glass-panel" style="padding:var(--space-xl);text-align:center">
+        <div style="font-size:64px;margin-bottom:var(--space-md)">🌳</div>
+        <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:#DDE4FF">Phylogenetic Analysis</h2>
+        <p style="color:#7A88CC;font-size:var(--text-sm);max-width:480px;margin:16px auto;line-height:1.7">
+          Maximum likelihood and Bayesian phylogenetic tree construction from multi-sequence alignments.
+          Integrates with NCBI, GISAID, and national pathogen databases for comparative genomics.
+        </p>
+        <div style="display:flex;gap:var(--space-md);justify-content:center;margin-top:var(--space-xl);flex-wrap:wrap">
+          <div class="genome-feature-badge"><span>🌍</span> GISAID Integration</div>
+          <div class="genome-feature-badge"><span>🧬</span> BEAST2 Pipeline</div>
+          <div class="genome-feature-badge"><span>🔗</span> NCBI GenBank</div>
+          <div class="genome-feature-badge"><span>📊</span> iTOL Visualization</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MOLECULAR EPI ── -->
+    <div class="tab-pane" id="gp-mol-epi">
+      <div class="glass-panel" style="padding:var(--space-xl);text-align:center">
+        <div style="font-size:64px;margin-bottom:var(--space-md)">🌍</div>
+        <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:#DDE4FF">Molecular Epidemiology</h2>
+        <p style="color:#7A88CC;font-size:var(--text-sm);max-width:480px;margin:16px auto;line-height:1.7">
+          Track transmission chains, identify outbreak clusters, and map geographic spread of pathogen variants
+          using whole-genome sequencing data. Powered by Nexus AI clustering algorithms.
+        </p>
+        <div style="display:flex;gap:var(--space-md);justify-content:center;margin-top:var(--space-xl);flex-wrap:wrap">
+          <div class="genome-feature-badge"><span>🗺️</span> Geographic Mapping</div>
+          <div class="genome-feature-badge"><span>🔗</span> Transmission Chains</div>
+          <div class="genome-feature-badge"><span>🤖</span> AI Clustering</div>
+          <div class="genome-feature-badge"><span>📡</span> Real-time Alerts</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── QC METRICS ── -->
+    <div class="tab-pane" id="gp-qc">
+      <div class="genome-qc-grid">
+        {% for m in "12345678" %}
+        <div class="genome-qc-card glass-panel">
+          <div class="gqc-card-title">{% cycle "📊 Q30 Score" "🧬 Yield (Gb)" "🔬 Coverage Depth" "⚠️ Error Rate" "🔗 Mapping Rate" "🧪 Duplication %" "📈 Insert Size" "✅ Pass Rate" %}</div>
+          <div class="gqc-card-val" style="color:{% cycle '#A78BFA' '#00E5FF' '#00E676' '#FF6B8A' '#00E676' '#FFD600' '#A78BFA' '#00E676' %}">
+            {% cycle "91.2%" "156 Gb" "28.4×" "0.12%" "98.7%" "3.2%" "350 bp" "94.8%" %}
+          </div>
+          <div class="gqc-card-sub">{% cycle "Excellent" "Above target" "30× target" "Very low" "High confidence" "Within limit" "Optimal" "QC pass" %}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div><!-- /genome-body -->
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.genome-tabs .tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.genome-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.genome-body .tab-pane').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.pane)?.classList.add('active');
+    });
+  });
+  /* Demo KPI */
+  var kpis = [24, 1063, 7, 23, 142, 3];
+  document.querySelectorAll('.gkpi-val').forEach(function(el, i) { el.textContent = kpis[i] || '—'; });
+});
+</script>
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/genomics/js/genomics.js' %}" defer></script>
+{% endblock %}

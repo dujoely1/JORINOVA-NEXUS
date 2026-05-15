@@ -1,0 +1,174 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}🗂️ Inventory — NEXUS ALIS-X{% endblock %}
+{% block module_id %}inventory{% endblock %}
+{% block nav_active_inventory %}active{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/inventory/css/inventory.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="inv-main">
+
+  <header class="page-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(255,109,0,0.08);border-color:rgba(255,109,0,0.18);color:var(--alert-orange)">
+        <span style="font-size:20px">🗂️</span>
+      </div>
+      <div>
+        <h1 class="page-title">Inventory &amp; Stock</h1>
+        <div class="page-subtitle">{{ today|date:"l, d F Y" }} · Supply Chain Management</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <button class="btn btn-warning btn-sm" id="low-stock-btn">
+        <span>⚠️</span> Low Stock
+        <span class="badge badge-orange" id="low-stock-count" style="margin-left:4px">—</span>
+      </button>
+      <button class="btn btn-primary btn-sm">
+        <span>➕</span> Add Item
+      </button>
+    </div>
+  </header>
+
+  <!-- Tab nav -->
+  <div class="tab-nav inv-tab-nav" role="tablist">
+    <button class="tab-btn active" data-pane="stock-pane">📦 Stock Overview</button>
+    <button class="tab-btn" data-pane="reagents-pane">🧪 Reagents</button>
+    <button class="tab-btn" data-pane="equipment-pane">🔭 Equipment</button>
+    <button class="tab-btn" data-pane="orders-pane">📝 Purchase Orders</button>
+    <button class="tab-btn" data-pane="expiry-pane">⏰ Expiry Tracker</button>
+  </div>
+
+  <div class="inv-body">
+
+    <!-- Stock Overview -->
+    <div class="tab-pane active" id="stock-pane">
+      <div class="inv-stat-row">
+        <div class="inv-stat-card inv-card-blue">
+          <span class="inv-stat-emoji">📦</span>
+          <div class="inv-stat-val" id="inv-total-items">—</div>
+          <div class="inv-stat-lbl">Total Items</div>
+        </div>
+        <div class="inv-stat-card inv-card-orange">
+          <span class="inv-stat-emoji">⚠️</span>
+          <div class="inv-stat-val" id="inv-low-stock">—</div>
+          <div class="inv-stat-lbl">Low Stock</div>
+        </div>
+        <div class="inv-stat-card inv-card-red">
+          <span class="inv-stat-emoji">⏰</span>
+          <div class="inv-stat-val" id="inv-expiring">—</div>
+          <div class="inv-stat-lbl">Expiring Soon</div>
+        </div>
+        <div class="inv-stat-card inv-card-green">
+          <span class="inv-stat-emoji">📋</span>
+          <div class="inv-stat-val" id="inv-orders">—</div>
+          <div class="inv-stat-lbl">Open Orders</div>
+        </div>
+      </div>
+
+      <div class="glass-panel" style="overflow:hidden;margin-top:var(--space-md)">
+        <div class="chart-header">
+          <div class="chart-title"><span>📦</span> Current Stock Levels</div>
+          <div style="display:flex;gap:var(--space-sm);align-items:center;margin-left:auto">
+            <div class="search-wrap" style="max-width:200px">
+              <i class="fas fa-magnifying-glass search-icon"></i>
+              <input type="text" class="fi" placeholder="🔍 Search item…">
+            </div>
+            <select class="fi" style="width:auto;font-size:var(--text-xs);padding:6px 10px">
+              <option>All categories</option>
+              <option>🧪 Reagents</option>
+              <option>🔭 Equipment</option>
+              <option>🩸 Consumables</option>
+            </select>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="nx-table">
+            <thead>
+              <tr>
+                <th>🔖 Item Code</th>
+                <th>📦 Item Name</th>
+                <th>🧩 Category</th>
+                <th>🔢 Current Stock</th>
+                <th>📏 Min Level</th>
+                <th>📊 Status</th>
+                <th>⏰ Expiry</th>
+                <th>🏭 Supplier</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="9">
+                <div class="empty-state" style="padding:var(--space-2xl)">
+                  <div class="empty-state-icon" style="font-size:32px">📦</div>
+                  <h3>No Inventory Items</h3>
+                  <p>Add reagents and equipment to begin stock management.</p>
+                </div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reagents, Equipment, Orders, Expiry — placeholders -->
+    <div class="tab-pane" id="reagents-pane">
+      <div class="glass-panel" style="padding:var(--space-3xl);text-align:center">
+        <div style="font-size:64px;margin-bottom:var(--space-md)">🧪</div>
+        <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary)">Reagent Management</h2>
+        <p style="color:var(--text-secondary);font-size:var(--text-sm);max-width:380px;margin:16px auto;line-height:1.7">
+          Track reagent kits, lot numbers, calibrators, controls, and QC materials.
+          Automated reorder alerts when below minimum threshold.
+        </p>
+      </div>
+    </div>
+    <div class="tab-pane" id="equipment-pane">
+      <div class="glass-panel" style="padding:var(--space-3xl);text-align:center">
+        <div style="font-size:64px;margin-bottom:var(--space-md)">🔭</div>
+        <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary)">Equipment Registry</h2>
+        <p style="color:var(--text-secondary);font-size:var(--text-sm);max-width:380px;margin:16px auto;line-height:1.7">
+          Analyzer maintenance schedules, calibration records, service logs, and QC tracking for all laboratory instruments.
+        </p>
+      </div>
+    </div>
+    <div class="tab-pane" id="orders-pane">
+      <div class="glass-panel" style="padding:var(--space-3xl);text-align:center">
+        <div style="font-size:64px;margin-bottom:var(--space-md)">📝</div>
+        <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary)">Purchase Orders</h2>
+        <p style="color:var(--text-secondary);font-size:var(--text-sm);max-width:380px;margin:16px auto;line-height:1.7">
+          Manage supplier orders, track deliveries, and reconcile invoices against POs.
+        </p>
+      </div>
+    </div>
+    <div class="tab-pane" id="expiry-pane">
+      <div class="glass-panel" style="padding:var(--space-3xl);text-align:center">
+        <div style="font-size:64px;margin-bottom:var(--space-md)">⏰</div>
+        <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary)">Expiry Tracker</h2>
+        <p style="color:var(--text-secondary);font-size:var(--text-sm);max-width:380px;margin:16px auto;line-height:1.7">
+          Automated alerts 30/14/7 days before reagent or consumable expiry. Prevent use of expired materials.
+        </p>
+      </div>
+    </div>
+
+  </div><!-- /inv-body -->
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.inv-tab-nav .tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.inv-tab-nav .tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.inv-body .tab-pane').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      var pane = document.getElementById(btn.dataset.pane);
+      if (pane) pane.classList.add('active');
+    });
+  });
+});
+</script>
+{% endblock %}

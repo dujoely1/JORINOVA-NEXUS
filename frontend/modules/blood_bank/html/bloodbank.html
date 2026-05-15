@@ -1,0 +1,787 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}🩸 Blood Bank — NEXUS ALIS-X{% endblock %}
+{% block module_id %}blood-bank{% endblock %}
+{% block nav_active_lab %}active{% endblock %}
+{% block flyout_blood %}active{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/blood_bank/css/bloodbank.css' %}">
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="bb-main" id="bb-main">
+
+  <!-- ═══════════════════════ PAGE HEADER ═══════════════════════ -->
+  <header class="bb-header">
+    <div class="bb-header-left">
+      <div class="bb-header-icon">🩸</div>
+      <div>
+        <h1 class="bb-header-title">🩸 Blood Bank — ALIS-X</h1>
+        <div class="bb-header-sub">
+          INVENTORY · STORAGE · EXCHANGE · HAEMOVIGILANCE
+          <span id="bb-last-sync" style="margin-left:12px;color:var(--blue-glow)">⟳ Syncing…</span>
+        </div>
+      </div>
+    </div>
+    <div class="bb-header-right">
+      <div class="bb-live-badge">
+        <span class="bb-live-dot"></span>
+        LIVE
+      </div>
+      <button class="btn btn-secondary btn-sm" id="bb-refresh-btn" type="button" title="Refresh all data">
+        <i class="fas fa-arrows-rotate"></i> Refresh
+      </button>
+      <button class="btn btn-primary btn-sm" id="bb-add-bag-btn" type="button">
+        <i class="fas fa-plus"></i> Add Blood Bag
+      </button>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════ TAB NAVIGATION ═══════════════════ -->
+  <nav class="bb-tab-nav" role="tablist" aria-label="Blood Bank sections">
+    <button class="bb-tab-btn active" data-tab="inventory"     role="tab" aria-selected="true">🩸 Blood Inventory</button>
+    <button class="bb-tab-btn"        data-tab="fridge"        role="tab">❄️ Fridge/Freezer Map</button>
+    <button class="bb-tab-btn"        data-tab="exchange"      role="tab">🤖 AI Exchange</button>
+    <button class="bb-tab-btn"        data-tab="requests"      role="tab">💉 Blood Requests <span id="req-badge" class="bb-status-badge bb-status-reserved" style="font-size:10px;padding:1px 5px;margin-left:4px"></span></button>
+    <button class="bb-tab-btn"        data-tab="crossmatch"    role="tab">🧫 Cross-matching</button>
+    <button class="bb-tab-btn"        data-tab="donations"     role="tab">🩺 Donations</button>
+    <button class="bb-tab-btn"        data-tab="haemovigilance" role="tab">🛡️ Haemovigilance</button>
+    <button class="bb-tab-btn"        data-tab="analytics"     role="tab">📊 Analytics</button>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       TAB 1 — 🩸 BLOOD INVENTORY
+       ═══════════════════════════════════════════════════════════ -->
+  <section class="bb-tab-pane active" id="tab-inventory" role="tabpanel">
+
+    <!-- KPI Strip -->
+    <div class="bb-kpi-strip" id="bb-kpi-strip">
+      <div class="bb-kpi-card bb-kpi-blue">
+        <div class="bb-kpi-icon">🩸</div>
+        <div class="bb-kpi-body">
+          <div class="bb-kpi-value" id="kpi-available">—</div>
+          <div class="bb-kpi-label">Total Available Bags</div>
+        </div>
+        <span class="bb-kpi-delta up" id="kpi-available-delta"></span>
+      </div>
+      <div class="bb-kpi-card bb-kpi-red">
+        <div class="bb-kpi-icon">⏰</div>
+        <div class="bb-kpi-body">
+          <div class="bb-kpi-value" id="kpi-expiring">—</div>
+          <div class="bb-kpi-label">Expiring ≤ 3 Days</div>
+        </div>
+        <span class="bb-kpi-delta warn" id="kpi-expiring-delta">URGENT</span>
+      </div>
+      <div class="bb-kpi-card bb-kpi-yellow">
+        <div class="bb-kpi-icon">🔒</div>
+        <div class="bb-kpi-body">
+          <div class="bb-kpi-value" id="kpi-quarantine">—</div>
+          <div class="bb-kpi-label">In Quarantine</div>
+        </div>
+        <span class="bb-kpi-delta" id="kpi-quarantine-delta"></span>
+      </div>
+      <div class="bb-kpi-card bb-kpi-cyan">
+        <div class="bb-kpi-icon">🚁</div>
+        <div class="bb-kpi-body">
+          <div class="bb-kpi-value" id="kpi-transit">—</div>
+          <div class="bb-kpi-label">In Transit (RBC/Zipline)</div>
+        </div>
+        <span class="bb-kpi-delta up" id="kpi-transit-delta"></span>
+      </div>
+    </div>
+
+    <!-- Blood Group Stock Grid -->
+    <div class="bb-section-header">
+      <h2 class="bb-section-title">
+        <span class="bb-title-icon">🧬</span>
+        Blood Group Stock Overview
+      </h2>
+      <div class="bb-section-actions">
+        <span style="font-size:var(--text-xs);color:var(--text-muted)">
+          <span style="display:inline-block;width:8px;height:8px;background:var(--gold);border-radius:50%;margin-right:4px"></span>Universal Donor
+          <span style="display:inline-block;width:8px;height:8px;background:var(--alert-purple);border-radius:50%;margin-left:10px;margin-right:4px"></span>Universal Recipient
+        </span>
+      </div>
+    </div>
+
+    <div class="bg-group-grid" id="bg-group-grid">
+      <!-- Populated by JS -->
+      <div class="bb-loading-state" style="grid-column:1/-1;padding:var(--space-xl)">
+        <div class="bb-loading-orb"></div>
+        <div class="bb-loading-text">Loading blood group data…</div>
+      </div>
+    </div>
+
+    <!-- Full Inventory Table -->
+    <div class="bb-section-header">
+      <h2 class="bb-section-title">
+        <span class="bb-title-icon">📋</span>
+        Full Inventory
+      </h2>
+      <div class="bb-section-actions">
+        <button class="btn btn-ghost btn-sm" id="inventory-export-btn" type="button">
+          <i class="fas fa-download"></i> Export
+        </button>
+      </div>
+    </div>
+
+    <div class="bb-filter-row">
+      <div class="bb-search-wrap">
+        <i class="fas fa-magnifying-glass"></i>
+        <input type="text" class="bb-search" id="inv-search"
+               placeholder="Bag #, blood group, location…"
+               autocomplete="off" spellcheck="false">
+      </div>
+      <select class="bb-filter-select" id="inv-filter-group">
+        <option value="">All Groups</option>
+        <option value="A+">A+</option>
+        <option value="A-">A-</option>
+        <option value="B+">B+</option>
+        <option value="B-">B-</option>
+        <option value="AB+">AB+</option>
+        <option value="AB-">AB-</option>
+        <option value="O+">O+</option>
+        <option value="O-">O-</option>
+      </select>
+      <select class="bb-filter-select" id="inv-filter-component">
+        <option value="">All Components</option>
+        <option value="WB">Whole Blood</option>
+        <option value="PRBC">Packed RBC</option>
+        <option value="FFP">Fresh Frozen Plasma</option>
+        <option value="PLT">Platelets</option>
+        <option value="CRYO">Cryoprecipitate</option>
+      </select>
+      <select class="bb-filter-select" id="inv-filter-status">
+        <option value="available">Available</option>
+        <option value="quarantine">Quarantine</option>
+        <option value="reserved">Reserved</option>
+        <option value="in_transit">In Transit</option>
+        <option value="">All Statuses</option>
+      </select>
+      <select class="bb-filter-select" id="inv-filter-expiry">
+        <option value="">All Expiry</option>
+        <option value="critical">Critical (≤1 day)</option>
+        <option value="warning">Warning (≤3 days)</option>
+        <option value="ok">OK</option>
+        <option value="expired">Expired</option>
+      </select>
+    </div>
+
+    <div class="bb-table-wrap">
+      <table class="bb-table" id="inv-table" role="grid" aria-label="Blood bag inventory">
+        <thead>
+          <tr>
+            <th>Bag #</th>
+            <th>Blood Group</th>
+            <th>Component</th>
+            <th>Volume (mL)</th>
+            <th>Location</th>
+            <th>Collection Date</th>
+            <th>Expiry</th>
+            <th>Expiry Status</th>
+            <th>Status</th>
+            <th style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="inv-tbody">
+          <tr><td colspan="10">
+            <div class="bb-loading-state">
+              <div class="bb-loading-orb"></div>
+              <div class="bb-loading-text">Loading inventory…</div>
+            </div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--space-sm);padding:0 2px;">
+      <span class="text-xs" style="color:var(--text-muted);font-family:var(--font-mono)" id="inv-result-count"></span>
+      <div id="inv-pagination" style="display:flex;gap:4px"></div>
+    </div>
+
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       TAB 2 — ❄️ FRIDGE / FREEZER MAP
+       ═══════════════════════════════════════════════════════════ -->
+  <section class="bb-tab-pane" id="tab-fridge" role="tabpanel">
+
+    <div class="bb-section-header">
+      <h2 class="bb-section-title">
+        <span class="bb-title-icon">❄️</span>
+        Storage Unit Map
+      </h2>
+      <div class="bb-section-actions">
+        <div style="display:flex;gap:8px;align-items:center;font-size:11px;color:var(--text-muted)">
+          <span class="slot" slot-available" style="width:12px;height:12px;display:inline-block;border-radius:2px"></span> Available
+          <span class="slot slot-reserved"  style="width:12px;height:12px;display:inline-block;border-radius:2px"></span> Reserved
+          <span class="slot slot-expiring"  style="width:12px;height:12px;display:inline-block;border-radius:2px"></span> Expiring
+          <span class="slot slot-critical"  style="width:12px;height:12px;display:inline-block;border-radius:2px"></span> Critical
+          <span class="slot slot-transit"   style="width:12px;height:12px;display:inline-block;border-radius:2px"></span> In Transit
+          <span class="slot slot-empty"     style="width:12px;height:12px;display:inline-block;border-radius:2px"></span> Empty
+        </div>
+      </div>
+    </div>
+
+    <!-- Temp summary strip -->
+    <div id="temp-strip" style="display:flex;gap:var(--space-sm);margin-bottom:var(--space-md);flex-wrap:wrap"></div>
+
+    <!-- Storage unit cards -->
+    <div class="storage-units-grid" id="storage-units-grid">
+      <div class="bb-loading-state" style="grid-column:1/-1">
+        <div class="bb-loading-orb"></div>
+        <div class="bb-loading-text">Reading storage units…</div>
+      </div>
+    </div>
+
+    <!-- Slot tooltip (global, positioned by JS) -->
+    <div class="slot-tooltip" id="slot-tooltip">
+      <div class="slot-tooltip-group" id="slot-tip-group"></div>
+      <div class="slot-tooltip-bag"   id="slot-tip-bag"></div>
+      <div class="slot-tooltip-expiry" id="slot-tip-expiry"></div>
+      <div id="slot-tip-comp" style="font-size:10px;color:var(--text-muted);margin-top:2px"></div>
+    </div>
+
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       TAB 3 — 🤖 AI EXCHANGE (RBC / ZIPLINE)
+       ═══════════════════════════════════════════════════════════ -->
+  <section class="bb-tab-pane" id="tab-exchange" role="tabpanel">
+
+    <!-- AI Notice -->
+    <div class="exchange-ai-notice" id="exchange-ai-notice">
+      <div class="ai-notice-icon">🤖</div>
+      <div class="ai-notice-text">
+        <div class="ai-notice-title">NEXUS AI — Inter-Hospital Exchange Intelligence</div>
+        <div class="ai-notice-body" id="ai-notice-body">
+          Reading RBC Dashboard and Zipline logistics network…
+          <span class="bb-loading-text" style="margin-left:8px">Scanning inventory patterns…</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading state -->
+    <div id="exchange-loading" class="bb-loading-state">
+      <div class="bb-loading-orb"></div>
+      <div class="bb-loading-text">Reading RBC Dashboard…</div>
+    </div>
+
+    <!-- AI Suggestion Cards -->
+    <div id="exchange-cards-section" style="display:none">
+      <div class="bb-section-header">
+        <h2 class="bb-section-title">
+          <span class="bb-title-icon">💡</span>
+          AI-Suggested Exchanges
+        </h2>
+        <div class="bb-section-actions">
+          <span id="exchange-count-label" style="font-size:var(--text-xs);color:var(--text-muted);font-family:var(--font-mono)"></span>
+        </div>
+      </div>
+      <div class="exchange-cards-grid" id="exchange-cards-grid"></div>
+    </div>
+
+    <!-- Exchange List Table -->
+    <div class="bb-section-header" style="margin-top:var(--space-lg)">
+      <h2 class="bb-section-title">
+        <span class="bb-title-icon">📋</span>
+        Exchange History
+      </h2>
+    </div>
+
+    <div class="bb-table-wrap">
+      <table class="bb-table" id="exchange-table">
+        <thead>
+          <tr>
+            <th>Exchange ID</th>
+            <th>Blood Group</th>
+            <th>Qty</th>
+            <th>Partner Hospital</th>
+            <th>Destination</th>
+            <th>AI Reason</th>
+            <th>Urgency</th>
+            <th>Status</th>
+            <th style="text-align:right">Action</th>
+          </tr>
+        </thead>
+        <tbody id="exchange-tbody">
+          <tr><td colspan="9">
+            <div class="bb-loading-state">
+              <div class="bb-loading-orb"></div>
+              <div class="bb-loading-text">Loading exchanges…</div>
+            </div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       TAB 4 — 💉 BLOOD REQUESTS
+       ═══════════════════════════════════════════════════════════ -->
+  <section class="bb-tab-pane" id="tab-requests" role="tabpanel">
+
+    <div class="bb-section-header">
+      <h2 class="bb-section-title">
+        <span class="bb-title-icon">💉</span>
+        Active Blood Requests
+      </h2>
+      <div class="bb-section-actions">
+        <button class="btn btn-primary btn-sm" id="new-request-btn" type="button">
+          <i class="fas fa-plus"></i> New Request
+        </button>
+      </div>
+    </div>
+
+    <div class="bb-filter-row">
+      <div class="bb-search-wrap">
+        <i class="fas fa-magnifying-glass"></i>
+        <input type="text" class="bb-search" id="req-search" placeholder="Patient, Req ID, Ward…" autocomplete="off">
+      </div>
+      <select class="bb-filter-select" id="req-filter-urgency">
+        <option value="">All Priorities</option>
+        <option value="STAT">STAT</option>
+        <option value="urgent">Urgent</option>
+        <option value="routine">Routine</option>
+      </select>
+      <select class="bb-filter-select" id="req-filter-status">
+        <option value="pending">Pending</option>
+        <option value="assigned">Assigned</option>
+        <option value="">All</option>
+      </select>
+    </div>
+
+    <div class="bb-table-wrap">
+      <table class="bb-table" id="req-table">
+        <thead>
+          <tr>
+            <th>Req ID</th>
+            <th>Patient</th>
+            <th>Blood Group</th>
+            <th>Component</th>
+            <th>Units</th>
+            <th>Ward / Theatre</th>
+            <th>Urgency</th>
+            <th>Requested By</th>
+            <th>Status</th>
+            <th style="text-align:right">Action</th>
+          </tr>
+        </thead>
+        <tbody id="req-tbody">
+          <tr><td colspan="10">
+            <div class="bb-loading-state">
+              <div class="bb-loading-orb"></div>
+              <div class="bb-loading-text">Loading blood requests…</div>
+            </div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       TAB 5 — 🧫 CROSS-MATCHING
+       ═══════════════════════════════════════════════════════════ -->
+  <section class="bb-tab-pane" id="tab-crossmatch" role="tabpanel">
+
+    <div class="bb-row-2col">
+      <!-- Cross-match Form -->
+      <div>
+        <div class="bb-section-header">
+          <h2 class="bb-section-title">
+            <span class="bb-title-icon">🧫</span>
+            Run Cross-match
+          </h2>
+        </div>
+
+        <div class="bb-glass-panel" style="padding:var(--space-lg)">
+          <div class="crossmatch-form-grid">
+            <div>
+              <label class="bb-form-label" for="cm-patient">🧬 Patient</label>
+              <select class="bb-form-input" id="cm-patient">
+                <option value="">Select patient…</option>
+              </select>
+            </div>
+            <div>
+              <label class="bb-form-label" for="cm-bag">🩸 Blood Bag</label>
+              <select class="bb-form-input" id="cm-bag">
+                <option value="">Select bag…</option>
+              </select>
+            </div>
+            <div>
+              <label class="bb-form-label" for="cm-indication">📋 Indication</label>
+              <select class="bb-form-input" id="cm-indication">
+                <option value="elective">Elective Surgery</option>
+                <option value="emergency">Emergency</option>
+                <option value="trauma">Trauma</option>
+                <option value="anemia">Severe Anaemia</option>
+                <option value="obstetric">Obstetric</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="bb-form-label" for="cm-tech">👨‍🔬 Performed By</label>
+              <input type="text" class="bb-form-input" id="cm-tech" value="{{ request.user.get_full_name }}" placeholder="Technician name">
+            </div>
+          </div>
+          <div style="display:flex;gap:var(--space-sm);margin-top:var(--space-sm)">
+            <button class="btn btn-primary" id="cm-run-btn" type="button">
+              🔬 Run Cross-match
+            </button>
+            <button class="btn btn-secondary" id="cm-clear-btn" type="button">
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <!-- Cross-match Result -->
+        <div id="cm-result-box" class="crossmatch-result-box" style="margin-top:var(--space-md);display:none">
+          <div class="crossmatch-result-icon" id="cm-result-icon"></div>
+          <div class="crossmatch-result-label" id="cm-result-label"></div>
+          <div id="cm-result-detail" style="font-size:var(--text-sm);color:var(--text-secondary);margin-top:var(--space-sm)"></div>
+          <div id="cm-ai-flag" class="crossmatch-ai-flag" style="display:none">
+            🤖 AI Flag: Potential alloantibody detected — review suggested
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Crossmatch Log -->
+      <div>
+        <div class="bb-section-header">
+          <h2 class="bb-section-title">
+            <span class="bb-title-icon">🕐</span>
+            Recent Crossmatches
+          </h2>
+        </div>
+        <div class="bb-table-wrap">
+          <table class="bb-table" id="cm-log-table">
+            <thead>
+              <tr>
+                <th>Date/Time</th>
+                <th>Patient</th>
+                <th>Bag #</th>
+                <th>Result</th>
+                <th>Tech</th>
+              </tr>
+            </thead>
+            <tbody id="cm-log-tbody">
+              <tr><td colspan="5"><div class="bb-empty-state" style="padding:var(--space-lg)">
+                <div class="bb-empty-icon">🧫</div>
+                <div class="bb-empty-title">No crossmatches yet</div>
+              </div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       TAB 6 — 🩺 DONATIONS
+       ═══════════════════════════════════════════════════════════ -->
+  <section class="bb-tab-pane" id="tab-donations" role="tabpanel">
+
+    <div class="bb-row-2col">
+      <!-- Register Donor -->
+      <div>
+        <div class="bb-section-header">
+          <h2 class="bb-section-title"><span class="bb-title-icon">🩺</span> Register Donation</h2>
+        </div>
+        <div class="bb-glass-panel" style="padding:var(--space-lg)">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+            <div>
+              <label class="bb-form-label" for="don-name">👤 Donor Name</label>
+              <input type="text" class="bb-form-input" id="don-name" placeholder="Full name">
+            </div>
+            <div>
+              <label class="bb-form-label" for="don-dob">🎂 Date of Birth</label>
+              <input type="date" class="bb-form-input" id="don-dob">
+            </div>
+            <div>
+              <label class="bb-form-label" for="don-group">🩸 Blood Group</label>
+              <select class="bb-form-input" id="don-group">
+                <option value="">Unknown / to test</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
+            <div>
+              <label class="bb-form-label" for="don-volume">💧 Volume (mL)</label>
+              <input type="number" class="bb-form-input" id="don-volume" value="450" min="300" max="500">
+            </div>
+            <div>
+              <label class="bb-form-label" for="don-component">🧪 Component</label>
+              <select class="bb-form-input" id="don-component">
+                <option value="WB">Whole Blood</option>
+                <option value="PRBC">Packed RBC</option>
+                <option value="FFP">Fresh Frozen Plasma</option>
+                <option value="PLT">Platelets</option>
+                <option value="CRYO">Cryoprecipitate</option>
+              </select>
+            </div>
+            <div>
+              <label class="bb-form-label" for="don-phone">📱 Phone</label>
+              <input type="tel" class="bb-form-input" id="don-phone" placeholder="+250 7xx xxx xxx">
+            </div>
+          </div>
+
+          <!-- Screening Checklist -->
+          <div style="margin-top:var(--space-md)">
+            <label class="bb-form-label">🧬 Donor Screening Results</label>
+            <div class="screening-grid" id="screening-grid">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <div style="margin-top:var(--space-md);display:flex;gap:var(--space-sm)">
+            <button class="btn btn-primary" id="don-register-btn" type="button">
+              🩸 Register Donation
+            </button>
+            <button class="btn btn-secondary" id="don-clear-btn" type="button">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today's Donations -->
+      <div>
+        <div class="bb-section-header">
+          <h2 class="bb-section-title"><span class="bb-title-icon">📅</span> Today's Donations</h2>
+          <span id="don-today-count" style="font-size:var(--text-xs);color:var(--text-muted);font-family:var(--font-mono)"></span>
+        </div>
+        <div class="bb-table-wrap">
+          <table class="bb-table" id="don-table">
+            <thead>
+              <tr>
+                <th>Donor</th>
+                <th>Group</th>
+                <th>Component</th>
+                <th>Vol (mL)</th>
+                <th>Screening</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody id="don-tbody">
+              <tr><td colspan="6">
+                <div class="bb-loading-state">
+                  <div class="bb-loading-orb"></div>
+                  <div class="bb-loading-text">Loading donations…</div>
+                </div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       TAB 7 — 🛡️ HAEMOVIGILANCE
+       ═══════════════════════════════════════════════════════════ -->
+  <section class="bb-tab-pane" id="tab-haemovigilance" role="tabpanel">
+
+    <div class="bb-row-2col">
+      <!-- Report Form -->
+      <div>
+        <div class="bb-section-header">
+          <h2 class="bb-section-title"><span class="bb-title-icon">🛡️</span> Report Adverse Reaction</h2>
+        </div>
+        <div class="bb-glass-panel" style="padding:var(--space-lg)">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+            <div>
+              <label class="bb-form-label" for="hv-patient">🧬 Patient</label>
+              <select class="bb-form-input" id="hv-patient">
+                <option value="">Select patient…</option>
+              </select>
+            </div>
+            <div>
+              <label class="bb-form-label" for="hv-bag">🩸 Blood Bag Administered</label>
+              <input type="text" class="bb-form-input" id="hv-bag" placeholder="Bag number">
+            </div>
+            <div>
+              <label class="bb-form-label" for="hv-reaction-type">⚠️ Reaction Type</label>
+              <select class="bb-form-input" id="hv-reaction-type">
+                <option value="febrile">Febrile Non-Haemolytic</option>
+                <option value="allergic">Allergic Reaction</option>
+                <option value="haemolytic_acute">Acute Haemolytic</option>
+                <option value="haemolytic_delayed">Delayed Haemolytic</option>
+                <option value="taco">TACO</option>
+                <option value="trali">TRALI</option>
+                <option value="septic">Septic Transfusion</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="bb-form-label" for="hv-severity">🔴 Severity</label>
+              <select class="bb-form-input" id="hv-severity">
+                <option value="mild">Mild</option>
+                <option value="moderate">Moderate</option>
+                <option value="severe">Severe</option>
+                <option value="fatal">Fatal</option>
+              </select>
+            </div>
+            <div style="grid-column:1/-1">
+              <label class="bb-form-label" for="hv-symptoms">📝 Signs & Symptoms</label>
+              <textarea class="bb-form-input" id="hv-symptoms" rows="3" placeholder="Describe onset, symptoms, vital changes…" style="resize:vertical"></textarea>
+            </div>
+            <div style="grid-column:1/-1">
+              <label class="bb-form-label" for="hv-management">💊 Management / Action Taken</label>
+              <textarea class="bb-form-input" id="hv-management" rows="2" placeholder="Stopped transfusion, antihistamine given…" style="resize:vertical"></textarea>
+            </div>
+            <div>
+              <label class="bb-form-label" for="hv-outcome">✅ Outcome</label>
+              <select class="bb-form-input" id="hv-outcome">
+                <option value="recovered">Fully Recovered</option>
+                <option value="recovering">Recovering</option>
+                <option value="sequelae">Permanent Sequelae</option>
+                <option value="death">Death</option>
+                <option value="unknown">Unknown</option>
+              </select>
+            </div>
+            <div>
+              <label class="bb-form-label" for="hv-rbc-notify">📡 RBC Notification</label>
+              <select class="bb-form-input" id="hv-rbc-notify">
+                <option value="pending">Pending</option>
+                <option value="notified">Notified</option>
+                <option value="investigating">Under Investigation</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:var(--space-md);display:flex;gap:var(--space-sm)">
+            <button class="btn btn-danger" id="hv-submit-btn" type="button">
+              🛡️ Submit Report
+            </button>
+            <button class="btn btn-secondary" id="hv-clear-btn" type="button">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reports Table -->
+      <div>
+        <div class="bb-section-header">
+          <h2 class="bb-section-title"><span class="bb-title-icon">📋</span> Haemovigilance Reports</h2>
+        </div>
+        <div class="bb-table-wrap">
+          <table class="bb-table" id="hv-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Patient</th>
+                <th>Bag #</th>
+                <th>Reaction</th>
+                <th>Severity</th>
+                <th>Outcome</th>
+                <th>RBC Status</th>
+              </tr>
+            </thead>
+            <tbody id="hv-tbody">
+              <tr><td colspan="7">
+                <div class="bb-loading-state">
+                  <div class="bb-loading-orb"></div>
+                  <div class="bb-loading-text">Loading reports…</div>
+                </div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       TAB 8 — 📊 ANALYTICS
+       ═══════════════════════════════════════════════════════════ -->
+  <section class="bb-tab-pane" id="tab-analytics" role="tabpanel">
+
+    <!-- Analytics KPIs -->
+    <div class="bb-analytics-kpis">
+      <div class="bb-analytics-kpi">
+        <div class="bb-analytics-kpi-val" id="an-discard-rate">—%</div>
+        <div class="bb-analytics-kpi-lbl">🗑️ Discard Rate</div>
+      </div>
+      <div class="bb-analytics-kpi">
+        <div class="bb-analytics-kpi-val" id="an-tat-xm">—</div>
+        <div class="bb-analytics-kpi-lbl">⏱️ Avg TAT Crossmatch</div>
+      </div>
+      <div class="bb-analytics-kpi">
+        <div class="bb-analytics-kpi-val" id="an-fefo">—%</div>
+        <div class="bb-analytics-kpi-lbl">📦 FEFO Compliance</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="bb-analytics-grid">
+      <div class="bb-chart-card">
+        <div class="bb-chart-title">📊 Monthly Donation Volume</div>
+        <canvas id="chart-donations" height="200"></canvas>
+      </div>
+      <div class="bb-chart-card">
+        <div class="bb-chart-title">🥧 Blood Group Distribution</div>
+        <canvas id="chart-groups" height="200"></canvas>
+      </div>
+      <div class="bb-chart-card">
+        <div class="bb-chart-title">📉 Monthly Wastage Analysis</div>
+        <canvas id="chart-wastage" height="200"></canvas>
+      </div>
+      <div class="bb-chart-card">
+        <div class="bb-chart-title">🏥 Component Usage Breakdown</div>
+        <canvas id="chart-components" height="200"></canvas>
+      </div>
+    </div>
+
+  </section>
+
+</div><!-- /bb-main -->
+
+<!-- ════════════════════ ASSIGN BAG MODAL ════════════════════ -->
+<div class="bb-modal-overlay" id="assign-bag-modal" role="dialog" aria-modal="true" aria-labelledby="assign-modal-title">
+  <div class="bb-modal">
+    <div class="bb-modal-header">
+      <h3 class="bb-modal-title" id="assign-modal-title">🩸 Assign Blood Bag to Request</h3>
+      <button class="bb-modal-close" data-modal-close="assign-bag-modal" type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="bb-modal-body">
+      <div style="margin-bottom:var(--space-md)">
+        <label class="bb-form-label" for="assign-req-info">📋 Request</label>
+        <div id="assign-req-info" class="bb-glass-panel" style="padding:var(--space-sm) var(--space-md);font-size:var(--text-sm);color:var(--text-secondary)">
+          No request selected
+        </div>
+      </div>
+      <div>
+        <label class="bb-form-label" for="assign-bag-select">🩸 Select Blood Bag</label>
+        <select class="bb-form-input" id="assign-bag-select">
+          <option value="">Loading compatible bags…</option>
+        </select>
+      </div>
+      <div id="assign-cm-result" style="margin-top:var(--space-md)"></div>
+    </div>
+    <div class="bb-modal-footer">
+      <button class="btn btn-secondary" data-modal-close="assign-bag-modal" type="button">Cancel</button>
+      <button class="btn btn-primary" id="assign-confirm-btn" type="button">
+        🔬 Cross-match & Assign
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/blood_bank/js/bloodbank.js' %}" defer></script>
+{% endblock %}

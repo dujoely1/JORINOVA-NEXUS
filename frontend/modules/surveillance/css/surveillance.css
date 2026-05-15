@@ -1,0 +1,85 @@
+/* JORINOVA NEXUS — Epidemic Surveillance */
+.surv-main{display:flex;flex-direction:column;flex:1;overflow:hidden;}
+.surv-alert-banner{display:flex;align-items:center;gap:var(--space-md);padding:var(--space-sm) var(--space-xl);background:rgba(255,23,68,0.1);border-bottom:2px solid rgba(255,23,68,0.3);font-size:var(--text-xs);font-weight:600;color:#FF6B8A;flex-shrink:0;animation:card-alert-pulse 2s infinite;}
+.surv-banner-close{background:none;border:none;color:#FF6B8A;cursor:pointer;font-size:14px;margin-left:auto;}
+.surv-alert-indicator{display:flex;align-items:center;gap:8px;padding:5px 14px;background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);border-radius:var(--radius-full);font-size:var(--text-xs);font-weight:600;color:var(--alert-green);}
+.surv-threat-dot{width:8px;height:8px;border-radius:50%;}
+.surv-threat-dot.low{background:var(--alert-green);box-shadow:0 0 8px rgba(0,230,118,0.8);animation:pulse-normal 2s infinite;}
+.surv-threat-dot.medium{background:var(--alert-orange);animation:pulse-urgent 2s infinite;}
+.surv-threat-dot.high{background:var(--alert-red);animation:pulse-critical 1.4s infinite;}
+.surv-kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:0;background:var(--bg-deep);border-bottom:1px solid var(--border-dim);flex-shrink:0;}
+.surv-kpi{padding:var(--space-md) var(--space-lg);border-right:1px solid var(--border-dim);display:flex;align-items:center;gap:var(--space-md);}
+.surv-kpi:last-child{border-right:none;}
+.surv-kpi-emoji{font-size:20px;line-height:1;flex-shrink:0;}
+.surv-kpi-val{font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--text-primary);line-height:1;}
+.surv-kpi-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-top:2px;}
+.surv-kpi-red .surv-kpi-val   {color:var(--alert-red);}
+.surv-kpi-orange .surv-kpi-val {color:var(--alert-orange);}
+.surv-kpi-yellow .surv-kpi-val {color:var(--alert-yellow);}
+.surv-kpi-blue .surv-kpi-val   {color:var(--blue-glow);}
+.surv-kpi-green .surv-kpi-val  {color:var(--alert-green);}
+.surv-tabs{padding:0 var(--space-xl);background:var(--bg-deep);border-bottom:1px solid var(--border-dim);flex-shrink:0;}
+.surv-body{flex:1;overflow-y:auto;padding:var(--space-xl);display:flex;flex-direction:column;gap:var(--space-lg);}
+/* Map */
+.surv-map-layout{display:grid;grid-template-columns:1fr 320px;gap:var(--space-lg);min-height:500px;}
+.surv-map-container{display:flex;flex-direction:column;border:1px solid var(--border-dim);border-radius:var(--radius-lg);overflow:hidden;}
+.surv-map-placeholder{flex:1;display:flex;align-items:center;justify-content:center;padding:var(--space-xl);}
+.surv-map-rwanda{width:100%;}
+.surv-map-title{font-family:var(--font-display);font-size:var(--text-lg);font-weight:600;color:var(--text-primary);text-align:center;margin-bottom:var(--space-lg);}
+.rw-map-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:var(--space-md);margin-bottom:var(--space-lg);}
+.rw-district{background:var(--bg-card);border:2px solid var(--alert-green);border-radius:var(--radius-lg);padding:var(--space-lg);text-align:center;cursor:default;transition:all var(--duration-fast);}
+.rw-district:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.3);}
+.rw-district span{font-size:28px;display:block;margin-bottom:6px;}
+.rw-district div{font-size:var(--text-xs);font-weight:600;color:var(--text-secondary);}
+.rw-case-count{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--alert-green);margin-top:4px;}
+.surv-map-legend{display:flex;justify-content:center;gap:var(--space-lg);flex-wrap:wrap;}
+.surv-legend-item{display:flex;align-items:center;gap:6px;font-size:var(--text-xs);color:var(--text-secondary);}
+.surv-legend-dot{width:10px;height:10px;border-radius:50%;}
+/* Disease panel */
+.surv-disease-panel{background:var(--bg-card);border:1px solid var(--border-dim);border-radius:var(--radius-lg);overflow:hidden;display:flex;flex-direction:column;}
+.surv-panel-title{font-family:var(--font-display);font-size:var(--text-sm);font-weight:600;color:var(--text-primary);padding:var(--space-md) var(--space-lg);border-bottom:1px solid var(--border-dim);display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.surv-disease-card{display:flex;align-items:center;gap:var(--space-md);padding:10px var(--space-lg);border-bottom:1px solid var(--border-dim);transition:background var(--duration-fast);}
+.surv-disease-card:last-child{border-bottom:none;}
+.surv-disease-card:hover{background:var(--bg-glass);}
+.surv-disease-icon{font-size:20px;flex-shrink:0;width:28px;text-align:center;}
+.surv-disease-info{flex:1;min-width:0;}
+.surv-disease-name{font-size:var(--text-xs);font-weight:600;color:var(--text-primary);}
+.surv-disease-meta{font-size:10px;color:var(--text-muted);margin-top:1px;}
+.surv-disease-status{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;}
+.surv-status-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:var(--radius-full);}
+.surv-status-badge.active  {background:rgba(255,109,0,0.1);border:1px solid rgba(255,109,0,0.2);color:var(--alert-orange);}
+.surv-status-badge.watch   {background:rgba(255,214,0,0.08);border:1px solid rgba(255,214,0,0.18);color:var(--alert-yellow);}
+.surv-status-badge.endemic {background:rgba(0,153,255,0.08);border:1px solid var(--border-dim);color:var(--blue-glow);}
+.surv-status-badge.seasonal{background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.18);color:#A78BFA;}
+.surv-disease-count{font-size:10px;color:var(--text-muted);font-family:var(--font-mono);}
+/* AI layout */
+.surv-ai-layout{display:grid;grid-template-columns:1fr 280px;gap:var(--space-lg);}
+.surv-ai-feed{border:1px solid var(--border-dim);border-radius:var(--radius-lg);overflow:hidden;}
+.surv-ai-signals{display:flex;flex-direction:column;gap:0;}
+.ai-signal{display:flex;align-items:flex-start;gap:var(--space-md);padding:var(--space-md) var(--space-lg);border-bottom:1px solid var(--border-dim);transition:background var(--duration-fast);}
+.ai-signal:hover{background:var(--bg-glass);}
+.ai-sig-icon{font-size:20px;flex-shrink:0;width:28px;text-align:center;}
+.ai-sig-content{flex:1;min-width:0;}
+.ai-sig-title{font-size:var(--text-xs);font-weight:600;color:var(--text-primary);line-height:1.4;}
+.ai-sig-meta{font-size:11px;color:var(--text-secondary);margin-top:2px;line-height:1.5;}
+.ai-sig-time{font-size:10px;color:var(--text-muted);margin-top:3px;font-family:var(--font-mono);}
+.ai-signal-low     {border-left:3px solid var(--blue-glow);}
+.ai-signal-medium  {border-left:3px solid var(--alert-orange);}
+.ai-signal-resolved{border-left:3px solid var(--alert-green);opacity:0.7;}
+/* Sidebar */
+.surv-ai-sidebar{padding:var(--space-md);border:1px solid var(--border-dim);border-radius:var(--radius-lg);}
+.surv-model-card{display:flex;align-items:center;justify-content:space-between;padding:var(--space-sm) var(--space-md);background:rgba(0,153,255,0.06);border:1px solid var(--border-dim);border-radius:var(--radius-md);margin-bottom:var(--space-sm);}
+.surv-model-name{font-size:var(--text-xs);font-weight:600;color:var(--text-primary);}
+.surv-model-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--alert-green);}
+.surv-model-metrics{display:flex;flex-direction:column;gap:4px;margin-bottom:var(--space-md);}
+.smm-row{display:flex;justify-content:space-between;font-size:var(--text-xs);color:var(--text-secondary);padding:3px 0;border-bottom:1px solid var(--border-dim);}
+.smm-val{font-family:var(--font-mono);color:var(--text-primary);}
+.surv-source-list{display:flex;flex-direction:column;gap:5px;}
+.surv-source{display:flex;align-items:center;gap:8px;font-size:var(--text-xs);color:var(--text-secondary);}
+/* Reports grid */
+.surv-report-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-md);}
+.surv-report-card{padding:var(--space-xl);display:flex;flex-direction:column;gap:var(--space-sm);border:1px solid var(--border-dim);border-radius:var(--radius-lg);}
+.surv-rpt-icon{font-size:40px;line-height:1;}
+.surv-rpt-title{font-family:var(--font-display);font-size:var(--text-md);font-weight:600;color:var(--text-primary);}
+.surv-rpt-meta{font-size:var(--text-xs);color:var(--text-muted);flex:1;}
+@media(max-width:1100px){.surv-map-layout{grid-template-columns:1fr;}.surv-ai-layout{grid-template-columns:1fr;}.surv-report-grid{grid-template-columns:1fr 1fr;}.rw-map-grid{grid-template-columns:repeat(3,1fr);}}

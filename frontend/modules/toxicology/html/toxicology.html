@@ -1,0 +1,222 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}☠️ Toxicology — NEXUS ALIS-X{% endblock %}
+{% block module_id %}toxicology{% endblock %}
+{% block nav_active_lab %}active{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/toxicology/css/toxicology.css' %}">
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="tox-main">
+
+  <header class="page-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(160,80,255,0.10);border-color:rgba(160,80,255,0.25);color:#A855F7">
+        <span style="font-size:20px">☠️</span>
+      </div>
+      <div>
+        <h1 class="page-title">☠️ Toxicology Intelligence</h1>
+        <div class="page-subtitle">{{ today|date:"l, d F Y" }} · Drug Screening · TDM · Poisoning · ISO 15189 DSS</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <div class="tox-iso-pill">🔒 Decision Support — Clinical Pharmacologist Review</div>
+    </div>
+  </header>
+
+  <div class="tab-nav tox-tab-nav" role="tablist">
+    <button class="tab-btn active" data-pane="tox-worklist-pane">📋 Worklist</button>
+    <button class="tab-btn" data-pane="tox-uds-pane">💊 Drug Screening</button>
+    <button class="tab-btn" data-pane="tox-tdm-pane">🏥 TDM</button>
+    <button class="tab-btn" data-pane="tox-poison-pane">☠️ Poisoning</button>
+    <button class="tab-btn" data-pane="tox-analytics-pane">📊 Analytics</button>
+  </div>
+
+  <div class="tox-body">
+
+    <!-- WORKLIST -->
+    <div class="tab-pane active" id="tox-worklist-pane">
+      <div class="worklist-toolbar" style="padding:var(--space-lg) var(--space-xl)">
+        <div class="toolbar-left">
+          <div class="worklist-search-wrap"><i class="fas fa-magnifying-glass"></i>
+            <input type="text" class="worklist-search" placeholder="Lab ID, patient…"></div>
+          <select class="filter-select"><option>All priorities</option><option>🚨 STAT</option><option>Routine</option></select>
+        </div>
+        <div class="toolbar-right"><button class="btn btn-ghost btn-sm"><i class="fas fa-arrows-rotate"></i></button></div>
+      </div>
+      <div class="worklist-area">
+        <table class="worklist-table">
+          <thead><tr><th>🧬 Patient</th><th>🔖 Lab ID</th><th>🧪 Test</th><th>⚡ Priority</th><th>📊 Status</th><th style="text-align:right">Actions</th></tr></thead>
+          <tbody id="tox-worklist-tbody">
+            <tr><td colspan="6"><div class="worklist-loading"><i class="fas fa-spinner"></i> Loading…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DRUG SCREENING (UDS) -->
+    <div class="tab-pane" id="tox-uds-pane">
+      <div class="tox-two-col">
+        <div class="tox-input-panel">
+          <div class="tox-panel-title">💊 Urine Drug Screen</div>
+          <div style="padding:var(--space-lg);display:flex;flex-direction:column;gap:var(--space-md)">
+            <div class="form-group">
+              <label class="form-label">🧬 Patient</label>
+              <input type="text" class="form-input" id="uds-patient" placeholder="Search PID/name…">
+            </div>
+            <div class="form-group">
+              <label class="form-label">🧪 Drug Panel</label>
+              <select class="form-input" id="uds-panel" onchange="window.UDS?.updatePanel(this.value)">
+                <option value="5">5-Panel (Standard)</option>
+                <option value="10">10-Panel (Extended)</option>
+                <option value="12">12-Panel (Comprehensive)</option>
+              </select>
+            </div>
+            <div class="uds-drug-grid" id="uds-drug-grid"><!-- populated by JS --></div>
+            <div style="padding:var(--space-md);background:var(--bg-glass);border-radius:var(--radius-md);border:1px solid var(--border-dim)">
+              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted)">⛓️ Chain of Custody</label>
+              <label style="display:flex;align-items:center;gap:var(--space-sm);margin-top:var(--space-sm);cursor:pointer;font-size:var(--text-xs)">
+                <input type="checkbox" id="uds-coc"> Medico-legal / Chain of Custody documentation required
+              </label>
+            </div>
+            <button class="btn btn-primary" id="uds-interpret-btn" style="width:100%">🤖 Run AI Interpretation</button>
+          </div>
+        </div>
+        <div class="tox-result-panel" id="uds-result-panel">
+          <div class="tox-result-empty"><div style="font-size:56px">💊</div><p>Select drug results and run AI interpretation</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TDM -->
+    <div class="tab-pane" id="tox-tdm-pane">
+      <div class="tox-two-col">
+        <div class="tox-input-panel">
+          <div class="tox-panel-title">🏥 Therapeutic Drug Monitoring</div>
+          <div style="padding:var(--space-lg);display:flex;flex-direction:column;gap:var(--space-md)">
+            <div class="form-group">
+              <label class="form-label">💊 Drug</label>
+              <select class="form-input" id="tdm-drug">
+                <option value="digoxin">Digoxin</option><option value="phenytoin">Phenytoin</option>
+                <option value="carbamazepine">Carbamazepine</option><option value="valproate">Valproate (VPA)</option>
+                <option value="lithium">Lithium</option><option value="gentamicin">Gentamicin</option>
+                <option value="vancomycin">Vancomycin</option><option value="methotrexate">Methotrexate</option>
+                <option value="tacrolimus">Tacrolimus</option><option value="cyclosporine">Cyclosporine</option>
+                <option value="theophylline">Theophylline</option><option value="amikacin">Amikacin</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">⏱️ Sample Timing</label>
+              <select class="form-input" id="tdm-timing">
+                <option value="trough">Trough (pre-dose)</option>
+                <option value="peak">Peak (post-dose)</option>
+                <option value="random">Random</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">🔢 Measured Level</label>
+              <div style="display:flex;gap:var(--space-sm)">
+                <input type="number" step="0.01" class="form-input" id="tdm-value" placeholder="Enter value">
+                <span class="form-input" style="width:80px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:11px" id="tdm-unit">—</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">👤 Patient Weight (kg)</label>
+              <input type="number" class="form-input" id="tdm-weight" placeholder="For dose calculation">
+            </div>
+            <div class="form-group">
+              <label class="form-label">🏥 Indication</label>
+              <input type="text" class="form-input" id="tdm-indication" placeholder="e.g. Epilepsy, AF, Infection…">
+            </div>
+            <button class="btn btn-primary" id="tdm-interpret-btn" style="width:100%">🏥 Interpret Drug Level</button>
+          </div>
+        </div>
+        <div class="tox-result-panel" id="tdm-result-panel">
+          <div class="tox-result-empty"><div style="font-size:56px">🏥</div><p>Select a drug, enter the measured level, and run interpretation</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POISONING -->
+    <div class="tab-pane" id="tox-poison-pane">
+      <div class="tox-two-col">
+        <div class="tox-input-panel">
+          <div class="tox-panel-title">☠️ Poisoning Assessment</div>
+          <div style="padding:var(--space-lg);display:flex;flex-direction:column;gap:var(--space-md)">
+            <div class="form-group">
+              <label class="form-label">🧪 Sample Type</label>
+              <select class="form-input" id="poison-sample">
+                <option>Blood</option><option>Urine</option><option>Gastric content</option><option>Hair</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">☠️ Suspected Substance</label>
+              <select class="form-input" id="poison-substance">
+                <option value="organophosphate">Organophosphates / Pesticides</option>
+                <option value="paracetamol">Paracetamol / Acetaminophen</option>
+                <option value="salicylate">Salicylates (Aspirin)</option>
+                <option value="alcohol">Ethanol (Alcohol)</option>
+                <option value="methanol">Methanol / Ethylene Glycol</option>
+                <option value="heavy_metal">Heavy Metals (Pb, As, Hg)</option>
+                <option value="co">Carbon Monoxide</option>
+                <option value="cyanide">Cyanide</option>
+                <option value="benzodiazepine">Benzodiazepines</option>
+                <option value="opioid">Opioids / Morphine</option>
+                <option value="rodenticide">Rodenticide (Warfarin-type)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">🔢 Measured Concentration</label>
+              <div style="display:flex;gap:var(--space-sm)">
+                <input type="number" step="0.01" class="form-input" id="poison-value" placeholder="Value">
+                <select class="form-input" id="poison-unit" style="width:90px">
+                  <option>mg/L</option><option>µg/L</option><option>mmol/L</option><option>%</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">⏱️ Time since exposure (hrs)</label>
+              <input type="number" class="form-input" id="poison-time" placeholder="Estimated hours">
+            </div>
+            <div style="padding:var(--space-md);background:rgba(255,23,68,.06);border:1px solid rgba(255,23,68,.20);border-radius:var(--radius-md)">
+              <label style="display:flex;align-items:center;gap:var(--space-sm);cursor:pointer;font-size:var(--text-xs);color:var(--alert-red);font-weight:700">
+                <input type="checkbox" id="poison-medicolegal"> Medico-legal case — document for forensic record
+              </label>
+            </div>
+            <button class="btn btn-danger" id="poison-interpret-btn" style="width:100%">☠️ Assess Toxicity &amp; Management</button>
+          </div>
+        </div>
+        <div class="tox-result-panel" id="poison-result-panel">
+          <div class="tox-result-empty"><div style="font-size:56px">☠️</div><p>Enter substance details to assess toxicity and management guidance</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div class="tab-pane" id="tox-analytics-pane">
+      <div style="padding:var(--space-xl);display:grid;grid-template-columns:1fr 1fr;gap:var(--space-lg)">
+        <div class="glass-panel" style="padding:var(--space-lg)">
+          <div class="chart-title">💊 Monthly UDS Positivity Rates</div>
+          <div style="height:200px;margin-top:var(--space-md)"><canvas id="tox-uds-chart"></canvas></div>
+        </div>
+        <div class="glass-panel" style="padding:var(--space-lg)">
+          <div class="chart-title">🏥 TDM Out-of-Range by Drug</div>
+          <div style="height:200px;margin-top:var(--space-md)"><canvas id="tox-tdm-chart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tox-body -->
+</div>
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/toxicology/js/toxicology.js' %}" defer></script>
+{% endblock %}

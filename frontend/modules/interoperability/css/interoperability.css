@@ -1,0 +1,46 @@
+/* JORINOVA NEXUS ALIS-X — Interoperability Hub */
+.interop-main { display:flex;flex-direction:column;flex:1;overflow:hidden; }
+.interop-tab-nav { padding:0 var(--space-xl);background:var(--bg-deep);border-bottom:1px solid var(--border-dim);flex-shrink:0; }
+.interop-body { flex:1;overflow-y:auto; }
+.interop-standard-pill { padding:5px 13px;border-radius:var(--radius-full);background:rgba(0,255,200,.07);border:1px solid rgba(0,255,200,.20);font-size:11px;font-weight:700;color:#00FFC8;letter-spacing:.05em; }
+
+.interop-kpi-strip { display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--border-dim);background:var(--bg-deep); }
+.interop-kpi { display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md) var(--space-xl);border-right:1px solid var(--border-dim); }
+.interop-kpi:last-child { border-right:none; }
+.ik-val { font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text-primary);line-height:1; }
+.ik-lbl { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-top:2px; }
+
+.interop-systems-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:var(--space-lg); }
+.interop-system-card {
+  background:var(--bg-surface);border:1px solid var(--border-dim);border-radius:var(--radius-lg);padding:var(--space-lg);
+  transition:border-color var(--duration-fast);
+}
+.interop-system-card:hover { border-color:var(--border-bright); }
+.sys-name  { font-family:var(--font-display);font-size:var(--text-sm);font-weight:700;color:var(--text-primary); }
+.sys-type  { font-size:11px;color:var(--text-muted);margin-top:2px; }
+.sys-proto { display:inline-flex;align-items:center;padding:2px 8px;border-radius:var(--radius-full);background:rgba(0,153,255,.10);border:1px solid rgba(0,153,255,.20);font-size:10px;font-weight:700;color:var(--blue-glow);margin-top:6px; }
+.sys-status-dot { width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px; }
+.sys-healthy  .sys-status-dot { background:var(--alert-green); box-shadow:0 0 5px rgba(0,230,118,.5); }
+.sys-degraded .sys-status-dot { background:var(--alert-orange); }
+.sys-down     .sys-status-dot { background:var(--alert-red); }
+.sys-unknown  .sys-status-dot { background:var(--text-muted); }
+
+.interop-ph-card {
+  background:var(--bg-surface);border:1px solid var(--border-dim);border-radius:var(--radius-lg);padding:var(--space-xl);
+  display:flex;flex-direction:column;
+}
+.interop-ph-icon  { font-size:40px;margin-bottom:var(--space-sm); }
+.interop-ph-title { font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;color:var(--text-primary); }
+.interop-ph-status { font-size:11px;font-weight:700;margin-top:4px; }
+.interop-ph-status.connected { color:var(--alert-green); }
+.interop-ph-status.warning   { color:var(--alert-yellow); }
+.interop-ph-desc  { font-size:11px;color:var(--text-secondary);margin-top:var(--space-sm);line-height:1.6;flex:1; }
+
+.fhir-resource-btn {
+  display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--radius-sm);
+  cursor:pointer;font-size:var(--text-xs);color:var(--text-secondary);border:none;background:none;width:100%;text-align:left;
+  transition:background var(--duration-fast),color var(--duration-fast);
+}
+.fhir-resource-btn:hover,.fhir-resource-btn.active { background:rgba(0,153,255,.08);color:var(--blue-glow); }
+
+@media (max-width:900px) { .interop-kpi-strip { grid-template-columns:1fr 1fr; } .interop-systems-grid { grid-template-columns:1fr; } }

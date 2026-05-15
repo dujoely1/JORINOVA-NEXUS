@@ -1,0 +1,854 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}💰 FinaOps — NEXUS ALIS-X{% endblock %}
+{% block module_id %}finaops{% endblock %}
+{% block nav_active_finaops %}active{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/finaops/css/finaops.css' %}">
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="finaops-main" id="finaops-main">
+
+  <!-- ══ Page Header ══ -->
+  <header class="page-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(0,230,118,0.09);border-color:rgba(0,230,118,0.22);color:var(--alert-green)">
+        <span style="font-size:20px">💰</span>
+      </div>
+      <div>
+        <h1 class="page-title">FinaOps — Financial Operations</h1>
+        <div class="page-subtitle">{{ today|date:"l, d F Y" }} · MoMo · Revenue · P&amp;L · NEXUS ALIS-X</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <select class="fi" id="fo-period" style="width:auto;font-size:var(--text-xs);padding:6px 12px">
+        <option value="day">📅 Today</option>
+        <option value="week">📆 This Week</option>
+        <option value="month" selected>🗓️ This Month</option>
+        <option value="year">📊 This Year</option>
+      </select>
+      <button class="btn btn-secondary btn-sm" id="fo-export-btn"><span>📤</span> Export</button>
+      <button class="btn btn-primary btn-sm" id="fo-new-invoice-btn"><span>➕</span> New Invoice</button>
+    </div>
+  </header>
+
+  <!-- ══ Tab Navigation ══ -->
+  <div class="tab-nav fo-tab-nav" role="tablist">
+    <button class="tab-btn active" data-pane="fo-overview" role="tab">💰 Financial Overview</button>
+    <button class="tab-btn" data-pane="fo-momo" role="tab">📱 MoMo Payment Center</button>
+    <button class="tab-btn" data-pane="fo-invoices" role="tab">📋 Invoice Management</button>
+    <button class="tab-btn" data-pane="fo-analytics" role="tab">📊 Analytics &amp; Reports</button>
+    <button class="tab-btn" data-pane="fo-settings" role="tab">⚙️ Financial Settings</button>
+  </div>
+
+  <!-- ══ Tab Body ══ -->
+  <div class="fo-body">
+
+    <!-- ════════════════════════════════════════════
+         TAB 1: 💰 FINANCIAL OVERVIEW
+         ════════════════════════════════════════════ -->
+    <div class="tab-pane active" id="fo-overview">
+
+      <!-- KPI Cards -->
+      <div class="fo-kpi-grid">
+        <div class="fo-kpi-card fo-kpi-green">
+          <div class="fo-kpi-icon">💰</div>
+          <div class="fo-kpi-body">
+            <div class="fo-kpi-val" id="fk-today-rev">0 RWF</div>
+            <div class="fo-kpi-lbl">Today's Revenue</div>
+            <div class="fo-kpi-sub fo-up"><i class="fas fa-arrow-trend-up"></i> +12.3% vs yesterday</div>
+          </div>
+        </div>
+        <div class="fo-kpi-card fo-kpi-blue">
+          <div class="fo-kpi-icon">📅</div>
+          <div class="fo-kpi-body">
+            <div class="fo-kpi-val" id="fk-month-rev">0 RWF</div>
+            <div class="fo-kpi-lbl">Monthly Revenue</div>
+            <div class="fo-kpi-sub fo-up"><i class="fas fa-arrow-trend-up"></i> +8.7% vs last month</div>
+          </div>
+        </div>
+        <div class="fo-kpi-card fo-kpi-orange">
+          <div class="fo-kpi-icon">⏳</div>
+          <div class="fo-kpi-body">
+            <div class="fo-kpi-val" id="fk-outstanding">0 RWF</div>
+            <div class="fo-kpi-lbl">Outstanding</div>
+            <div class="fo-kpi-sub fo-warn"><i class="fas fa-circle-exclamation"></i> 7 overdue invoices</div>
+          </div>
+        </div>
+        <div class="fo-kpi-card fo-kpi-red">
+          <div class="fo-kpi-icon">💸</div>
+          <div class="fo-kpi-body">
+            <div class="fo-kpi-val" id="fk-expenses">0 RWF</div>
+            <div class="fo-kpi-lbl">Expenses</div>
+            <div class="fo-kpi-sub fo-neutral"><i class="fas fa-minus"></i> Within budget</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="fo-charts-row">
+        <div class="glass-panel fo-chart-card" style="flex:2">
+          <div class="fo-chart-header">
+            <div class="fo-chart-title"><span>📊</span> Revenue vs Expenses — Last 7 Days</div>
+          </div>
+          <div class="fo-chart-body">
+            <canvas id="fo-rev-bar-chart" style="height:240px"></canvas>
+          </div>
+        </div>
+        <div class="glass-panel fo-chart-card">
+          <div class="fo-chart-header">
+            <div class="fo-chart-title"><span>💳</span> Payment Methods</div>
+          </div>
+          <div class="fo-chart-body">
+            <canvas id="fo-pay-pie-chart" style="height:200px"></canvas>
+            <div class="fo-pie-legend" id="fo-pie-legend"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- P&L Summary Table -->
+      <div class="glass-panel" style="overflow:hidden">
+        <div class="fo-chart-header">
+          <div class="fo-chart-title"><span>📋</span> P&amp;L Summary — {{ today|date:"F Y" }}</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="nx-table fo-pl-table">
+            <thead>
+              <tr>
+                <th>📋 Line Item</th>
+                <th>💰 This Month</th>
+                <th>📅 Last Month</th>
+                <th>🎯 Budget</th>
+                <th>📈 Variance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fo-section-row"><td colspan="5">💰 REVENUE</td></tr>
+              <tr><td class="fo-indent">Lab Test Fees (Cash)</td><td class="fo-mono">3,240,000</td><td class="fo-mono">2,980,000</td><td class="fo-mono">3,000,000</td><td class="fo-pos">+8.7%</td></tr>
+              <tr><td class="fo-indent">Mobile Money (MoMo)</td><td class="fo-mono">980,000</td><td class="fo-mono">720,000</td><td class="fo-mono">800,000</td><td class="fo-pos">+22.5%</td></tr>
+              <tr><td class="fo-indent">Insurance (RSSB/Mutuelle)</td><td class="fo-mono">1,860,000</td><td class="fo-mono">1,720,000</td><td class="fo-mono">1,800,000</td><td class="fo-pos">+3.3%</td></tr>
+              <tr><td class="fo-indent">Private Insurance</td><td class="fo-mono">420,000</td><td class="fo-mono">380,000</td><td class="fo-mono">400,000</td><td class="fo-pos">+5.0%</td></tr>
+              <tr class="fo-subtotal-row"><td>Total Revenue</td><td class="fo-mono fo-green-text fw-700">6,500,000</td><td class="fo-mono">5,800,000</td><td class="fo-mono">6,000,000</td><td class="fo-pos">+8.3%</td></tr>
+              <tr class="fo-section-row"><td colspan="5">💸 OPERATING COSTS</td></tr>
+              <tr><td class="fo-indent">Reagents &amp; Consumables</td><td class="fo-mono">1,240,000</td><td class="fo-mono">1,180,000</td><td class="fo-mono">1,200,000</td><td class="fo-neg">+3.3%</td></tr>
+              <tr><td class="fo-indent">Staff Salaries</td><td class="fo-mono">1,800,000</td><td class="fo-mono">1,800,000</td><td class="fo-mono">1,800,000</td><td class="fo-neutral-td">0.0%</td></tr>
+              <tr><td class="fo-indent">Equipment &amp; Maintenance</td><td class="fo-mono">180,000</td><td class="fo-mono">220,000</td><td class="fo-mono">200,000</td><td class="fo-pos">-18.2%</td></tr>
+              <tr class="fo-subtotal-row"><td>Total Costs</td><td class="fo-mono fo-red-text fw-700">3,220,000</td><td class="fo-mono">3,200,000</td><td class="fo-mono">3,200,000</td><td class="fo-neg">+0.6%</td></tr>
+              <tr class="fo-total-row"><td>🏆 NET PROFIT</td><td class="fo-mono fo-green-text fw-700 fo-lg-text">3,280,000</td><td class="fo-mono">2,600,000</td><td class="fo-mono">2,800,000</td><td class="fo-pos">+17.1%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Top Tests by Revenue -->
+      <div class="glass-panel" style="overflow:hidden">
+        <div class="fo-chart-header">
+          <div class="fo-chart-title"><span>🧪</span> Top Tests by Revenue</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="nx-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>🧪 Test Name</th>
+                <th>🏥 Department</th>
+                <th>📊 Volume</th>
+                <th>💰 Revenue (RWF)</th>
+                <th>📈 Share</th>
+              </tr>
+            </thead>
+            <tbody id="fo-top-tests-tbody">
+              <tr><td>1</td><td>Complete Blood Count (CBC)</td><td><span class="badge badge-red">Hematology</span></td><td class="fo-mono">542</td><td class="fo-mono fo-green-text">1,084,000</td><td><div class="fo-rev-bar-mini"><div class="fo-rev-bar-fill" style="width:65%;background:var(--alert-red)"></div></div></td></tr>
+              <tr><td>2</td><td>Comprehensive Metabolic Panel</td><td><span class="badge badge-blue">Chemistry</span></td><td class="fo-mono">380</td><td class="fo-mono fo-green-text">950,000</td><td><div class="fo-rev-bar-mini"><div class="fo-rev-bar-fill" style="width:57%;background:var(--blue-glow)"></div></div></td></tr>
+              <tr><td>3</td><td>HIV 1/2 (Rapid + Confirmatory)</td><td><span class="badge badge-orange">Serology</span></td><td class="fo-mono">274</td><td class="fo-mono fo-green-text">685,000</td><td><div class="fo-rev-bar-mini"><div class="fo-rev-bar-fill" style="width:41%;background:var(--alert-orange)"></div></div></td></tr>
+              <tr><td>4</td><td>Malaria RDT</td><td><span class="badge badge-orange">Serology</span></td><td class="fo-mono">312</td><td class="fo-mono fo-green-text">468,000</td><td><div class="fo-rev-bar-mini"><div class="fo-rev-bar-fill" style="width:28%;background:var(--alert-orange)"></div></div></td></tr>
+              <tr><td>5</td><td>Urinalysis</td><td><span class="badge badge-blue">Chemistry</span></td><td class="fo-mono">441</td><td class="fo-mono fo-green-text">441,000</td><td><div class="fo-rev-bar-mini"><div class="fo-rev-bar-fill" style="width:26%;background:var(--blue-glow)"></div></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /fo-overview -->
+
+
+    <!-- ════════════════════════════════════════════
+         TAB 2: 📱 MOMO PAYMENT CENTER
+         ════════════════════════════════════════════ -->
+    <div class="tab-pane" id="fo-momo">
+
+      <div class="momo-layout">
+
+        <!-- LEFT: Step Panel -->
+        <div class="momo-step-panel">
+
+          <!-- Step Indicator -->
+          <div class="momo-step-bar">
+            <div class="momo-step-item active" id="momo-step-ind-1">
+              <div class="momo-step-num">1</div>
+              <span>Initiate</span>
+            </div>
+            <div class="momo-step-line"></div>
+            <div class="momo-step-item" id="momo-step-ind-2">
+              <div class="momo-step-num">2</div>
+              <span>Pending</span>
+            </div>
+            <div class="momo-step-line"></div>
+            <div class="momo-step-item" id="momo-step-ind-3">
+              <div class="momo-step-num">3</div>
+              <span>Receipt</span>
+            </div>
+            <div class="momo-step-line"></div>
+            <div class="momo-step-item" id="momo-step-ind-4">
+              <div class="momo-step-num">4</div>
+              <span>SMS Proof</span>
+            </div>
+          </div>
+
+          <!-- ─── STEP 1: Initiate Payment ─── -->
+          <div class="momo-step" id="momo-step-1">
+            <h2 class="momo-step-title">📱 Initiate MoMo Payment</h2>
+
+            <!-- Patient Lookup -->
+            <div class="fg">
+              <label class="fl required">🧬 Patient Lookup</label>
+              <div class="momo-search-wrap">
+                <i class="fas fa-magnifying-glass"></i>
+                <input type="text" id="momo-patient-search" class="fi" placeholder="Search by PID, name, or phone…" autocomplete="off">
+                <div class="momo-search-results" id="momo-search-results"></div>
+              </div>
+            </div>
+
+            <!-- Selected Patient Card -->
+            <div class="patient-payment-card" id="patient-payment-card" style="display:none">
+              <div class="ppc-avatar" id="ppc-avatar">JD</div>
+              <div class="ppc-info">
+                <div class="ppc-name" id="ppc-name">John Doe</div>
+                <div class="ppc-meta">
+                  <span class="ppc-pid" id="ppc-pid">PID-000000</span>
+                  <span class="ppc-dot">·</span>
+                  <span id="ppc-dob">—</span>
+                </div>
+              </div>
+              <div class="ppc-balance">
+                <div class="ppc-balance-lbl">Outstanding</div>
+                <div class="ppc-balance-val" id="ppc-balance">0 RWF</div>
+              </div>
+              <button class="btn-icon btn-icon-sm" id="ppc-clear-btn" type="button" title="Clear patient"><i class="fas fa-xmark"></i></button>
+            </div>
+
+            <!-- Invoice Selector -->
+            <div class="fg" id="momo-invoice-group" style="display:none">
+              <label class="fl required">🔖 Invoice</label>
+              <select class="fi" id="momo-invoice-sel">
+                <option value="">— Select invoice —</option>
+              </select>
+            </div>
+
+            <!-- Amount -->
+            <div class="fg">
+              <label class="fl required">💰 Amount (RWF)</label>
+              <div class="momo-amount-wrap">
+                <span class="momo-currency">RWF</span>
+                <input type="number" id="momo-amount" class="fi momo-amount-input" placeholder="0" min="100" step="100">
+                <button class="btn btn-ghost btn-sm" id="momo-autofill-btn" type="button">Auto-fill</button>
+              </div>
+              <div class="amount-display" id="momo-amount-display">—</div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="fg">
+              <label class="fl required">💳 Payment Method</label>
+              <div class="payment-method-grid">
+                <button class="payment-method-btn selected" data-method="mtn_momo" type="button">
+                  <span class="pmb-icon">📱</span>
+                  <span class="pmb-name">MTN MoMo</span>
+                  <span class="pmb-sub">Mobile Money</span>
+                </button>
+                <button class="payment-method-btn" data-method="airtel_money" type="button">
+                  <span class="pmb-icon">📱</span>
+                  <span class="pmb-name">Airtel Money</span>
+                  <span class="pmb-sub">Mobile Money</span>
+                </button>
+                <button class="payment-method-btn" data-method="cash" type="button">
+                  <span class="pmb-icon">💵</span>
+                  <span class="pmb-name">Cash</span>
+                  <span class="pmb-sub">Direct Payment</span>
+                </button>
+                <button class="payment-method-btn" data-method="bank_transfer" type="button">
+                  <span class="pmb-icon">🏦</span>
+                  <span class="pmb-name">Bank Transfer</span>
+                  <span class="pmb-sub">Wire / EFT</span>
+                </button>
+                <button class="payment-method-btn" data-method="rssb" type="button">
+                  <span class="pmb-icon">🛡️</span>
+                  <span class="pmb-name">RSSB</span>
+                  <span class="pmb-sub">Insurance</span>
+                </button>
+                <button class="payment-method-btn" data-method="mutuelle" type="button">
+                  <span class="pmb-icon">🛡️</span>
+                  <span class="pmb-name">Mutuelle</span>
+                  <span class="pmb-sub">Insurance</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Phone Number (for MoMo) -->
+            <div class="fg" id="momo-phone-group">
+              <label class="fl required">📞 Phone Number</label>
+              <div class="momo-phone-wrap">
+                <span class="momo-phone-prefix">+250</span>
+                <input type="tel" id="momo-phone" class="fi momo-phone-input" placeholder="78 000 0000" maxlength="9">
+              </div>
+              <div class="momo-phone-hint">MoMo prompt will be sent to this number</div>
+            </div>
+
+            <!-- Insurance fields (for RSSB/Mutuelle) -->
+            <div class="fg" id="momo-insurance-group" style="display:none">
+              <label class="fl">🛡️ Insurance Member ID</label>
+              <input type="text" id="momo-insurance-id" class="fi" placeholder="e.g. RSSB-123456789">
+            </div>
+
+            <!-- Submit -->
+            <button class="btn btn-primary momo-submit-btn" id="momo-initiate-btn" type="button">
+              <span>💳</span> Initiate MoMo Payment
+            </button>
+          </div><!-- /step-1 -->
+
+          <!-- ─── STEP 2: Payment Pending ─── -->
+          <div class="momo-step" id="momo-step-2" style="display:none">
+            <div class="momo-pending-card">
+              <div class="momo-phone-anim">
+                <div class="momo-ring r1"></div>
+                <div class="momo-ring r2"></div>
+                <div class="momo-ring r3"></div>
+                <div class="momo-phone-core">📱</div>
+              </div>
+              <div class="momo-pending-title">Payment Request Sent</div>
+              <div class="momo-pending-phone" id="momo-pending-phone">+25078XXXXXXX</div>
+              <div class="momo-pending-desc">
+                Patient will see <strong id="momo-pending-provider">MTN MoMo</strong> payment prompt on their phone
+              </div>
+              <div class="momo-pending-amount" id="momo-pending-amount">RWF 0</div>
+              <div class="momo-pending-waiting">
+                Waiting for patient to accept transaction
+                <span class="momo-dots"><span>.</span><span>.</span><span>.</span></span>
+              </div>
+              <div class="momo-timer" id="momo-timer">00:00</div>
+              <div class="momo-pending-actions">
+                <button class="btn btn-danger btn-sm" id="momo-cancel-btn" type="button">
+                  <i class="fas fa-xmark"></i> Cancel Payment
+                </button>
+                <button class="btn btn-ghost btn-sm" id="momo-demo-confirm-btn" type="button" style="opacity:.5;font-size:11px">
+                  [DEMO] Simulate Confirm
+                </button>
+              </div>
+            </div>
+          </div><!-- /step-2 -->
+
+          <!-- ─── STEP 3: Receipt ─── -->
+          <div class="momo-step" id="momo-step-3" style="display:none">
+            <div class="momo-success-anim" id="momo-success-anim">
+              <div class="momo-success-circle">
+                <i class="fas fa-check momo-success-icon"></i>
+              </div>
+              <div class="momo-success-title">Payment Confirmed!</div>
+              <div class="momo-success-ref" id="momo-success-ref">Ref: —</div>
+            </div>
+
+            <!-- Printable Receipt -->
+            <div class="receipt-container" id="receipt-container">
+              <div class="receipt-header">
+                <div class="receipt-logo">⚡</div>
+                <div class="receipt-hosp-name">{{ hospital.name|default:"JORINOVA NEXUS LAB" }}</div>
+                <div class="receipt-hosp-sub">ALIS-X Laboratory Information System</div>
+                <div class="receipt-title">PAYMENT RECEIPT</div>
+              </div>
+
+              <div class="receipt-meta">
+                <div class="receipt-meta-row">
+                  <span class="receipt-meta-lbl">Receipt #</span>
+                  <span class="receipt-meta-val fo-mono" id="receipt-number">—</span>
+                </div>
+                <div class="receipt-meta-row">
+                  <span class="receipt-meta-lbl">Date &amp; Time</span>
+                  <span class="receipt-meta-val" id="receipt-datetime">—</span>
+                </div>
+                <div class="receipt-meta-row">
+                  <span class="receipt-meta-lbl">Patient Name</span>
+                  <span class="receipt-meta-val fw-700" id="receipt-patient-name">—</span>
+                </div>
+                <div class="receipt-meta-row">
+                  <span class="receipt-meta-lbl">Patient PID</span>
+                  <span class="receipt-meta-val fo-mono" id="receipt-patient-pid">—</span>
+                </div>
+              </div>
+
+              <div class="receipt-divider"></div>
+
+              <div class="receipt-items" id="receipt-items">
+                <!-- Populated by JS -->
+              </div>
+
+              <div class="receipt-divider"></div>
+
+              <div class="receipt-totals">
+                <div class="receipt-line">
+                  <span>Invoice Total</span>
+                  <span class="fo-mono" id="receipt-invoice-total">—</span>
+                </div>
+                <div class="receipt-line receipt-total">
+                  <span>Amount Paid</span>
+                  <span class="fo-mono receipt-paid" id="receipt-amount-paid">—</span>
+                </div>
+                <div class="receipt-line">
+                  <span>Remaining Balance</span>
+                  <span class="fo-mono" id="receipt-remaining">—</span>
+                </div>
+              </div>
+
+              <!-- % Paid Bar -->
+              <div class="receipt-pct-wrap">
+                <div class="receipt-pct-bar-bg">
+                  <div class="receipt-pct-bar" id="receipt-pct-bar" style="width:0%"></div>
+                </div>
+                <div class="receipt-pct-label" id="receipt-pct-label">0% of invoice paid</div>
+              </div>
+
+              <div class="receipt-divider"></div>
+
+              <div class="receipt-payment-info">
+                <div class="receipt-line">
+                  <span>Payment Method</span>
+                  <span class="fw-700" id="receipt-pay-method">—</span>
+                </div>
+                <div class="receipt-line">
+                  <span>Transaction Reference</span>
+                  <span class="fo-mono receipt-ref" id="receipt-tx-ref">—</span>
+                </div>
+                <div class="receipt-line">
+                  <span>Authorized By</span>
+                  <span id="receipt-auth">NEXUS ALIS-X</span>
+                </div>
+              </div>
+
+              <!-- Signature block appended by NexusSig.autosignForPrint() -->
+            </div><!-- /receipt-container -->
+
+            <!-- Receipt Actions -->
+            <div class="receipt-actions">
+              <button class="btn btn-primary" id="receipt-print-btn" type="button">
+                <i class="fas fa-print"></i> 🖨️ Print Receipt
+              </button>
+              <button class="btn btn-secondary" id="receipt-email-btn" type="button">
+                <i class="fas fa-envelope"></i> 📧 Send to Patient Email
+              </button>
+              <button class="btn btn-secondary" id="receipt-sms-btn" type="button">
+                <i class="fas fa-comment-sms"></i> 💬 Send SMS to Patient
+              </button>
+              <button class="btn btn-ghost" id="momo-new-payment-btn" type="button">
+                <i class="fas fa-plus"></i> New Payment
+              </button>
+            </div>
+          </div><!-- /step-3 -->
+
+          <!-- ─── STEP 4: SMS Proof ─── -->
+          <div class="momo-step" id="momo-step-4" style="display:none">
+            <div class="sms-proof-card">
+              <div class="sms-proof-header">
+                <span class="sms-proof-icon">💬</span>
+                <div>
+                  <div class="sms-proof-title">SMS Proof Sent</div>
+                  <div class="sms-proof-to" id="sms-proof-to">To: +25078XXXXXXX</div>
+                </div>
+                <span class="badge badge-green">Delivered</span>
+              </div>
+              <div class="sms-bubble">
+                <div class="sms-bubble-inner" id="sms-preview-text">
+                  NEXUS LAB Receipt: Amount RWF 0 received on DD/MM/YYYY for PID XXXXX.
+                  100% of invoice paid. Ref: XXXXXXX. Powered by JORINOVA NEXUS ALIS-X
+                </div>
+                <div class="sms-bubble-time" id="sms-bubble-time">—</div>
+              </div>
+              <div class="sms-proof-actions">
+                <button class="btn btn-secondary btn-sm" id="sms-resend-btn" type="button">
+                  <i class="fas fa-rotate-right"></i> Resend SMS
+                </button>
+                <button class="btn btn-ghost btn-sm" id="momo-finish-btn" type="button">
+                  <i class="fas fa-check"></i> Done — New Payment
+                </button>
+              </div>
+            </div>
+          </div><!-- /step-4 -->
+
+        </div><!-- /momo-step-panel -->
+
+        <!-- RIGHT: Recent MoMo Transactions -->
+        <div class="momo-history-panel glass-panel">
+          <div class="momo-history-header">
+            <div class="fo-chart-title"><span>📊</span> Recent Transactions</div>
+          </div>
+          <div class="momo-history-list" id="momo-history-list">
+            <div class="empty-state" style="padding:var(--space-xl)">
+              <div class="empty-state-icon">📱</div>
+              <h3>No Transactions</h3>
+              <p>MoMo transactions will appear here after processing.</p>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /momo-layout -->
+    </div><!-- /fo-momo -->
+
+
+    <!-- ════════════════════════════════════════════
+         TAB 3: 📋 INVOICE MANAGEMENT
+         ════════════════════════════════════════════ -->
+    <div class="tab-pane" id="fo-invoices">
+
+      <!-- Stats Row -->
+      <div class="fo-inv-stats">
+        <div class="fo-inv-stat">
+          <div class="fo-inv-stat-icon" style="background:rgba(0,153,255,0.1);border-color:rgba(0,153,255,0.2)">💳</div>
+          <div>
+            <div class="fo-inv-stat-val" id="inv-total-count">0</div>
+            <div class="fo-inv-stat-lbl">Total Invoices</div>
+          </div>
+        </div>
+        <div class="fo-inv-stat">
+          <div class="fo-inv-stat-icon" style="background:rgba(0,230,118,0.08);border-color:rgba(0,230,118,0.18)">✅</div>
+          <div>
+            <div class="fo-inv-stat-val" id="inv-paid-count" style="color:var(--alert-green)">0</div>
+            <div class="fo-inv-stat-lbl">Paid</div>
+          </div>
+        </div>
+        <div class="fo-inv-stat">
+          <div class="fo-inv-stat-icon" style="background:rgba(255,215,0,0.08);border-color:rgba(255,215,0,0.18)">⏳</div>
+          <div>
+            <div class="fo-inv-stat-val" id="inv-pending-count" style="color:var(--alert-yellow)">0</div>
+            <div class="fo-inv-stat-lbl">Pending</div>
+          </div>
+        </div>
+        <div class="fo-inv-stat">
+          <div class="fo-inv-stat-icon" style="background:rgba(255,109,0,0.08);border-color:rgba(255,109,0,0.18)">⚠️</div>
+          <div>
+            <div class="fo-inv-stat-val" id="inv-overdue-count" style="color:var(--alert-orange)">0</div>
+            <div class="fo-inv-stat-lbl">Overdue</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-panel" style="overflow:hidden">
+        <div class="fo-chart-header" style="flex-wrap:wrap;gap:var(--space-sm)">
+          <div class="fo-chart-title"><span>📋</span> Invoice Log</div>
+          <div class="momo-search-wrap" style="max-width:220px;margin-left:auto">
+            <i class="fas fa-magnifying-glass"></i>
+            <input type="text" id="inv-search" class="fi" placeholder="🔍 Patient, invoice#…">
+          </div>
+          <select class="fi" id="inv-status-filter" style="width:auto;font-size:var(--text-xs);padding:6px 10px">
+            <option value="">All statuses</option>
+            <option value="paid">✅ Paid</option>
+            <option value="pending">⏳ Pending</option>
+            <option value="partial">🔶 Partial</option>
+            <option value="overdue">⚠️ Overdue</option>
+            <option value="cancelled">❌ Cancelled</option>
+          </select>
+          <button class="btn btn-primary btn-sm" id="inv-new-btn"><span>➕</span> New Invoice</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="nx-table">
+            <thead>
+              <tr>
+                <th>🔖 Invoice #</th>
+                <th>🧬 Patient</th>
+                <th>🧪 Tests</th>
+                <th>💰 Total (RWF)</th>
+                <th>💳 Paid (RWF)</th>
+                <th>🛡️ Insurance</th>
+                <th>📊 Status</th>
+                <th>🕐 Date</th>
+                <th>⚡ Actions</th>
+              </tr>
+            </thead>
+            <tbody id="fo-invoices-tbody">
+              <tr><td colspan="9">
+                <div class="empty-state" style="padding:var(--space-2xl)">
+                  <div class="empty-state-icon">💳</div>
+                  <h3>No Invoices Found</h3>
+                  <p>Invoices will appear here once lab requests are processed or created manually.</p>
+                </div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /fo-invoices -->
+
+
+    <!-- ════════════════════════════════════════════
+         TAB 4: 📊 ANALYTICS & REPORTS
+         ════════════════════════════════════════════ -->
+    <div class="tab-pane" id="fo-analytics">
+
+      <!-- Charts Grid -->
+      <div class="fo-analytics-grid">
+        <div class="glass-panel fo-chart-card">
+          <div class="fo-chart-header">
+            <div class="fo-chart-title"><span>📈</span> Monthly Revenue Trend</div>
+          </div>
+          <div class="fo-chart-body">
+            <canvas id="fo-trend-chart" style="height:200px"></canvas>
+          </div>
+        </div>
+        <div class="glass-panel fo-chart-card">
+          <div class="fo-chart-header">
+            <div class="fo-chart-title"><span>💳</span> Payment Method Breakdown</div>
+          </div>
+          <div class="fo-chart-body">
+            <canvas id="fo-method-pie" style="height:200px"></canvas>
+            <div class="fo-pie-legend" id="fo-method-legend"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Outstanding Aging Report -->
+      <div class="glass-panel" style="overflow:hidden">
+        <div class="fo-chart-header">
+          <div class="fo-chart-title"><span>⏰</span> Outstanding Aging Report</div>
+          <button class="btn btn-ghost btn-sm" id="aging-export-btn"><span>📤</span> Export</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="nx-table">
+            <thead>
+              <tr>
+                <th>🧬 Patient</th>
+                <th>🔖 Invoice #</th>
+                <th>💰 Amount (RWF)</th>
+                <th>📅 Due Date</th>
+                <th>⏰ Age (Days)</th>
+                <th>📊 Category</th>
+                <th>⚡ Actions</th>
+              </tr>
+            </thead>
+            <tbody id="fo-aging-tbody">
+              <tr><td colspan="7">
+                <div class="empty-state" style="padding:var(--space-xl)">
+                  <div class="empty-state-icon">⏰</div>
+                  <h3>No Outstanding Invoices</h3>
+                  <p>All invoices are settled.</p>
+                </div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Top 10 Tests by Revenue -->
+      <div class="glass-panel" style="overflow:hidden">
+        <div class="fo-chart-header">
+          <div class="fo-chart-title"><span>🥇</span> Top 10 Tests by Revenue</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="nx-table">
+            <thead>
+              <tr>
+                <th>🏆 Rank</th>
+                <th>🧪 Test</th>
+                <th>🏥 Department</th>
+                <th>📊 Volume</th>
+                <th>💰 Revenue (RWF)</th>
+                <th>📈 % of Total</th>
+              </tr>
+            </thead>
+            <tbody id="fo-top10-tbody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /fo-analytics -->
+
+
+    <!-- ════════════════════════════════════════════
+         TAB 5: ⚙️ FINANCIAL SETTINGS
+         ════════════════════════════════════════════ -->
+    <div class="tab-pane" id="fo-settings">
+      <div class="fo-settings-grid">
+
+        <!-- VAT Configuration -->
+        <div class="glass-panel fo-settings-card">
+          <div class="fo-settings-card-header">
+            <span>🧾</span>
+            <h3>VAT Configuration</h3>
+          </div>
+          <div class="fo-settings-body">
+            <div class="fg">
+              <label class="fl">VAT Rate (%)</label>
+              <input type="number" class="fi" value="18" min="0" max="100" step="0.1">
+            </div>
+            <div class="fg">
+              <label class="fl">VAT Number</label>
+              <input type="text" class="fi" placeholder="e.g. RWF-VAT-123456789">
+            </div>
+            <label class="toggle-row">
+              <input type="checkbox" checked>
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+              <span>Apply VAT to all invoices</span>
+            </label>
+            <label class="toggle-row">
+              <input type="checkbox">
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+              <span>VAT exempt for insurance claims</span>
+            </label>
+          </div>
+          <div class="fo-settings-footer">
+            <button class="btn btn-primary btn-sm">💾 Save VAT Settings</button>
+          </div>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="glass-panel fo-settings-card">
+          <div class="fo-settings-card-header">
+            <span>💳</span>
+            <h3>Payment Methods</h3>
+          </div>
+          <div class="fo-settings-body">
+            <label class="toggle-row">
+              <input type="checkbox" checked>
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+              <span>📱 MTN Mobile Money</span>
+            </label>
+            <label class="toggle-row">
+              <input type="checkbox" checked>
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+              <span>📱 Airtel Money</span>
+            </label>
+            <label class="toggle-row">
+              <input type="checkbox" checked>
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+              <span>💵 Cash Payments</span>
+            </label>
+            <label class="toggle-row">
+              <input type="checkbox" checked>
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+              <span>🏦 Bank Transfer</span>
+            </label>
+            <label class="toggle-row">
+              <input type="checkbox" checked>
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+              <span>🛡️ RSSB Insurance</span>
+            </label>
+            <label class="toggle-row">
+              <input type="checkbox" checked>
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+              <span>🛡️ Mutuelle de Santé</span>
+            </label>
+          </div>
+          <div class="fo-settings-footer">
+            <button class="btn btn-primary btn-sm">💾 Save Payment Settings</button>
+          </div>
+        </div>
+
+        <!-- MoMo API Credentials -->
+        <div class="glass-panel fo-settings-card">
+          <div class="fo-settings-card-header">
+            <span>🔑</span>
+            <h3>MoMo API Credentials</h3>
+          </div>
+          <div class="fo-settings-body">
+            <div class="fo-settings-env-badge"><span>🟡</span> Sandbox Mode</div>
+            <div class="fg">
+              <label class="fl">MTN MoMo API Key</label>
+              <div class="momo-masked-wrap">
+                <input type="password" class="fi fo-masked" id="mtn-api-key" value="mtn-sk-xxxxxxxxxxxxxxxxxxxxxx" readonly>
+                <button class="btn-icon btn-icon-sm fo-unmask-btn" type="button" data-target="mtn-api-key"><i class="fas fa-eye"></i></button>
+              </div>
+            </div>
+            <div class="fg">
+              <label class="fl">MTN Subscription Key</label>
+              <div class="momo-masked-wrap">
+                <input type="password" class="fi fo-masked" id="mtn-sub-key" value="sub-xxxxxxxxxxxxxx" readonly>
+                <button class="btn-icon btn-icon-sm fo-unmask-btn" type="button" data-target="mtn-sub-key"><i class="fas fa-eye"></i></button>
+              </div>
+            </div>
+            <div class="fg">
+              <label class="fl">Airtel Money API Key</label>
+              <div class="momo-masked-wrap">
+                <input type="password" class="fi fo-masked" id="airtel-api-key" value="airtel-sk-xxxxxxxxxxx" readonly>
+                <button class="btn-icon btn-icon-sm fo-unmask-btn" type="button" data-target="airtel-api-key"><i class="fas fa-eye"></i></button>
+              </div>
+            </div>
+            <div class="fg">
+              <label class="fl">Callback URL</label>
+              <input type="text" class="fi" value="/api/v1/billing/momo/callback/" readonly>
+            </div>
+          </div>
+          <div class="fo-settings-footer">
+            <button class="btn btn-secondary btn-sm" id="momo-test-btn">🧪 Test Connection</button>
+            <button class="btn btn-primary btn-sm">💾 Save Credentials</button>
+          </div>
+        </div>
+
+        <!-- Insurance Providers -->
+        <div class="glass-panel fo-settings-card">
+          <div class="fo-settings-card-header">
+            <span>🛡️</span>
+            <h3>Insurance Providers</h3>
+          </div>
+          <div class="fo-settings-body">
+            <div class="fo-ins-list">
+              <div class="fo-ins-item">
+                <div class="fo-ins-icon">🏛️</div>
+                <div class="fo-ins-info">
+                  <div class="fo-ins-name">RSSB</div>
+                  <div class="fo-ins-meta">Rwanda Social Security Board</div>
+                </div>
+                <span class="badge badge-green">Active</span>
+              </div>
+              <div class="fo-ins-item">
+                <div class="fo-ins-icon">🌿</div>
+                <div class="fo-ins-info">
+                  <div class="fo-ins-name">Mutuelle de Santé</div>
+                  <div class="fo-ins-meta">Community Health Insurance</div>
+                </div>
+                <span class="badge badge-green">Active</span>
+              </div>
+              <div class="fo-ins-item">
+                <div class="fo-ins-icon">🏢</div>
+                <div class="fo-ins-info">
+                  <div class="fo-ins-name">MMI (MetLife)</div>
+                  <div class="fo-ins-meta">Private Insurance</div>
+                </div>
+                <span class="badge badge-blue">Active</span>
+              </div>
+              <div class="fo-ins-item">
+                <div class="fo-ins-icon">🏢</div>
+                <div class="fo-ins-info">
+                  <div class="fo-ins-name">RADIANT Insurance</div>
+                  <div class="fo-ins-meta">Private Insurance</div>
+                </div>
+                <span class="badge badge-blue">Active</span>
+              </div>
+            </div>
+          </div>
+          <div class="fo-settings-footer">
+            <button class="btn btn-secondary btn-sm"><i class="fas fa-plus"></i> Add Provider</button>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /fo-settings -->
+
+  </div><!-- /fo-body -->
+</div><!-- /finaops-main -->
+
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/finaops/js/finaops.js' %}" defer></script>
+{% endblock %}

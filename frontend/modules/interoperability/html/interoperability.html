@@ -1,0 +1,196 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}🔗 Interoperability — NEXUS ALIS-X{% endblock %}
+{% block module_id %}interoperability{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/interoperability/css/interoperability.css' %}">
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="interop-main">
+
+  <header class="page-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(0,255,200,0.08);border-color:rgba(0,255,200,0.22);color:#00FFC8">
+        <span style="font-size:20px">🔗</span>
+      </div>
+      <div>
+        <h1 class="page-title">🔗 Interoperability Hub</h1>
+        <div class="page-subtitle">{{ today|date:"l, d F Y" }} · HL7/FHIR · RBC · MOH · CDC · WHO · External Systems</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <div class="interop-standard-pill">HL7 FHIR R4 · ISO 27799</div>
+    </div>
+  </header>
+
+  <div class="tab-nav interop-tab-nav" role="tablist">
+    <button class="tab-btn active" data-pane="interop-dashboard-pane">🌐 Dashboard</button>
+    <button class="tab-btn" data-pane="interop-systems-pane">🏥 Connected Systems</button>
+    <button class="tab-btn" data-pane="interop-messages-pane">📨 Message Log</button>
+    <button class="tab-btn" data-pane="interop-fhir-pane">⚕️ FHIR Resources</button>
+    <button class="tab-btn" data-pane="interop-moh-pane">🏛️ MOH / CDC / WHO</button>
+    <button class="tab-btn" data-pane="interop-lid-pane">🧬 LID Sync</button>
+  </div>
+
+  <div class="interop-body">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div class="tab-pane active" id="interop-dashboard-pane">
+      <div class="interop-kpi-strip">
+        <div class="interop-kpi"><span style="font-size:20px">🟢</span><div><div class="ik-val" id="ik-connected">—</div><div class="ik-lbl">Connected Systems</div></div></div>
+        <div class="interop-kpi"><span style="font-size:20px">📨</span><div><div class="ik-val" id="ik-msgs-today">—</div><div class="ik-lbl">Messages Today</div></div></div>
+        <div class="interop-kpi"><span style="font-size:20px">✅</span><div><div class="ik-val" id="ik-success-rate" style="color:var(--alert-green)">—</div><div class="ik-lbl">Success Rate</div></div></div>
+        <div class="interop-kpi"><span style="font-size:20px">❌</span><div><div class="ik-val" id="ik-failed" style="color:var(--alert-red)">—</div><div class="ik-lbl">Failed / Retrying</div></div></div>
+        <div class="interop-kpi"><span style="font-size:20px">🧬</span><div><div class="ik-val" id="ik-lid-syncs">—</div><div class="ik-lbl">LID Syncs Today</div></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-lg);padding:var(--space-xl)">
+        <div class="glass-panel" style="padding:var(--space-lg)">
+          <div class="chart-title">📨 Message Volume (Last 7 Days)</div>
+          <div style="height:180px;margin-top:var(--space-md)"><canvas id="interop-volume-chart"></canvas></div>
+        </div>
+        <div class="glass-panel" style="padding:var(--space-lg)">
+          <div class="chart-title">🌐 System Status Overview</div>
+          <div id="interop-system-status" style="margin-top:var(--space-md)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ CONNECTED SYSTEMS ══ -->
+    <div class="tab-pane" id="interop-systems-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-lg);align-items:center">
+          <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary)">🏥 Connected External Systems</h2>
+          <button class="btn btn-primary btn-sm">➕ Add System</button>
+        </div>
+        <div class="interop-systems-grid" id="interop-systems-grid"></div>
+      </div>
+    </div>
+
+    <!-- ══ MESSAGE LOG ══ -->
+    <div class="tab-pane" id="interop-messages-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:var(--space-lg);flex-wrap:wrap">
+          <select class="filter-select" id="msg-dir-filter">
+            <option value="">All directions</option>
+            <option value="in">📥 Inbound</option><option value="out">📤 Outbound</option>
+          </select>
+          <select class="filter-select" id="msg-type-filter">
+            <option value="">All types</option>
+            <option>ORU</option><option>ORM</option><option>ADT</option><option>FHIR_Bundle</option><option>FHIR_Obs</option>
+          </select>
+          <select class="filter-select" id="msg-status-filter">
+            <option value="">All statuses</option>
+            <option>processed</option><option>failed</option><option>queued</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" id="msg-refresh-btn"><i class="fas fa-arrows-rotate"></i></button>
+        </div>
+        <table class="nx-table">
+          <thead><tr>
+            <th>↕</th><th>🔖 Msg ID</th><th>Type</th><th>System</th>
+            <th>Patient</th><th>⏱️ Processed</th><th>Status</th><th></th>
+          </tr></thead>
+          <tbody id="msg-log-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ FHIR RESOURCES ══ -->
+    <div class="tab-pane" id="interop-fhir-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="margin-bottom:var(--space-lg)">
+          <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);margin-bottom:var(--space-sm)">⚕️ FHIR R4 Resource Explorer</h2>
+          <div style="font-size:var(--text-xs);color:var(--text-muted)">Browse and test FHIR resources exposed by this NEXUS instance.</div>
+        </div>
+        <div style="display:grid;grid-template-columns:200px 1fr;gap:var(--space-lg)">
+          <div class="glass-panel" style="padding:var(--space-md)">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:var(--space-md)">Resources</div>
+            <div id="fhir-resource-list"></div>
+          </div>
+          <div class="glass-panel" style="padding:var(--space-lg)">
+            <div id="fhir-resource-detail">
+              <div class="empty-state"><div style="font-size:32px">⚕️</div><p>Select a FHIR resource to preview</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ MOH / CDC / WHO ══ -->
+    <div class="tab-pane" id="interop-moh-pane">
+      <div style="padding:var(--space-xl)">
+        <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);margin-bottom:var(--space-lg)">🏛️ Public Health Reporting</h2>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-lg)">
+          <div class="interop-ph-card">
+            <div class="interop-ph-icon">🏛️</div>
+            <div class="interop-ph-title">Rwanda MOH</div>
+            <div class="interop-ph-status connected">🟢 Connected</div>
+            <div class="interop-ph-desc">Notifiable disease reporting, epidemic alerts, weekly morbidity reports</div>
+            <div style="margin-top:var(--space-md);display:flex;flex-direction:column;gap:6px">
+              <div style="font-size:11px;color:var(--text-muted)">Last report: <strong>Yesterday 23:59</strong></div>
+              <div style="font-size:11px;color:var(--text-muted)">Reports sent this month: <strong>4</strong></div>
+            </div>
+            <button class="btn btn-primary btn-sm" style="margin-top:var(--space-md);width:100%">📤 Submit Weekly Report</button>
+          </div>
+          <div class="interop-ph-card">
+            <div class="interop-ph-icon">🌍</div>
+            <div class="interop-ph-title">RBC Rwanda</div>
+            <div class="interop-ph-status connected">🟢 Connected</div>
+            <div class="interop-ph-desc">Blood bank coordination, haemovigilance reports, AI exchange coordination</div>
+            <div style="margin-top:var(--space-md)">
+              <div style="font-size:11px;color:var(--text-muted)">Blood exchange requests: <strong>3 pending</strong></div>
+              <div style="font-size:11px;color:var(--text-muted)">Haemovigilance reports: <strong>2 this month</strong></div>
+            </div>
+            <button class="btn btn-primary btn-sm" style="margin-top:var(--space-md);width:100%">🔗 View RBC Dashboard</button>
+          </div>
+          <div class="interop-ph-card">
+            <div class="interop-ph-icon">🌐</div>
+            <div class="interop-ph-title">CDC / WHO</div>
+            <div class="interop-ph-status warning">🟡 Configured</div>
+            <div class="interop-ph-desc">International disease surveillance, outbreak notifications, WHO IHR compliance</div>
+            <div style="margin-top:var(--space-md)">
+              <div style="font-size:11px;color:var(--text-muted)">AMR data submissions: <strong>Monthly</strong></div>
+              <div style="font-size:11px;color:var(--text-muted)">COVID-19 variants: <strong>Active</strong></div>
+            </div>
+            <button class="btn btn-ghost btn-sm" style="margin-top:var(--space-md);width:100%">⚙️ Configure</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ LID SYNC ══ -->
+    <div class="tab-pane" id="interop-lid-pane">
+      <div style="padding:var(--space-xl)">
+        <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);margin-bottom:var(--space-sm)">🧬 Clinic PID → LID Synchronisation</h2>
+        <div style="font-size:var(--text-xs);color:var(--text-muted);margin-bottom:var(--space-lg)">Clinics submit their local patient IDs; NEXUS AI matches them to permanent Lifelong IDs (LIDs) using demographic data.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-lg)">
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:var(--space-md)">📋 Pending Sync Requests</div>
+            <table class="nx-table">
+              <thead><tr><th>Clinic</th><th>Clinic PID</th><th>Patient Name</th><th>AI Confidence</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody id="lid-sync-tbody"></tbody>
+            </table>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:var(--space-md)">📊 Sync Statistics</div>
+            <div class="glass-panel" style="padding:var(--space-lg)">
+              <div style="display:flex;flex-direction:column;gap:var(--space-md)" id="lid-sync-stats"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/interoperability/js/interoperability.js' %}" defer></script>
+{% endblock %}

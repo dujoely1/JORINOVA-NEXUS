@@ -1,0 +1,143 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}📚 Lab Records — NEXUS ALIS-X{% endblock %}
+{% block module_id %}records{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/records/css/records.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="rec-main">
+
+  <!-- ══ HEADER ══ -->
+  <header class="page-header rec-index-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap">
+        <span style="font-size:20px">📚</span>
+      </div>
+      <div>
+        <h1 class="page-title">Laboratory Record Books</h1>
+        <div class="page-subtitle">{{ today|date:"l, d F Y" }} · Specimen-Color Linked · Shift-Intelligent Records</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <div class="rec-shift-display" id="rec-shift-display">
+        <span id="rec-shift-icon">☀️</span>
+        <div>
+          <div class="rec-shift-name" id="rec-shift-name">Loading shift…</div>
+          <div class="rec-shift-time" id="rec-shift-time"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ SPECIMEN KEY ══ -->
+  <div class="rec-specimen-key">
+    <div class="rec-key-title">🧪 Specimen Tube ↔ Record Book Color System</div>
+    <div class="rec-key-items">
+      <div class="rec-key-item"><div class="rec-tube-swatch" style="background:linear-gradient(180deg,#9B59B6,#7D3C98)"></div><span>Purple (EDTA) → Hematology · Blood Group · Crossmatch</span></div>
+      <div class="rec-key-item"><div class="rec-tube-swatch" style="background:linear-gradient(180deg,#E74C3C,#CC0000)"></div><span>Red/Yellow (SST) → Chemistry · Serology</span></div>
+      <div class="rec-key-item"><div class="rec-tube-swatch" style="background:linear-gradient(180deg,#2980B9,#1A5276)"></div><span>Blue (Citrate) → Coagulation · Parasitology</span></div>
+      <div class="rec-key-item"><div class="rec-tube-swatch" style="background:linear-gradient(180deg,#27AE60,#1E8449)"></div><span>Green (Fluoride) → Glucose · Metabolic</span></div>
+      <div class="rec-key-item"><div class="rec-tube-swatch" style="background:linear-gradient(180deg,#00BCD4,#00838F)"></div><span>Teal → Microbiology</span></div>
+      <div class="rec-key-item"><div class="rec-tube-swatch" style="background:linear-gradient(180deg,#F1C40F,#F39C12)"></div><span>Yellow → Urinalysis</span></div>
+    </div>
+  </div>
+
+  <!-- ══ BOOK GRID ══ -->
+  <div class="rec-books-body">
+    <div class="rec-books-grid">
+
+      {% for book_type, cfg in books %}
+      <a href="/records/{{ book_type }}/" class="rec-book-card" data-book="{{ cfg.data-book }}">
+
+        <!-- Book header — specimen tube color -->
+        <div class="rec-book-header" style="background: {{ cfg.gradient }}; border-bottom: 2px solid {{ cfg.accent }}55">
+          <div class="rec-book-header-stripe"></div>
+          <div class="rec-book-header-content">
+            <div class="rec-book-title" style="color: {{ cfg.text }}">{{ cfg.name }}</div>
+            <div class="rec-book-meta">
+              <div class="rec-book-shift-badge" id="shift-badge-{{ book_type }}">
+                <span class="rec-book-shift-icon">☀️</span>
+                <span>Morning Shift</span>
+              </div>
+              <div class="rec-book-ts" id="ts-{{ book_type }}"></div>
+            </div>
+          </div>
+          <!-- Tube swatch indicator -->
+          <div class="rec-tube-indicator tube-{{ cfg.tube }}" title="{{ cfg.tube }} tube"></div>
+        </div>
+
+        <!-- Book body -->
+        <div class="rec-book-body">
+          <div class="rec-book-stats">
+            <div class="rec-bs"><span class="rec-bs-val" id="cnt-{{ book_type }}">—</span><span class="rec-bs-lbl">Records Today</span></div>
+            <div class="rec-bs"><span class="rec-bs-val rec-bs-pending" id="pend-{{ book_type }}">—</span><span class="rec-bs-lbl">Pending</span></div>
+            <div class="rec-bs"><span class="rec-bs-val rec-bs-ok" id="valid-{{ book_type }}">—</span><span class="rec-bs-lbl">Validated</span></div>
+          </div>
+          <div class="rec-book-open-cta">
+            <span>Open Book →</span>
+          </div>
+        </div>
+
+      </a>
+      {% endfor %}
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  /* Live timestamps on every book card */
+  function updateBookTimes() {
+    var now = new Date();
+    var ts  = now.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    var h   = now.getHours();
+    var shift, icon;
+    if (h>=6 && h<14)      { shift='Morning Shift';   icon='☀️'; }
+    else if (h>=14 && h<22){ shift='Afternoon Shift'; icon='🌤️'; }
+    else                   { shift='Night Shift';      icon='🌙'; }
+
+    document.querySelectorAll('[id^="ts-"]').forEach(function(el) { el.textContent=ts; });
+    document.querySelectorAll('[id^="shift-badge-"]').forEach(function(el) {
+      var iconEl = el.querySelector('.rec-book-shift-icon');
+      var lblEl  = el.querySelector('span:last-child');
+      if (iconEl) iconEl.textContent = icon;
+      if (lblEl)  lblEl.textContent  = shift;
+    });
+
+    /* Update top shift display */
+    var si = document.getElementById('rec-shift-icon');
+    var sn = document.getElementById('rec-shift-name');
+    var st = document.getElementById('rec-shift-time');
+    if(si) si.textContent = icon;
+    if(sn) sn.textContent = shift;
+    if(st) st.textContent = ts;
+  }
+  updateBookTimes();
+  setInterval(updateBookTimes, 1000);
+
+  /* Demo counts */
+  var demoData = {
+    'cnt':   [12,8,3,24,11,6,18,7,5,9,4,2],
+    'pend':  [3,2,1,5,3,2,4,1,0,2,1,0],
+    'valid': [9,6,2,19,8,4,14,6,5,7,3,2],
+  };
+  var ids = ['hematology','blood_group','crossmatch','chemistry','serology','coagulation','glucose','metabolic','microbiology','urinalysis','blood_bank','parasitology'];
+  ids.forEach(function(id, i) {
+    var c=document.getElementById('cnt-'+id);
+    var p=document.getElementById('pend-'+id);
+    var v=document.getElementById('valid-'+id);
+    if(c)c.textContent=demoData.cnt[i]||0;
+    if(p)p.textContent=demoData.pend[i]||0;
+    if(v)v.textContent=demoData.valid[i]||0;
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,145 @@
+/* JORINOVA NEXUS ALIS-X — Design System Variables */
+:root {
+  /* Core Background Palette */
+  --bg-void:        #020818;
+  --bg-deep:        #040D24;
+  --bg-base:        #071428;
+  --bg-surface:     #0A1A35;
+  --bg-elevated:    #0D2145;
+  --bg-card:        rgba(10, 22, 53, 0.85);
+  --bg-glass:       rgba(0, 153, 255, 0.04);
+
+  /* Primary Neon Blue */
+  --blue-glow:      #00AAFF;
+  --blue-bright:    #0099FF;
+  --blue-mid:       #0077CC;
+  --blue-deep:      #004499;
+  --blue-pulse:     rgba(0, 153, 255, 0.6);
+  --blue-shadow:    rgba(0, 153, 255, 0.15);
+
+  /* Cyan / Teal Accent */
+  --cyan:           #00FFDD;
+  --cyan-dim:       #00CCAA;
+  --cyan-glow:      rgba(0, 255, 221, 0.5);
+
+  /* Golden Yellow — Tagline, Highlights */
+  --gold:           #FFD700;
+  --gold-warm:      #FFA500;
+  --gold-dim:       #CC9900;
+  --gold-glow:      rgba(255, 215, 0, 0.5);
+
+  /* Military Green — Welcome text */
+  --green-military: #4B7A47;
+  --green-bright:   #5A9455;
+  --green-glow:     rgba(75, 122, 71, 0.6);
+  --green-success:  #00E676;
+  --green-dim:      #2D5A27;
+
+  /* Alert Colors */
+  --alert-green:    #00E676;
+  --alert-yellow:   #FFD600;
+  --alert-orange:   #FF6D00;
+  --alert-red:      #FF1744;
+  --alert-purple:   #D500F9;
+
+  /* Text */
+  --text-primary:   #E8F4FF;
+  --text-secondary: #7FA8CC;
+  --text-muted:     #4A6880;
+  --text-gold:      var(--gold);
+  --text-green:     var(--green-military);
+  --text-white:     #FFFFFF;
+
+  /* Borders */
+  --border-dim:     rgba(0, 153, 255, 0.12);
+  --border-mid:     rgba(0, 153, 255, 0.25);
+  --border-bright:  rgba(0, 153, 255, 0.5);
+  --border-gold:    rgba(255, 215, 0, 0.4);
+  --border-glass:   rgba(255, 255, 255, 0.06);
+
+  /* Glassmorphism */
+  --glass-bg:       rgba(7, 20, 40, 0.75);
+  --glass-border:   rgba(0, 153, 255, 0.2);
+  --glass-blur:     saturate(180%) blur(20px);
+  --glass-shadow:   0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0,153,255,0.1);
+
+  /* Tube / Specimen Colors */
+  --tube-purple:    #9B59B6;
+  --tube-red:       #E74C3C;
+  --tube-yellow:    #F39C12;
+  --tube-blue:      #2980B9;
+  --tube-green:     #27AE60;
+  --tube-grey:      #95A5A6;
+  --tube-fluoride:  #BDC3C7;
+
+  /* Spacing */
+  --space-xs:   4px;
+  --space-sm:   8px;
+  --space-md:   16px;
+  --space-lg:   24px;
+  --space-xl:   32px;
+  --space-2xl:  48px;
+  --space-3xl:  64px;
+
+  /* Radius */
+  --radius-sm:   6px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   24px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-glow-blue:   0 0 20px rgba(0,153,255,0.4), 0 0 60px rgba(0,153,255,0.15);
+  --shadow-glow-gold:   0 0 20px rgba(255,215,0,0.4), 0 0 60px rgba(255,215,0,0.1);
+  --shadow-glow-green:  0 0 20px rgba(75,122,71,0.4);
+  --shadow-glow-red:    0 0 20px rgba(255,23,68,0.5);
+  --shadow-card:        0 4px 24px rgba(0,0,0,0.4), 0 1px 0 rgba(0,153,255,0.1);
+  --shadow-deep:        0 20px 60px rgba(0,0,0,0.7);
+
+  /* Typography */
+  --font-primary:  'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-mono:     'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  --font-display:  'Rajdhani', 'Orbitron', 'Inter', sans-serif;
+
+  /* Font Sizes */
+  --text-xs:    11px;
+  --text-sm:    13px;
+  --text-base:  15px;
+  --text-md:    17px;
+  --text-lg:    20px;
+  --text-xl:    24px;
+  --text-2xl:   32px;
+  --text-3xl:   48px;
+
+  /* Animation Timing */
+  --ease-out:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:   cubic-bezier(0.4, 0, 1, 1);
+  --ease-circ: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast:   150ms;
+  --duration-mid:    300ms;
+  --duration-slow:   600ms;
+  --duration-xslow:  1200ms;
+
+  /* Header */
+  --header-height: 64px;
+  --patient-frame-height: 56px;
+  --sidebar-width: 72px;
+  --sidebar-expanded: 240px;
+}
+
+/* Light mode overrides */
+[data-theme="light"] {
+  --bg-void:        #F0F4FF;
+  --bg-deep:        #E8EEFF;
+  --bg-base:        #FFFFFF;
+  --bg-surface:     #F5F7FF;
+  --bg-elevated:    #EDF0FF;
+  --bg-card:        rgba(255,255,255,0.9);
+  --text-primary:   #1A2744;
+  --text-secondary: #4A6880;
+  --text-muted:     #8A9AB0;
+  --border-dim:     rgba(0,76,153,0.1);
+  --border-mid:     rgba(0,76,153,0.2);
+  --glass-bg:       rgba(255,255,255,0.8);
+  --glass-border:   rgba(0,76,153,0.15);
+}

@@ -1,0 +1,161 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}Laboratory — NEXUS ALIS-X{% endblock %}
+{% block module_id %}laboratory{% endblock %}
+{% block nav_active_lab %}active{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/laboratory/css/lab.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="lab-main">
+
+  <!-- ── Header ── -->
+  <header class="lab-header">
+    <div class="lab-header-left">
+      <div class="page-icon-wrap"><i class="fas fa-flask"></i></div>
+      <div>
+        <h1 class="lab-title">⚗️ Laboratory Worklist</h1>
+        <div class="lab-subtitle">{{ today|date:"l, d F Y" }} · NEXUS ALIS-X</div>
+      </div>
+    </div>
+    <div class="lab-header-right">
+      <a href="/laboratory/new-request/" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus"></i> New Request
+      </a>
+      <div class="user-chip" title="{{ request.user.get_full_name }}">
+        <div class="user-avatar">{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}</div>
+        <span class="user-name">{{ request.user.get_full_name }}</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Department tabs ── -->
+  <div class="dept-tabs-bar" id="dept-tabs-bar" role="tablist">
+    <button class="dept-tab active" data-dept="all" role="tab">
+      <span>All Departments</span>
+      <span class="dept-tab-count" id="count-all">—</span>
+    </button>
+    {% for dept in departments %}
+    <button class="dept-tab" data-dept="{{ dept.id }}" role="tab">
+      <span class="dept-tab-dot" style="background:{{ dept.color_hex }}"></span>
+      <span>{{ dept.abbreviation }}</span>
+      <span class="dept-tab-count">—</span>
+    </button>
+    {% endfor %}
+  </div>
+
+  <!-- ── Toolbar ── -->
+  <div class="worklist-toolbar">
+    <div class="toolbar-left">
+      <!-- Search -->
+      <div class="worklist-search-wrap">
+        <i class="fas fa-magnifying-glass"></i>
+        <input type="text" id="worklist-search" class="worklist-search"
+               placeholder="Lab ID, patient name, PID…"
+               autocomplete="off" spellcheck="false">
+      </div>
+      <!-- Status filter -->
+      <select id="filter-status" class="filter-select">
+        <option value="submitted,received,processing">Pending</option>
+        <option value="submitted">Submitted</option>
+        <option value="received">Received</option>
+        <option value="processing">Processing</option>
+        <option value="validated">Validated</option>
+        <option value="">All statuses</option>
+      </select>
+      <!-- Emergency filter -->
+      <select id="filter-emerg" class="filter-select">
+        <option value="">All priorities</option>
+        <option value="emergency">STAT</option>
+        <option value="urgent">Urgent</option>
+        <option value="routine">Routine</option>
+      </select>
+      <!-- Date filter -->
+      <input type="date" id="filter-date" class="filter-select" value="{{ today|date:'Y-m-d' }}" title="Filter by request date">
+    </div>
+    <div class="toolbar-right">
+      <span class="result-count" id="result-count"></span>
+      <button class="btn btn-ghost btn-sm" id="refresh-worklist-btn" type="button" title="Refresh">
+        <i class="fas fa-arrows-rotate"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Worklist table ── -->
+  <div class="worklist-area">
+    <table class="worklist-table" role="grid" aria-label="Laboratory worklist">
+      <thead>
+        <tr>
+          <th>Patient <i class="fas fa-sort"></i></th>
+          <th>Lab ID</th>
+          <th>Tests</th>
+          <th>TAT</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Doctor / Ward</th>
+          <th style="text-align:right">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="worklist-tbody">
+        <tr><td colspan="8">
+          <div class="worklist-loading">
+            <i class="fas fa-spinner"></i> Loading…
+          </div>
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- /lab-main -->
+
+<!-- ══════════════ RESULT ENTRY MODAL ══════════════ -->
+<div class="result-modal-overlay" id="result-modal-overlay" role="dialog" aria-modal="true" aria-label="Result entry">
+  <div class="result-modal glass-card" id="result-modal">
+
+    <div class="result-modal-header">
+      <div class="result-patient-line">
+        <div class="result-patient-name" id="rm-patient-name">—</div>
+        <div class="result-patient-meta" id="rm-patient-meta"></div>
+      </div>
+      <button class="btn-icon" id="rm-close-btn" type="button" aria-label="Close"><i class="fas fa-xmark"></i></button>
+    </div>
+
+    <div class="result-modal-body">
+      <div id="rm-tests-list">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <div class="result-modal-footer">
+      <div style="display:flex;align-items:center;gap:var(--space-sm)">
+        <i class="fas fa-shield-halved" style="color:var(--text-muted);font-size:13px"></i>
+        <span class="text-xs text-muted-c">Results are audit-logged with your identity and shift</span>
+      </div>
+      <div style="display:flex;gap:var(--space-sm)">
+        <button class="btn btn-success" id="rm-validate-btn" type="button" style="display:none">
+          <i class="fas fa-check-double"></i> Validate All
+        </button>
+        <button class="btn btn-primary" id="rm-save-btn" type="button">
+          <i class="fas fa-floppy-disk"></i> Save Results
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/laboratory/js/lab.js' %}" defer></script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('refresh-worklist-btn')?.addEventListener('click', () => {
+  if (window._labReload) window._labReload();
+});
+</script>
+{% endblock %}

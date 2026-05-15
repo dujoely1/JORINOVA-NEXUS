@@ -1,0 +1,21 @@
+/* JORINOVA NEXUS ALIS-X — Core Configuration */
+.cfg-main   { display:flex; flex-direction:column; flex:1; overflow:hidden; }
+.cfg-tab-nav{ padding:0 var(--space-xl); background:var(--bg-deep); border-bottom:1px solid var(--border-dim); flex-shrink:0; }
+.cfg-body   { flex:1; overflow-y:auto; }
+
+/* Label preview */
+.cfg-label-preview {
+  display:flex; border-radius:var(--radius-md); overflow:hidden;
+  border:1.5px solid var(--border-mid);
+  background:#fff; color:#111;
+  font-family:Arial,sans-serif;
+  width:280px; height:60px;
+  box-shadow:var(--shadow-card);
+}
+.cfg-label-tube { width:12px; flex-shrink:0; }
+.cfg-label-content { flex:1; padding:4px 6px; display:flex; flex-direction:column; justify-content:space-between; }
+.cfg-label-patient { font-size:9px; font-weight:700; color:#111; }
+.cfg-label-pid     { font-size:7px; color:#555; font-family:'Courier New',monospace; }
+.cfg-label-dept    { font-size:8px; font-weight:700; color:#333; }
+.cfg-label-barcode { font-size:10px; letter-spacing:-1px; color:#111; }
+.cfg-label-meta    { font-size:7px; color:#777; }

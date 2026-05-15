@@ -1,0 +1,157 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}🔔 Notifications — NEXUS ALIS-X{% endblock %}
+{% block module_id %}notifications{% endblock %}
+{% block nav_active_notifs %}active{% endblock %}
+
+{% block content %}
+<div class="notif-main">
+
+  <header class="page-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(255,215,0,0.08);border-color:rgba(255,215,0,0.18);color:var(--gold)">
+        <span style="font-size:20px">🔔</span>
+      </div>
+      <div>
+        <h1 class="page-title">Notifications</h1>
+        <div class="page-subtitle">System alerts · Critical results · Task reminders</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <button class="btn btn-ghost btn-sm" id="mark-all-btn">
+        <i class="fas fa-check-double"></i> Mark all read
+      </button>
+    </div>
+  </header>
+
+  <!-- Filter chips -->
+  <div style="padding:var(--space-md) var(--space-xl);border-bottom:1px solid var(--border-dim);background:var(--bg-deep);display:flex;align-items:center;gap:var(--space-sm);flex-wrap:wrap">
+    <button class="filter-chip active" data-filter="all">🔔 All</button>
+    <button class="filter-chip" data-filter="critical">🚨 Critical Results</button>
+    <button class="filter-chip" data-filter="tat">⏱️ TAT Alerts</button>
+    <button class="filter-chip" data-filter="system">⚙️ System</button>
+    <button class="filter-chip" data-filter="task">📋 Tasks</button>
+  </div>
+
+  <div class="notif-body">
+    <div class="notif-list" id="notif-list">
+      <!-- Demo notifications -->
+      <div class="notif-item notif-critical unread">
+        <div class="notif-dot critical"></div>
+        <div class="notif-icon-wrap" style="background:rgba(255,23,68,0.1);border-color:rgba(255,23,68,0.2)">🚨</div>
+        <div class="notif-content">
+          <div class="notif-title">Critical Result — Hemoglobin 4.2 g/dL</div>
+          <div class="notif-msg">Patient: DEMO-001 · Hematology · Dr. Uwimana notified via SMS</div>
+          <div class="notif-meta"><span class="notif-time">2 min ago</span> · <span class="badge badge-red">CRITICAL</span></div>
+        </div>
+        <button class="btn-icon btn-icon-sm" title="Dismiss"><i class="fas fa-xmark"></i></button>
+      </div>
+
+      <div class="notif-item notif-warning unread">
+        <div class="notif-dot warning"></div>
+        <div class="notif-icon-wrap" style="background:rgba(255,109,0,0.08);border-color:rgba(255,109,0,0.18)">⏱️</div>
+        <div class="notif-content">
+          <div class="notif-title">TAT Alert — 3 samples approaching deadline</div>
+          <div class="notif-msg">Chemistry samples SMP-042, SMP-043, SMP-047 — TAT at 85%</div>
+          <div class="notif-meta"><span class="notif-time">8 min ago</span> · <span class="badge badge-orange">TAT WARNING</span></div>
+        </div>
+        <button class="btn-icon btn-icon-sm" title="Dismiss"><i class="fas fa-xmark"></i></button>
+      </div>
+
+      <div class="notif-item notif-info">
+        <div class="notif-dot info"></div>
+        <div class="notif-icon-wrap" style="background:rgba(0,153,255,0.08);border-color:rgba(0,153,255,0.18)">⚗️</div>
+        <div class="notif-content">
+          <div class="notif-title">Lab Request Validated — LAB-2025-0412</div>
+          <div class="notif-msg">15 tests validated by Lab Tech Mutoni. Results released to doctor.</div>
+          <div class="notif-meta"><span class="notif-time">25 min ago</span> · <span class="badge badge-green">VALIDATED</span></div>
+        </div>
+        <button class="btn-icon btn-icon-sm" title="Dismiss"><i class="fas fa-xmark"></i></button>
+      </div>
+
+      <div class="notif-item notif-info">
+        <div class="notif-dot info"></div>
+        <div class="notif-icon-wrap" style="background:rgba(0,255,221,0.07);border-color:rgba(0,255,221,0.14)">🩸</div>
+        <div class="notif-content">
+          <div class="notif-title">Sample Received — 8 new specimens checked in</div>
+          <div class="notif-msg">Morning shift · Phlebotomist: Habimana E. · Ward 3 collection complete</div>
+          <div class="notif-meta"><span class="notif-time">1 hr ago</span> · <span class="badge badge-blue">INTAKE</span></div>
+        </div>
+        <button class="btn-icon btn-icon-sm" title="Dismiss"><i class="fas fa-xmark"></i></button>
+      </div>
+
+      <div class="notif-item notif-system">
+        <div class="notif-dot system"></div>
+        <div class="notif-icon-wrap" style="background:rgba(139,92,246,0.09);border-color:rgba(139,92,246,0.18)">⚙️</div>
+        <div class="notif-content">
+          <div class="notif-title">System: Inventory Alert — Reagent stock low</div>
+          <div class="notif-msg">CBC reagent kit — 2 kits remaining. Reorder threshold reached.</div>
+          <div class="notif-meta"><span class="notif-time">3 hrs ago</span> · <span class="badge badge-purple">INVENTORY</span></div>
+        </div>
+        <button class="btn-icon btn-icon-sm" title="Dismiss"><i class="fas fa-xmark"></i></button>
+      </div>
+
+      <div class="notif-item notif-system">
+        <div class="notif-dot system"></div>
+        <div class="notif-icon-wrap" style="background:rgba(0,153,255,0.07);border-color:rgba(0,153,255,0.14)">🌙</div>
+        <div class="notif-content">
+          <div class="notif-title">Night Shift started — 22:00</div>
+          <div class="notif-msg">Shift handover completed. 12 pending samples transferred to night team.</div>
+          <div class="notif-meta"><span class="notif-time">Yesterday 22:00</span> · <span class="badge badge-grey">SHIFT</span></div>
+        </div>
+        <button class="btn-icon btn-icon-sm" title="Dismiss"><i class="fas fa-xmark"></i></button>
+      </div>
+
+    </div><!-- /notif-list -->
+  </div>
+
+</div><!-- /notif-main -->
+
+<style>
+.notif-main { display:flex;flex-direction:column;flex:1;overflow:hidden; }
+.notif-body { flex:1;overflow-y:auto;padding:var(--space-xl); }
+.notif-list { display:flex;flex-direction:column;gap:2px;max-width:860px;margin:0 auto; }
+.notif-item {
+  display:flex;align-items:flex-start;gap:var(--space-md);
+  padding:var(--space-md) var(--space-lg);
+  background:var(--bg-card);border:1px solid var(--border-dim);border-radius:var(--radius-lg);
+  transition:background var(--duration-fast),border-color var(--duration-fast);
+  position:relative;
+}
+.notif-item.unread { border-left:3px solid var(--blue-glow);background:rgba(0,153,255,0.03); }
+.notif-item.notif-critical.unread { border-left-color:var(--alert-red);background:rgba(255,23,68,0.03); }
+.notif-item.notif-warning.unread { border-left-color:var(--alert-orange);background:rgba(255,109,0,0.03); }
+.notif-item:hover { background:var(--bg-glass); }
+.notif-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:6px; }
+.notif-dot.critical { background:var(--alert-red);animation:pulse-critical 1.4s infinite; }
+.notif-dot.warning  { background:var(--alert-orange);animation:pulse-urgent 2s infinite; }
+.notif-dot.info     { background:var(--blue-glow); }
+.notif-dot.system   { background:var(--text-muted); }
+.notif-icon-wrap { width:38px;height:38px;border-radius:var(--radius-md);border:1px solid;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0; }
+.notif-content { flex:1;min-width:0; }
+.notif-title { font-size:var(--text-sm);font-weight:600;color:var(--text-primary);line-height:1.4; }
+.notif-msg   { font-size:var(--text-xs);color:var(--text-secondary);margin-top:3px;line-height:1.5; }
+.notif-meta  { display:flex;align-items:center;gap:var(--space-sm);margin-top:6px;flex-wrap:wrap; }
+.notif-time  { font-size:11px;font-family:var(--font-mono);color:var(--text-muted); }
+.filter-chip {
+  display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:var(--radius-full);
+  background:var(--bg-elevated);border:1px solid var(--border-dim);color:var(--text-secondary);
+  font-size:var(--text-xs);font-weight:600;cursor:pointer;transition:all var(--duration-fast);
+}
+.filter-chip:hover { border-color:var(--border-mid);color:var(--text-primary); }
+.filter-chip.active { background:rgba(0,153,255,0.1);border-color:var(--border-mid);color:var(--blue-glow); }
+.notif-item.notif-unread { border-left:3px solid var(--blue-glow);background:rgba(0,153,255,.03); }
+.notif-item.notif-priority-critical { border-left-color:var(--alert-red)!important; }
+.notif-item.notif-priority-high { border-left-color:var(--alert-orange)!important; }
+.notif-dot { width:8px;height:8px;border-radius:50%;background:var(--blue-glow);flex-shrink:0;margin-top:4px; }
+.notif-action-link { font-size:11px;color:var(--blue-glow);text-decoration:none;font-weight:600; }
+.notif-empty { display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--space-2xl);color:var(--text-muted);gap:var(--space-md); }
+.notif-filter-btn.active { color:var(--blue-glow);border-color:var(--blue-glow);background:rgba(0,153,255,.08); }
+.notif-tab-nav,.tab-nav { padding:0 var(--space-xl);background:var(--bg-deep);border-bottom:1px solid var(--border-dim); }
+</style>
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/notifications/js/notifications.js' %}" defer></script>
+{% endblock %}

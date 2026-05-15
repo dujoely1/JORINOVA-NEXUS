@@ -1,0 +1,1880 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}🦠 Microbiology AI Intelligence — NEXUS ALIS-X{% endblock %}
+{% block module_id %}microbiology{% endblock %}
+{% block nav_active_micro_ai %}active{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/micro_ai/css/micro_ai.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="micro-main" data-module="microbiology">
+
+  <!-- ══════════════════════════════════════════════════════════════
+       HEADER
+       ══════════════════════════════════════════════════════════════ -->
+  <header class="page-header micro-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap">
+        <span style="font-size:22px">🦠</span>
+      </div>
+      <div>
+        <h1 class="page-title">🦠 Microbiology AI Intelligence</h1>
+        <div class="page-subtitle">ISO 15189 · Decision Support System · Vision AI · AST · API 20 · Triage</div>
+      </div>
+    </div>
+    <div class="page-header-right" style="display:flex;align-items:center;gap:var(--space-md)">
+      <div class="micro-iso-pill">
+        🔒 Decision Support Only — Human Validation Required
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       KPI STRIP
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="micro-kpi-strip">
+    <div class="micro-kpi">
+      <span class="micro-kpi-emoji">🔬</span>
+      <div class="micro-kpi-val" id="kpi-analyses">—</div>
+      <div class="micro-kpi-lbl">Analyses Today</div>
+    </div>
+    <div class="micro-kpi">
+      <span class="micro-kpi-emoji">⚗️</span>
+      <div class="micro-kpi-val" id="kpi-ast">—</div>
+      <div class="micro-kpi-lbl">AST Results</div>
+    </div>
+    <div class="micro-kpi">
+      <span class="micro-kpi-emoji">🦠</span>
+      <div class="micro-kpi-val" id="kpi-organisms">—</div>
+      <div class="micro-kpi-lbl">Organisms ID'd</div>
+    </div>
+    <div class="micro-kpi">
+      <span class="micro-kpi-emoji">🔀</span>
+      <div class="micro-kpi-val" id="kpi-triaged">—</div>
+      <div class="micro-kpi-lbl">Samples Triaged</div>
+    </div>
+    <div class="micro-kpi">
+      <span class="micro-kpi-emoji">🔄</span>
+      <div class="micro-kpi-val" id="kpi-reflex">—</div>
+      <div class="micro-kpi-lbl">Reflex Tests</div>
+    </div>
+    <div class="micro-kpi">
+      <span class="micro-kpi-emoji">📋</span>
+      <div class="micro-kpi-val" id="kpi-pending" style="color:#FFD600">—</div>
+      <div class="micro-kpi-lbl">Validations Pending</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       ISO 15189 COMPLIANCE BANNER
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="micro-iso-banner" role="alert" aria-live="polite">
+    <span class="micro-iso-banner-icon">⚠️</span>
+    <div class="micro-iso-banner-text">
+      <strong>ISO 15189:2022</strong> — This AI module is a <strong>DECISION SUPPORT SYSTEM ONLY.</strong>
+      Final interpretation is the <strong>exclusive authority of certified laboratory professionals.</strong>
+      AI outputs must <strong>never</strong> be released as final diagnostic results without human validation.
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       7-STEP DECISION CHAIN
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="micro-decision-chain" role="list" aria-label="ISO 15189 workflow">
+    <div class="micro-chain-step" role="listitem" title="Step 1: Sample Intake Classification">
+      <div class="micro-chain-step-num">1</div>
+      <span class="micro-chain-step-label">Sample Intake<br>Classification</span>
+    </div>
+    <div class="micro-chain-arrow" aria-hidden="true">→</div>
+    <div class="micro-chain-step" role="listitem" title="Step 2: Para/Micro Routing">
+      <div class="micro-chain-step-num">2</div>
+      <span class="micro-chain-step-label">Para/Micro<br>Routing</span>
+    </div>
+    <div class="micro-chain-arrow" aria-hidden="true">→</div>
+    <div class="micro-chain-step" role="listitem" title="Step 3: Reflex Test Recommendation">
+      <div class="micro-chain-step-num">3</div>
+      <span class="micro-chain-step-label">Reflex Test<br>Recommendation</span>
+    </div>
+    <div class="micro-chain-arrow" aria-hidden="true">→</div>
+    <div class="micro-chain-step" role="listitem" title="Step 4: Microscopy Interpretation">
+      <div class="micro-chain-step-num">4</div>
+      <span class="micro-chain-step-label">Microscopy<br>Interpretation</span>
+    </div>
+    <div class="micro-chain-arrow" aria-hidden="true">→</div>
+    <div class="micro-chain-step" role="listitem" title="Step 5: AST Analysis Suggestion">
+      <div class="micro-chain-step-num">5</div>
+      <span class="micro-chain-step-label">AST Analysis<br>Suggestion</span>
+    </div>
+    <div class="micro-chain-arrow" aria-hidden="true">→</div>
+    <div class="micro-chain-step" role="listitem" title="Step 6: Gram Stain Triggering">
+      <div class="micro-chain-step-num">6</div>
+      <span class="micro-chain-step-label">Gram Stain<br>Triggering</span>
+    </div>
+    <div class="micro-chain-arrow" aria-hidden="true">→</div>
+    <div class="micro-chain-step final-step" role="listitem" title="Step 7: Human Validation — Required">
+      <div class="micro-chain-step-num">7</div>
+      <span class="micro-chain-step-label">🔒 Human<br>Validation</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       TAB NAVIGATION
+       ══════════════════════════════════════════════════════════════ -->
+  <nav class="micro-tabs" role="tablist" aria-label="Microbiology AI modules" id="micro-tabs">
+    <button class="tab-btn active" role="tab" data-pane="tab-vision"   aria-selected="true">🔬 Vision AI</button>
+    <button class="tab-btn"        role="tab" data-pane="tab-ast"      aria-selected="false">📊 AST Disk Diffusion</button>
+    <button class="tab-btn"        role="tab" data-pane="tab-api20"    aria-selected="false">🧫 API 20 Reader</button>
+    <button class="tab-btn"        role="tab" data-pane="tab-triage"   aria-selected="false">🔀 Sample Triage Engine</button>
+    <button class="tab-btn"        role="tab" data-pane="tab-reflex"   aria-selected="false">🔄 Reflex Intelligence</button>
+    <button class="tab-btn"        role="tab" data-pane="tab-workflow" aria-selected="false">🦠 Workflow Optimizer</button>
+    <button class="tab-btn"        role="tab" data-pane="tab-audit"    aria-selected="false">📋 AI Audit Trail</button>
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       BODY
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="micro-body" id="micro-body">
+
+    <!-- ════════════════════════════════════════════════════════════
+         TAB 1 — VISION AI
+         ════════════════════════════════════════════════════════════ -->
+    <div class="tab-pane active" id="tab-vision" role="tabpanel">
+      <div class="micro-vision-layout">
+
+        <!-- ── Left: Camera / Upload Panel ────────────────────── -->
+        <div class="micro-camera-panel">
+          <div class="micro-glass" style="display:flex;flex-direction:column;overflow:hidden;">
+
+            <div class="micro-section-header">
+              <div class="micro-section-title"><span>📸</span> Microscopy Capture</div>
+              <button class="micro-btn-ghost" id="btn-start-camera" style="font-size:12px">▶ Camera</button>
+            </div>
+
+            <!-- Camera wrap -->
+            <div class="micro-cam-wrap">
+              <video id="micro-video" class="micro-cam-video" autoplay muted playsinline style="display:none"></video>
+              <canvas id="micro-canvas" class="micro-cam-canvas"></canvas>
+              <!-- Placeholder when no camera -->
+              <div class="micro-cam-placeholder" id="cam-placeholder">
+                <div class="micro-cam-placeholder-icon">🔬</div>
+                <div class="micro-cam-placeholder-text">Camera inactive</div>
+                <div class="micro-cam-placeholder-text" style="font-size:10px;margin-top:2px">Click ▶ Camera or upload an image</div>
+              </div>
+              <!-- Guide oval -->
+              <div class="micro-cam-guide" id="cam-guide" style="display:none">
+                <div class="micro-cam-guide-oval"></div>
+              </div>
+              <!-- Status -->
+              <div class="micro-cam-status" id="cam-status" style="display:none">● Live</div>
+            </div>
+
+            <!-- Controls -->
+            <div class="micro-cam-controls">
+              <div>
+                <div class="micro-select-label">Stain Type</div>
+                <select class="micro-select" id="stain-type">
+                  <option value="gram">Gram Stain</option>
+                  <option value="giemsa">Giemsa</option>
+                  <option value="zn">Ziehl–Neelsen (ZN)</option>
+                  <option value="wet_prep">Wet Preparation</option>
+                  <option value="koh">KOH Mount</option>
+                  <option value="india_ink">India Ink</option>
+                </select>
+              </div>
+              <div>
+                <div class="micro-select-label">Sample Type</div>
+                <select class="micro-select" id="sample-type-vision">
+                  <option value="sputum">Sputum</option>
+                  <option value="urine">Urine</option>
+                  <option value="blood">Blood</option>
+                  <option value="csf">CSF</option>
+                  <option value="stool">Stool</option>
+                  <option value="wound">Wound Swab</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Shutter button -->
+            <div class="micro-shutter-wrap">
+              <button class="micro-shutter-btn" id="btn-capture" title="Capture & Analyze">
+                📷
+              </button>
+            </div>
+
+            <!-- File upload alternative -->
+            <div class="micro-upload-alt">
+              <div class="micro-upload-zone" id="vision-upload-zone">
+                <input type="file" id="vision-file-input" accept="image/*">
+                <div class="micro-upload-zone-text">📂 Upload microscopy image</div>
+                <div class="micro-upload-zone-text" style="font-size:10px;margin-top:3px">JPG · PNG · TIFF · BMP</div>
+              </div>
+            </div>
+
+          </div>
+        </div><!-- /camera panel -->
+
+        <!-- ── Center: AI Interpretation Result ─────────────── -->
+        <div class="micro-result-panel">
+
+          <!-- Analyzing indicator -->
+          <div class="micro-analyzing" id="vision-analyzing">
+            <div class="micro-analyzing-spinner"></div>
+            <div class="micro-analyzing-text">🧠 AI analyzing microscopy image…</div>
+          </div>
+
+          <div class="micro-result-card" id="vision-result-card">
+
+            <div class="micro-section-header">
+              <div class="micro-section-title"><span>🧠</span> AI Interpretation</div>
+              <div style="font-size:var(--text-xs);color:var(--text-muted)" id="vision-analysis-time"></div>
+            </div>
+
+            <!-- Empty state -->
+            <div class="micro-result-empty" id="vision-empty-state">
+              <div class="micro-result-empty-icon">🔬</div>
+              <div class="micro-result-empty-text">Capture or upload a microscopy image to begin AI analysis</div>
+            </div>
+
+            <!-- Result content (hidden until analysis) -->
+            <div class="micro-result-body" id="vision-result-body" style="display:none">
+
+              <!-- Organism + gram badge row -->
+              <div class="micro-result-organism">
+                <div>
+                  <div class="micro-org-name" id="res-organism">—</div>
+                  <div class="micro-org-subtext" id="res-organism-family">—</div>
+                </div>
+                <div class="micro-gram-badge gram-neg" id="res-gram-badge">Gram −</div>
+              </div>
+
+              <!-- Morphology chips -->
+              <div>
+                <div class="micro-select-label" style="margin-bottom:6px">Morphology</div>
+                <div class="micro-morph-row" id="res-morphology">
+                  <span class="micro-morph-chip">—</span>
+                </div>
+              </div>
+
+              <!-- Infection likelihood bar -->
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                  <div class="micro-select-label">Infection Likelihood</div>
+                  <div style="font-size:12px;font-weight:700;color:var(--micro-accent)" id="res-likelihood-pct">—%</div>
+                </div>
+                <div class="micro-likelihood-bar">
+                  <div class="micro-likelihood-fill" id="res-likelihood-fill" style="width:0%"></div>
+                </div>
+              </div>
+
+              <!-- WBC / RBC annotation counts -->
+              <div>
+                <div class="micro-select-label" style="margin-bottom:6px">Cell Count Annotation</div>
+                <div class="micro-cell-counts">
+                  <div class="micro-cell-count-chip">
+                    <div class="micro-cell-count-val" id="res-wbc">—</div>
+                    <div class="micro-cell-count-lbl">WBC / HPF</div>
+                  </div>
+                  <div class="micro-cell-count-chip">
+                    <div class="micro-cell-count-val" id="res-rbc">—</div>
+                    <div class="micro-cell-count-lbl">RBC / HPF</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Confidence gauge -->
+              <div class="micro-confidence-wrap">
+                <div class="micro-confidence-gauge">
+                  <svg width="64" height="64" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(0,188,212,0.12)" stroke-width="6"/>
+                    <circle cx="32" cy="32" r="26" fill="none" stroke="#00BCD4" stroke-width="6"
+                            stroke-linecap="round"
+                            stroke-dasharray="163.4"
+                            stroke-dashoffset="163.4"
+                            id="confidence-ring"
+                            style="transition:stroke-dashoffset 0.8s cubic-bezier(0.16,1,0.3,1)"/>
+                  </svg>
+                  <div class="micro-confidence-gauge-text" id="res-confidence">0%</div>
+                </div>
+                <div class="micro-confidence-info">
+                  <div class="micro-confidence-title">AI Confidence</div>
+                  <div class="micro-confidence-desc" id="res-confidence-desc">Model analysis pending…</div>
+                </div>
+              </div>
+
+              <!-- Reflex suggestions -->
+              <div>
+                <div class="micro-select-label" style="margin-bottom:8px">⚡ Reflex Suggestions</div>
+                <div class="micro-reflex-list" id="res-reflex-list">
+                  <div class="micro-reflex-item">
+                    <span>💡</span> Awaiting analysis…
+                    <span class="micro-reflex-arrow">›</span>
+                  </div>
+                </div>
+              </div>
+
+            </div><!-- /result body -->
+
+            <div class="micro-ds-footer">
+              ⚠️ DECISION SUPPORT ONLY — Requires human validation before release
+            </div>
+
+          </div><!-- /result card -->
+        </div><!-- /result panel -->
+
+        <!-- ── Right: Image Annotation Panel ─────────────────── -->
+        <div class="micro-annotation-panel">
+          <div class="micro-glass" style="padding:var(--space-md);flex:1;display:flex;flex-direction:column;gap:var(--space-md);">
+            <div class="micro-section-title" style="font-size:13px"><span>🖼️</span> Annotated View</div>
+
+            <div class="micro-annotation-viewer" id="annotation-viewer">
+              <div class="micro-annotation-placeholder" id="annotation-placeholder">
+                <div class="micro-annotation-placeholder-icon">🔬</div>
+                <div class="micro-annotation-placeholder-text">Annotated image will appear here</div>
+              </div>
+              <img id="annotation-img" class="micro-annotation-img" alt="Annotated microscopy image">
+            </div>
+
+            <!-- Legend -->
+            <div class="micro-annotation-legend">
+              <div class="micro-legend-item">
+                <div class="micro-legend-dot" style="background:#00BCD4"></div>
+                <span>Organism</span>
+              </div>
+              <div class="micro-legend-item">
+                <div class="micro-legend-dot" style="background:#FF1744"></div>
+                <span>WBC</span>
+              </div>
+              <div class="micro-legend-item">
+                <div class="micro-legend-dot" style="background:#FFD600"></div>
+                <span>RBC</span>
+              </div>
+              <div class="micro-legend-item">
+                <div class="micro-legend-dot" style="background:#B39DDB"></div>
+                <span>Artifact</span>
+              </div>
+            </div>
+          </div>
+        </div><!-- /annotation panel -->
+
+      </div><!-- /vision layout -->
+    </div><!-- /tab-vision -->
+
+
+    <!-- ════════════════════════════════════════════════════════════
+         TAB 2 — AST DISK DIFFUSION
+         ════════════════════════════════════════════════════════════ -->
+    <div class="tab-pane" id="tab-ast" role="tabpanel">
+      <div class="micro-ast-layout">
+
+        <!-- Upload row -->
+        <div class="micro-ast-upload-row">
+          <div class="micro-ast-upload-zone" id="ast-upload-zone">
+            <input type="file" id="ast-file-input" accept="image/*">
+            <div class="micro-ast-upload-icon">📀</div>
+            <div class="micro-ast-upload-text">Upload Disk Diffusion Plate Photo</div>
+            <div class="micro-ast-upload-subtext">Drop image here or click to browse · JPG · PNG · TIFF</div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:var(--space-sm)">
+            <div>
+              <div class="micro-select-label">Organism</div>
+              <select class="micro-select" id="ast-organism">
+                <option value="">— Select organism —</option>
+                <option value="ecoli">Escherichia coli</option>
+                <option value="kpneumo">Klebsiella pneumoniae</option>
+                <option value="saureus">Staphylococcus aureus</option>
+                <option value="paerug">Pseudomonas aeruginosa</option>
+                <option value="abaum">Acinetobacter baumannii</option>
+                <option value="efaec">Enterococcus faecalis</option>
+                <option value="spneu">Streptococcus pneumoniae</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div>
+              <div class="micro-select-label">Breakpoint Standard</div>
+              <select class="micro-select" id="ast-standard">
+                <option value="eucast">EUCAST 2024</option>
+                <option value="clsi">CLSI M100-Ed34</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:var(--space-sm)">
+            <button class="micro-btn-primary" id="btn-ast-analyze" style="height:52px">
+              📊 Analyze Disk Diffusion
+            </button>
+            <button class="micro-btn-ghost" id="btn-ast-clear">🗑 Clear</button>
+          </div>
+        </div>
+
+        <!-- Analyzing indicator -->
+        <div class="micro-analyzing" id="ast-analyzing">
+          <div class="micro-analyzing-spinner"></div>
+          <div class="micro-analyzing-text">🧠 AI measuring inhibition zones…</div>
+        </div>
+
+        <!-- Resistance alert (hidden by default) -->
+        <div class="micro-resistance-alert" id="ast-resistance-alert" style="display:none">
+          <span class="micro-resistance-alert-icon">🔴</span>
+          <div id="ast-resistance-text">Resistance pattern detected</div>
+        </div>
+
+        <!-- AST antibiotic grid -->
+        <div id="ast-results-section" style="display:none">
+          <div class="micro-select-label" style="margin-bottom:var(--space-md)">📋 Antibiotic Susceptibility Results</div>
+          <div class="micro-ast-grid" id="ast-abx-grid">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Treatment guidance -->
+        <div class="micro-treatment-card" id="ast-treatment-card" style="display:none">
+          <div class="micro-treatment-title">💊 AI Treatment Guidance Summary</div>
+          <div class="micro-treatment-text" id="ast-treatment-text">—</div>
+          <div class="micro-ds-footer" style="margin-top:var(--space-md);border-radius:var(--radius-md)">
+            ⚠️ DECISION SUPPORT ONLY — Requires human validation
+          </div>
+        </div>
+
+      </div><!-- /ast layout -->
+    </div><!-- /tab-ast -->
+
+
+    <!-- ════════════════════════════════════════════════════════════
+         TAB 3 — API 20 READER
+         ════════════════════════════════════════════════════════════ -->
+    <div class="tab-pane" id="tab-api20" role="tabpanel">
+      <div class="micro-api20-layout">
+
+        <!-- Upload -->
+        <div class="micro-api20-upload" id="api20-upload-zone">
+          <input type="file" id="api20-file-input" accept="image/*">
+          <div style="font-size:40px;opacity:0.55;margin-bottom:var(--space-sm)">🧪</div>
+          <div style="font-size:var(--text-sm);font-weight:700;color:var(--micro-accent-dim)">Upload API 20 Strip Photo</div>
+          <div style="font-size:var(--text-xs);color:var(--text-muted);margin-top:4px">Photograph the strip with all 20 wells clearly visible · Drop here or click</div>
+          <div style="display:flex;gap:var(--space-md);margin-top:var(--space-lg)">
+            <button class="micro-btn-primary" id="btn-api20-analyze" onclick="event.stopPropagation();MicroAI.api20Analyze()">🧫 Analyze Strip</button>
+            <button class="micro-btn-ghost" id="btn-api20-demo" onclick="event.stopPropagation();MicroAI.api20Demo()">▶ Load Demo</button>
+          </div>
+        </div>
+
+        <!-- Analyzing -->
+        <div class="micro-analyzing" id="api20-analyzing">
+          <div class="micro-analyzing-spinner"></div>
+          <div class="micro-analyzing-text">🧠 Reading API 20 well reactions…</div>
+        </div>
+
+        <!-- Well grid result -->
+        <div class="micro-api20-result" id="api20-result-section" style="display:none">
+
+          <div class="micro-glass" style="padding:var(--space-lg)">
+            <div class="micro-section-title" style="margin-bottom:var(--space-lg);font-size:13px">
+              <span>🧪</span> API 20 Strip — Well Reactions
+            </div>
+
+            <!-- Row labels above -->
+            <div style="font-size:10px;color:var(--text-muted);margin-bottom:var(--space-md);display:grid;grid-template-columns:repeat(10,1fr);gap:var(--space-sm);text-align:center;font-weight:700;letter-spacing:0.04em">
+              <span>ONPG</span><span>ADH</span><span>LDC</span><span>ODC</span><span>CIT</span>
+              <span>H₂S</span><span>URE</span><span>TDA</span><span>IND</span><span>VP</span>
+            </div>
+            <div class="micro-well-row" id="api20-row1">
+              <!-- JS fills these -->
+            </div>
+
+            <div style="font-size:10px;color:var(--text-muted);margin:var(--space-md) 0 var(--space-sm);display:grid;grid-template-columns:repeat(10,1fr);gap:var(--space-sm);text-align:center;font-weight:700;letter-spacing:0.04em">
+              <span>GEL</span><span>GLU</span><span>MAN</span><span>INO</span><span>SOR</span>
+              <span>RHA</span><span>SAC</span><span>MEL</span><span>AMY</span><span>ARA</span>
+            </div>
+            <div class="micro-well-row" id="api20-row2">
+              <!-- JS fills these -->
+            </div>
+          </div>
+
+          <!-- Organism ID result -->
+          <div class="micro-api20-id-card">
+            <div>
+              <div class="micro-api20-organism" id="api20-organism">—</div>
+              <div class="micro-api20-profile" id="api20-profile">API Profile: —</div>
+              <div class="micro-api20-note" id="api20-note">—</div>
+            </div>
+            <div class="micro-api20-confidence-ring">
+              <div class="micro-api20-confidence-pct" id="api20-confidence">—%</div>
+              <div class="micro-api20-confidence-label">Confidence</div>
+            </div>
+          </div>
+
+          <div class="micro-ds-footer" style="border-radius:var(--radius-md)">
+            ⚠️ DECISION SUPPORT ONLY — Requires human validation before release
+          </div>
+
+        </div><!-- /api20-result-section -->
+
+      </div><!-- /api20 layout -->
+    </div><!-- /tab-api20 -->
+
+
+    <!-- ════════════════════════════════════════════════════════════
+         TAB 4 — SAMPLE TRIAGE ENGINE
+         ════════════════════════════════════════════════════════════ -->
+    <div class="tab-pane" id="tab-triage" role="tabpanel">
+      <div class="micro-triage-layout">
+
+        <!-- Triage form -->
+        <div class="micro-glass" style="padding:var(--space-lg)">
+          <div class="micro-section-title" style="margin-bottom:var(--space-md)"><span>🔀</span> Sample Triage Input</div>
+          <div class="micro-triage-form">
+
+            <div>
+              <div class="micro-select-label">Sample Type</div>
+              <select class="micro-select" id="triage-sample-type">
+                <option value="stool">Stool</option>
+                <option value="urine">Urine</option>
+                <option value="blood">Blood Culture</option>
+                <option value="csf">CSF (Cerebrospinal Fluid)</option>
+                <option value="sputum">Sputum</option>
+                <option value="wound">Wound Swab</option>
+                <option value="hvs">HVS</option>
+                <option value="throat">Throat Swab</option>
+              </select>
+            </div>
+
+            <div>
+              <div class="micro-select-label">Patient Origin</div>
+              <select class="micro-select" id="triage-patient-origin">
+                <option value="opd">OPD — Outpatient</option>
+                <option value="ward">Inpatient Ward</option>
+                <option value="icu">ICU</option>
+                <option value="emer">Emergency</option>
+                <option value="nicu">NICU</option>
+                <option value="referral">Referral</option>
+              </select>
+            </div>
+
+            <div class="micro-form-section-title">Presenting Symptoms</div>
+
+            <div class="micro-symptom-grid">
+              <label class="micro-checkbox-item">
+                <input type="checkbox" id="sym-fever" value="fever">
+                <label for="sym-fever">🌡️ Fever</label>
+              </label>
+              <label class="micro-checkbox-item">
+                <input type="checkbox" id="sym-wbc" value="wbc_elevated">
+                <label for="sym-wbc">⬆️ WBC Elevated</label>
+              </label>
+              <label class="micro-checkbox-item">
+                <input type="checkbox" id="sym-bloody" value="bloody_diarrhea">
+                <label for="sym-bloody">🩸 Bloody Diarrhea</label>
+              </label>
+              <label class="micro-checkbox-item">
+                <input type="checkbox" id="sym-meningism" value="meningism">
+                <label for="sym-meningism">🧠 Meningism</label>
+              </label>
+              <label class="micro-checkbox-item">
+                <input type="checkbox" id="sym-dysuria" value="dysuria">
+                <label for="sym-dysuria">🔥 Dysuria</label>
+              </label>
+              <label class="micro-checkbox-item">
+                <input type="checkbox" id="sym-cough" value="productive_cough">
+                <label for="sym-cough">😮 Productive Cough</label>
+              </label>
+              <label class="micro-checkbox-item">
+                <input type="checkbox" id="sym-rash" value="rash">
+                <label for="sym-rash">🔴 Skin Rash</label>
+              </label>
+              <label class="micro-checkbox-item">
+                <input type="checkbox" id="sym-weight" value="weight_loss">
+                <label for="sym-weight">⚖️ Weight Loss</label>
+              </label>
+              <label class="micro-checkbox-item">
+                <input type="checkbox" id="sym-sepsis" value="sepsis_signs">
+                <label for="sym-sepsis">⚠️ Sepsis Signs</label>
+              </label>
+              <label class="micro-checkbox-item">
+                <input type="checkbox" id="sym-immunocomp" value="immunocompromised">
+                <label for="sym-immunocomp">🛡️ Immunocompromised</label>
+              </label>
+            </div>
+
+            <div class="micro-form-section-title">Travel & Risk Factors</div>
+
+            <div class="micro-toggle-row">
+              <span class="micro-toggle-label">Recent Travel History (&lt; 3 months)</span>
+              <label class="micro-toggle">
+                <input type="checkbox" id="triage-travel">
+                <div class="micro-toggle-track"></div>
+                <div class="micro-toggle-thumb"></div>
+              </label>
+            </div>
+
+            <div class="micro-toggle-row">
+              <span class="micro-toggle-label">HIV / Immunosuppression Known</span>
+              <label class="micro-toggle">
+                <input type="checkbox" id="triage-hiv">
+                <div class="micro-toggle-track"></div>
+                <div class="micro-toggle-thumb"></div>
+              </label>
+            </div>
+
+            <div class="micro-toggle-row">
+              <span class="micro-toggle-label">Recent Antibiotic Use</span>
+              <label class="micro-toggle">
+                <input type="checkbox" id="triage-abx-use">
+                <div class="micro-toggle-track"></div>
+                <div class="micro-toggle-thumb"></div>
+              </label>
+            </div>
+
+            <button class="micro-btn-primary" id="btn-triage-submit">🔀 Generate Routing Decision</button>
+
+          </div>
+        </div>
+
+        <!-- Triage result -->
+        <div>
+          <!-- Analyzing -->
+          <div class="micro-analyzing" id="triage-analyzing" style="margin-bottom:var(--space-md)">
+            <div class="micro-analyzing-spinner"></div>
+            <div class="micro-analyzing-text">🧠 AI triaging sample routing…</div>
+          </div>
+
+          <div id="triage-result-section" style="display:none">
+            <div class="micro-routing-card" id="triage-routing-card">
+              <div class="micro-routing-banner route-micro" id="triage-routing-banner">
+                <div class="micro-routing-icon" id="triage-routing-icon">🔀</div>
+                <div>
+                  <div class="micro-routing-title" id="triage-routing-title">Microbiology</div>
+                  <div class="micro-routing-subtitle" id="triage-routing-subtitle">Primary routing decision</div>
+                </div>
+              </div>
+              <div class="micro-routing-body">
+                <div class="micro-select-label">Workflow Steps</div>
+                <div class="micro-routing-steps" id="triage-routing-steps">
+                  <!-- JS populated -->
+                </div>
+
+                <div class="micro-select-label" style="margin-top:var(--space-md)">⚡ Reflex Suggestions</div>
+                <div class="micro-reflex-list" id="triage-reflex-list">
+                  <!-- JS populated -->
+                </div>
+
+                <div class="micro-tat-estimate">
+                  <div>
+                    <div class="micro-tat-val" id="triage-tat">—</div>
+                    <div class="micro-tat-lbl">Estimated TAT</div>
+                  </div>
+                  <div style="flex:1;font-size:var(--text-xs);color:var(--text-muted);padding-left:var(--space-md)">
+                    Turnaround time estimate based on workflow and urgency classification
+                  </div>
+                </div>
+
+                <div class="micro-ds-footer">
+                  ⚠️ DECISION SUPPORT ONLY — Requires human validation before release
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty state -->
+          <div id="triage-empty-state" style="text-align:center;padding:var(--space-2xl);opacity:0.4">
+            <div style="font-size:40px;margin-bottom:var(--space-sm)">🔀</div>
+            <div style="font-size:var(--text-sm);color:var(--text-muted)">Submit triage form to generate routing decision</div>
+          </div>
+
+        </div><!-- /triage result col -->
+
+      </div><!-- /triage layout -->
+    </div><!-- /tab-triage -->
+
+
+    <!-- ════════════════════════════════════════════════════════════
+         TAB 5 — REFLEX INTELLIGENCE
+         ════════════════════════════════════════════════════════════ -->
+    <div class="tab-pane" id="tab-reflex" role="tabpanel">
+      <div class="micro-reflex-layout">
+
+        <!-- Input -->
+        <div class="micro-reflex-input-card">
+          <div class="micro-section-title" style="font-size:13px"><span>🔄</span> Quick Findings</div>
+
+          <div class="micro-form-section-title">Current Lab Observations</div>
+
+          <label class="micro-checkbox-item">
+            <input type="checkbox" id="rf-culture-growth" value="culture_growth">
+            <label for="rf-culture-growth">🦠 Culture Growth Detected</label>
+          </label>
+          <label class="micro-checkbox-item">
+            <input type="checkbox" id="rf-bacteria-seen" value="bacteria_seen">
+            <label for="rf-bacteria-seen">🔬 Bacteria Seen on Smear</label>
+          </label>
+          <label class="micro-checkbox-item">
+            <input type="checkbox" id="rf-wbc-high" value="wbc_elevated">
+            <label for="rf-wbc-high">⬆️ WBC Elevated</label>
+          </label>
+          <label class="micro-checkbox-item">
+            <input type="checkbox" id="rf-para-neg" value="parasite_negative">
+            <label for="rf-para-neg">➖ Parasite Screen Negative</label>
+          </label>
+          <label class="micro-checkbox-item">
+            <input type="checkbox" id="rf-mixed-flora" value="mixed_flora">
+            <label for="rf-mixed-flora">🌿 Mixed Flora Present</label>
+          </label>
+          <label class="micro-checkbox-item">
+            <input type="checkbox" id="rf-yeast" value="yeast_seen">
+            <label for="rf-yeast">🍄 Yeast / Fungi Seen</label>
+          </label>
+          <label class="micro-checkbox-item">
+            <input type="checkbox" id="rf-afb-pos" value="afb_positive">
+            <label for="rf-afb-pos">🟤 AFB Positive (ZN Stain)</label>
+          </label>
+          <label class="micro-checkbox-item">
+            <input type="checkbox" id="rf-gram-pos" value="gram_positive">
+            <label for="rf-gram-pos">🔴 Gram Positive Cocci</label>
+          </label>
+          <label class="micro-checkbox-item">
+            <input type="checkbox" id="rf-gram-neg" value="gram_negative">
+            <label for="rf-gram-neg">🔵 Gram Negative Rods</label>
+          </label>
+          <label class="micro-checkbox-item">
+            <input type="checkbox" id="rf-csfpos" value="csf_cells">
+            <label for="rf-csfpos">🧠 CSF Cells Elevated</label>
+          </label>
+
+          <button class="micro-btn-primary" id="btn-reflex-submit" style="margin-top:var(--space-sm)">
+            🔄 Generate Reflex Recommendations
+          </button>
+        </div>
+
+        <!-- Reflex results -->
+        <div class="micro-reflex-results">
+
+          <!-- Analyzing -->
+          <div class="micro-analyzing" id="reflex-analyzing">
+            <div class="micro-analyzing-spinner"></div>
+            <div class="micro-analyzing-text">🧠 AI generating reflex recommendations…</div>
+          </div>
+
+          <!-- Empty state -->
+          <div id="reflex-empty-state" style="text-align:center;padding:var(--space-2xl);opacity:0.4">
+            <div style="font-size:40px;margin-bottom:var(--space-sm)">🔄</div>
+            <div style="font-size:var(--text-sm);color:var(--text-muted)">Select findings and submit to get reflex test recommendations</div>
+          </div>
+
+          <!-- Results container -->
+          <div id="reflex-results-container" style="display:none;display:flex;flex-direction:column;gap:var(--space-md)">
+            <!-- JS populated -->
+          </div>
+
+        </div>
+
+      </div><!-- /reflex layout -->
+    </div><!-- /tab-reflex -->
+
+
+    <!-- ════════════════════════════════════════════════════════════
+         TAB 6 — WORKFLOW OPTIMIZER
+         ════════════════════════════════════════════════════════════ -->
+    <div class="tab-pane" id="tab-workflow" role="tabpanel">
+      <div class="micro-workflow-layout">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-md)">
+          <div class="micro-section-title"><span>🦠</span> Workflow Optimization Engine</div>
+          <button class="micro-btn-ghost">📥 Export Report</button>
+        </div>
+
+        <div class="micro-workflow-grid">
+          <div class="micro-workflow-card">
+            <div class="micro-workflow-icon">⏱️</div>
+            <div class="micro-workflow-title">TAT Bottleneck Detection</div>
+            <div class="micro-workflow-desc">AI identifies workflow steps causing TAT delays. Highlights stages exceeding SLA thresholds in real time.</div>
+            <div class="micro-workflow-stat">Avg delay saved: 22 min/sample</div>
+          </div>
+          <div class="micro-workflow-card">
+            <div class="micro-workflow-icon">📦</div>
+            <div class="micro-workflow-title">Batch Processing Intelligence</div>
+            <div class="micro-workflow-desc">Groups samples with similar stain/culture requirements to minimize reagent waste and maximize throughput.</div>
+            <div class="micro-workflow-stat">Reagent efficiency: +31%</div>
+          </div>
+          <div class="micro-workflow-card">
+            <div class="micro-workflow-icon">🚦</div>
+            <div class="micro-workflow-title">Priority Queue Manager</div>
+            <div class="micro-workflow-desc">Dynamically re-ranks sample queue based on urgency flags, patient status, and downstream clinical impact.</div>
+            <div class="micro-workflow-stat">Critical samples: 100% first</div>
+          </div>
+          <div class="micro-workflow-card">
+            <div class="micro-workflow-icon">🔄</div>
+            <div class="micro-workflow-title">Reflex Chain Automation</div>
+            <div class="micro-workflow-desc">Automatically triggers secondary tests based on primary result patterns — reducing manual decision overhead.</div>
+            <div class="micro-workflow-stat">Auto-reflex rate: 78%</div>
+          </div>
+          <div class="micro-workflow-card">
+            <div class="micro-workflow-icon">📊</div>
+            <div class="micro-workflow-title">QC Failure Prediction</div>
+            <div class="micro-workflow-desc">Predicts reagent degradation and instrument drift using historical QC data, preventing batch failures.</div>
+            <div class="micro-workflow-stat">False negatives prevented: 14</div>
+          </div>
+          <div class="micro-workflow-card">
+            <div class="micro-workflow-icon">🌡️</div>
+            <div class="micro-workflow-title">Incubator Monitor</div>
+            <div class="micro-workflow-desc">Monitors culture incubator temperatures, flags anomalies, and logs culture plate read-times automatically.</div>
+            <div class="micro-workflow-stat">Temp alerts: 0 this shift</div>
+          </div>
+          <div class="micro-workflow-card">
+            <div class="micro-workflow-icon">🗂️</div>
+            <div class="micro-workflow-title">Workload Balancing</div>
+            <div class="micro-workflow-desc">Distributes analysis tasks across available bench scientists based on competency and real-time workload.</div>
+            <div class="micro-workflow-stat">Idle time reduced: 18%</div>
+          </div>
+          <div class="micro-workflow-card">
+            <div class="micro-workflow-icon">📡</div>
+            <div class="micro-workflow-title">Resistance Pattern Alert</div>
+            <div class="micro-workflow-desc">Flags emerging AMR patterns across the lab, cross-referencing with national surveillance databases.</div>
+            <div class="micro-workflow-stat">MDRO alerts: 2 this week</div>
+          </div>
+        </div>
+
+        <div class="micro-ds-footer" style="border-radius:var(--radius-md);margin-top:var(--space-md)">
+          ⚠️ DECISION SUPPORT ONLY — All workflow suggestions require human review and authorization
+        </div>
+
+      </div>
+    </div><!-- /tab-workflow -->
+
+
+    <!-- ════════════════════════════════════════════════════════════
+         TAB 7 — AI AUDIT TRAIL
+         ════════════════════════════════════════════════════════════ -->
+    <div class="tab-pane" id="tab-audit" role="tabpanel">
+      <div class="micro-audit-layout">
+
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div class="micro-section-title"><span>📋</span> AI Decision Audit Trail</div>
+          <button class="micro-btn-ghost" id="btn-audit-export">📤 Export CSV</button>
+        </div>
+
+        <!-- Controls -->
+        <div class="micro-audit-controls">
+          <input type="search" class="micro-audit-search" id="audit-search" placeholder="🔍 Search analyses…">
+          <select class="micro-select" id="audit-filter-type" style="width:180px">
+            <option value="">All Analysis Types</option>
+            <option value="vision">Vision AI</option>
+            <option value="ast">AST Disk Diffusion</option>
+            <option value="api20">API 20</option>
+            <option value="triage">Sample Triage</option>
+            <option value="reflex">Reflex Engine</option>
+          </select>
+          <select class="micro-select" id="audit-filter-status" style="width:160px">
+            <option value="">All Statuses</option>
+            <option value="validated">Validated</option>
+            <option value="pending">Pending</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+
+        <!-- Table -->
+        <div class="micro-audit-table-wrap">
+          <table class="micro-audit-table">
+            <thead>
+              <tr>
+                <th>🕐 Timestamp</th>
+                <th>🔬 Analysis Type</th>
+                <th>🧪 Sample ID</th>
+                <th>🦠 AI Output</th>
+                <th>🎯 Confidence</th>
+                <th>👤 Validated By</th>
+                <th>✅ Status</th>
+              </tr>
+            </thead>
+            <tbody id="audit-table-body">
+              <!-- Populated by JS / page load data -->
+              <tr>
+                <td>2026-05-14 09:42:11</td>
+                <td>Vision AI — Gram</td>
+                <td>MC-2026-0891</td>
+                <td style="color:var(--text-primary);font-style:italic">E. coli (Gram −, Rod)</td>
+                <td><span class="micro-confidence-mono">94.2%</span></td>
+                <td style="color:var(--text-primary)">Lab Tech Mutoni</td>
+                <td><span class="micro-status-badge validated">✅ Validated</span></td>
+              </tr>
+              <tr>
+                <td>2026-05-14 09:38:55</td>
+                <td>AST Disk Diffusion</td>
+                <td>MC-2026-0887</td>
+                <td style="color:var(--text-primary)">ESBL detected — ciprofloxacin R</td>
+                <td><span class="micro-confidence-mono">88.7%</span></td>
+                <td style="color:var(--text-primary)">Dr. Nkurunziza</td>
+                <td><span class="micro-status-badge validated">✅ Validated</span></td>
+              </tr>
+              <tr>
+                <td>2026-05-14 09:15:22</td>
+                <td>Sample Triage</td>
+                <td>MC-2026-0882</td>
+                <td style="color:var(--text-primary)">→ Microbiology · Parasitology split</td>
+                <td><span class="micro-confidence-mono">91.5%</span></td>
+                <td style="color:var(--text-muted);font-style:italic">Awaiting…</td>
+                <td><span class="micro-status-badge pending">⏳ Pending</span></td>
+              </tr>
+              <tr>
+                <td>2026-05-14 09:02:07</td>
+                <td>API 20 Reader</td>
+                <td>MC-2026-0879</td>
+                <td style="color:var(--text-primary);font-style:italic">K. pneumoniae (API: 5144572)</td>
+                <td><span class="micro-confidence-mono">97.3%</span></td>
+                <td style="color:var(--text-primary)">Lab Tech Kayitesi</td>
+                <td><span class="micro-status-badge validated">✅ Validated</span></td>
+              </tr>
+              <tr>
+                <td>2026-05-14 08:54:01</td>
+                <td>Reflex Intelligence</td>
+                <td>MC-2026-0874</td>
+                <td style="color:var(--text-primary)">URGENT: CSF culture + AFB requested</td>
+                <td><span class="micro-confidence-mono">85.1%</span></td>
+                <td style="color:var(--text-muted);font-style:italic">Awaiting…</td>
+                <td><span class="micro-status-badge pending">⏳ Pending</span></td>
+              </tr>
+              <tr>
+                <td>2026-05-14 08:30:17</td>
+                <td>Vision AI — ZN</td>
+                <td>MC-2026-0870</td>
+                <td style="color:var(--text-primary)">AFB 2+ (approx. 10–99/100 fields)</td>
+                <td><span class="micro-confidence-mono">92.8%</span></td>
+                <td style="color:#FF5252;font-style:italic">Rejected — reimage</td>
+                <td><span class="micro-status-badge rejected">❌ Rejected</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div><!-- /audit layout -->
+    </div><!-- /tab-audit -->
+
+  </div><!-- /micro-body -->
+
+</div><!-- /micro-main -->
+{% endblock %}
+
+
+{% block module_scripts %}
+<script src="{% static 'modules/micro_ai/js/micro_ai.js' %}" defer></script>
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   ALIS-X MICROBIOLOGY AI INTELLIGENCE — Core JS
+   ISO 15189 — Decision Support Only
+   ══════════════════════════════════════════════════════════════════ */
+'use strict';
+
+window.MicroAI = (function () {
+
+  /* ── helpers ─────────────────────────────────────────────────── */
+  const $  = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+  function getCSRF() {
+    return document.cookie.split(';')
+      .map(c => c.trim()).find(c => c.startsWith('csrftoken='))
+      ?.split('=')[1] || (window.NEXUS?.csrf || '');
+  }
+
+  async function postJSON(url, data) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCSRF(),
+        'X-Shift-Name': typeof NEXUS !== 'undefined' && NEXUS.ShiftEngine
+          ? (NEXUS.ShiftEngine.currentTag?.() || '')
+          : '',
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
+
+  function setAnalyzing(id, visible) {
+    const el = $(id);
+    if (el) el.classList.toggle('visible', visible);
+  }
+
+  function now() {
+    return new Date().toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  }
+
+  /* ── KPI counters (mock / real from API) ─────────────────────── */
+  function initKPIs() {
+    const kpis = [
+      { id:'kpi-analyses', url:'/micro-ai/api/kpi/analyses/', mock:148  },
+      { id:'kpi-ast',      url:'/micro-ai/api/kpi/ast/',      mock:64   },
+      { id:'kpi-organisms',url:'/micro-ai/api/kpi/organisms/',mock:83   },
+      { id:'kpi-triaged',  url:'/micro-ai/api/kpi/triaged/',  mock:211  },
+      { id:'kpi-reflex',   url:'/micro-ai/api/kpi/reflex/',   mock:47   },
+      { id:'kpi-pending',  url:'/micro-ai/api/kpi/pending/',  mock:12   },
+    ];
+    kpis.forEach(({ id, url, mock }) => {
+      const el = $(id);
+      if (!el) return;
+      /* Try real endpoint, fall back to mock */
+      fetch(url).then(r => r.ok ? r.json() : null)
+        .then(d => { if (el) el.textContent = d?.value ?? mock; })
+        .catch(() => { if (el) el.textContent = mock; });
+    });
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     TAB SWITCHING
+     ══════════════════════════════════════════════════════════════ */
+  function initTabs() {
+    document.querySelectorAll('#micro-tabs .tab-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('#micro-tabs .tab-btn').forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-selected', 'false');
+        });
+        document.querySelectorAll('#micro-body .tab-pane').forEach(p =>
+          p.classList.remove('active'));
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+        const pane = $(btn.dataset.pane);
+        if (pane) pane.classList.add('active');
+      });
+    });
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     CAMERA — getUserMedia
+     ══════════════════════════════════════════════════════════════ */
+  let cameraStream = null;
+
+  function initCamera() {
+    const btnStart  = $('btn-start-camera');
+    const video     = $('micro-video');
+    const canvas    = $('micro-canvas');
+    const placehold = $('cam-placeholder');
+    const guide     = $('cam-guide');
+    const status    = $('cam-status');
+
+    if (!btnStart || !video) return;
+
+    btnStart.addEventListener('click', async function () {
+      if (cameraStream) {
+        /* Stop camera */
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+        video.style.display = 'none';
+        placehold.style.display = '';
+        guide.style.display = 'none';
+        status.style.display = 'none';
+        btnStart.textContent = '▶ Camera';
+        return;
+      }
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+        });
+        video.srcObject = cameraStream;
+        video.style.display = 'block';
+        placehold.style.display = 'none';
+        guide.style.display = '';
+        status.style.display = '';
+        btnStart.textContent = '⏹ Stop';
+      } catch (err) {
+        console.warn('Camera error:', err);
+        alert('Camera unavailable: ' + err.message);
+      }
+    });
+
+    /* Capture button */
+    const btnCapture = $('btn-capture');
+    if (btnCapture) {
+      btnCapture.addEventListener('click', function () {
+        if (cameraStream && video.readyState >= 2) {
+          /* Draw frame to canvas */
+          canvas.width  = video.videoWidth  || 640;
+          canvas.height = video.videoHeight || 480;
+          canvas.getContext('2d').drawImage(video, 0, 0);
+          const b64 = canvas.toDataURL('image/jpeg', 0.92);
+          visionAnalyze(b64);
+        } else {
+          /* No live camera — trigger file input */
+          $('vision-file-input').click();
+        }
+      });
+    }
+  }
+
+  /* ── File upload for vision ──────────────────────────────────── */
+  function initVisionUpload() {
+    const fileInput = $('vision-file-input');
+    if (!fileInput) return;
+
+    fileInput.addEventListener('change', function () {
+      if (!this.files[0]) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        /* Show in annotation viewer */
+        const img = $('annotation-img');
+        if (img) { img.src = e.target.result; img.style.display = 'block'; }
+        $('annotation-placeholder').style.display = 'none';
+        visionAnalyze(e.target.result);
+      };
+      reader.readAsDataURL(this.files[0]);
+    });
+  }
+
+  /* ── Vision AI Analysis ──────────────────────────────────────── */
+  async function visionAnalyze(imageData) {
+    const stain      = $('stain-type')?.value || 'gram';
+    const sampleType = $('sample-type-vision')?.value || 'sputum';
+
+    /* Show analyzing state */
+    $('vision-empty-state').style.display = 'none';
+    $('vision-result-body').style.display = 'none';
+    setAnalyzing('vision-analyzing', true);
+
+    try {
+      let result;
+      try {
+        result = await postJSON('/micro-ai/api/microscopy/', {
+          image: imageData,
+          stain_type: stain,
+          sample_type: sampleType,
+        });
+      } catch {
+        /* Mock result for demo / dev */
+        result = mockVisionResult(stain);
+      }
+      renderVisionResult(result);
+    } catch (err) {
+      console.error('Vision analysis error:', err);
+    } finally {
+      setAnalyzing('vision-analyzing', false);
+    }
+  }
+
+  function mockVisionResult(stain) {
+    const organisms = {
+      gram:     { organism:'Escherichia coli', family:'Enterobacteriaceae — Gram-negative rod', gram:'neg',
+                  morphology:['Gram Negative','Short Rod (bacillus)','Facultative anaerobe'],
+                  wbc:18, rbc:4, likelihood:82, confidence:91.4,
+                  reflex:['AST Disk Diffusion — Enterobacteriaceae panel','Urine culture confirmation','ESBL screening if resistance noted'] },
+      giemsa:   { organism:'Plasmodium falciparum',family:'Plasmodiidae — Intraerythrocytic parasite', gram:'na',
+                  morphology:['Ring trophozoites','Multiple infections','Appliqué forms'],
+                  wbc:6, rbc:220, likelihood:76, confidence:88.1,
+                  reflex:['RDT malaria antigen confirmation','Parasitaemia quantification','Species confirmation by PCR if mixed'] },
+      zn:       { organism:'Mycobacterium tuberculosis', family:'Mycobacteriaceae — AFB', gram:'na',
+                  morphology:['Acid-fast bacilli (AFB)','Beaded rods','ZN 2+ positivity'],
+                  wbc:11, rbc:2, likelihood:88, confidence:95.7,
+                  reflex:['MGIT culture — TB grade A priority','GeneXpert MTB/RIF STAT','Notification to TB programme'] },
+      wet_prep: { organism:'Trichomonas vaginalis', family:'Trichomonadidae — Flagellated protozoan', gram:'na',
+                  morphology:['Motile flagellated trophozoites','Pear-shaped','Undulating membrane visible'],
+                  wbc:30, rbc:8, likelihood:70, confidence:79.2,
+                  reflex:['NAAT confirmation recommended','STI co-infection screen','Partner notification protocol'] },
+      koh:      { organism:'Candida albicans', family:'Saccharomycetaceae — Yeast / dimorphic fungus', gram:'na',
+                  morphology:['Budding yeast cells','Pseudohyphae','Germ tube positive expected'],
+                  wbc:9, rbc:1, likelihood:68, confidence:84.5,
+                  reflex:['Sabouraud culture for speciation','Antifungal susceptibility if systemic','Blood culture if immunocompromised'] },
+      india_ink:{ organism:'Cryptococcus neoformans', family:'Cryptococcaceae — Encapsulated yeast', gram:'na',
+                  morphology:['Large capsule (India ink halo)','Narrow-based budding','Wide capsule variant'],
+                  wbc:44, rbc:3, likelihood:91, confidence:97.1,
+                  reflex:['Cryptococcal antigen (CrAg) STAT','CSF culture priority','URGENT: LP if neurological signs'] },
+    };
+    return organisms[stain] || organisms['gram'];
+  }
+
+  function renderVisionResult(data) {
+    /* Organism */
+    $('res-organism').textContent        = data.organism || '—';
+    $('res-organism-family').textContent = data.family   || '—';
+
+    /* Gram badge */
+    const gramBadge = $('res-gram-badge');
+    gramBadge.className = 'micro-gram-badge ' + (
+      data.gram === 'pos' ? 'gram-pos' :
+      data.gram === 'neg' ? 'gram-neg' : 'gram-na');
+    gramBadge.textContent =
+      data.gram === 'pos' ? '🔴 Gram +'  :
+      data.gram === 'neg' ? '🔵 Gram −'  : '⭕ N/A';
+
+    /* Morphology chips */
+    const morphRow = $('res-morphology');
+    morphRow.innerHTML = (data.morphology || [])
+      .map(m => `<span class="micro-morph-chip">${esc(m)}</span>`).join('');
+
+    /* Likelihood */
+    const pct = data.likelihood || 0;
+    $('res-likelihood-pct').textContent = pct + '%';
+    $('res-likelihood-fill').style.width = pct + '%';
+
+    /* Cell counts */
+    $('res-wbc').textContent = data.wbc ?? '—';
+    $('res-rbc').textContent = data.rbc ?? '—';
+
+    /* Confidence ring */
+    const conf = data.confidence || 0;
+    $('res-confidence').textContent = conf.toFixed(1) + '%';
+    const ring = $('confidence-ring');
+    if (ring) {
+      const circ = 163.4;
+      ring.style.strokeDashoffset = circ - (conf / 100) * circ;
+    }
+    $('res-confidence-desc').textContent =
+      conf >= 90 ? 'High confidence — AI interpretation reliable' :
+      conf >= 70 ? 'Moderate confidence — clinical correlation recommended' :
+                   'Low confidence — manual review essential';
+
+    /* Reflex list */
+    const reflexEl = $('res-reflex-list');
+    reflexEl.innerHTML = (data.reflex || []).map(r =>
+      `<div class="micro-reflex-item">
+        <span>⚡</span> ${esc(r)}
+        <span class="micro-reflex-arrow">›</span>
+      </div>`
+    ).join('');
+
+    /* Time stamp */
+    $('vision-analysis-time').textContent = 'Analysis: ' + now();
+
+    /* Show result */
+    $('vision-result-body').style.display = 'flex';
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     AST DISK DIFFUSION
+     ══════════════════════════════════════════════════════════════ */
+  const AST_ANTIBIOTICS = [
+    { name:'Amoxicillin',       code:'AMX', bp_s:22, bp_r:14, mock:{ zone:10, sir:'R' } },
+    { name:'Ampicillin',        code:'AMP', bp_s:17, bp_r:13, mock:{ zone:16, sir:'I' } },
+    { name:'Ciprofloxacin',     code:'CIP', bp_s:21, bp_r:15, mock:{ zone:28, sir:'S' } },
+    { name:'Gentamicin',        code:'GEN', bp_s:15, bp_r:12, mock:{ zone:18, sir:'S' } },
+    { name:'Ceftriaxone',       code:'CRO', bp_s:23, bp_r:19, mock:{ zone:31, sir:'S' } },
+    { name:'Meropenem',         code:'MEM', bp_s:24, bp_r:16, mock:{ zone:27, sir:'S' } },
+    { name:'Imipenem',          code:'IPM', bp_s:23, bp_r:16, mock:{ zone:29, sir:'S' } },
+    { name:'Co-amoxiclav',      code:'AMC', bp_s:19, bp_r:13, mock:{ zone:8,  sir:'R' } },
+    { name:'Nitrofurantoin',    code:'NIT', bp_s:17, bp_r:14, mock:{ zone:20, sir:'S' } },
+    { name:'Trimethoprim',      code:'TMP', bp_s:16, bp_r:10, mock:{ zone:9,  sir:'R' } },
+    { name:'Tetracycline',      code:'TET', bp_s:19, bp_r:14, mock:{ zone:12, sir:'R' } },
+    { name:'Chloramphenicol',   code:'CHL', bp_s:18, bp_r:12, mock:{ zone:23, sir:'S' } },
+  ];
+
+  function initAST() {
+    const btn = $('btn-ast-analyze');
+    if (btn) btn.addEventListener('click', astAnalyze);
+
+    const clrBtn = $('btn-ast-clear');
+    if (clrBtn) clrBtn.addEventListener('click', astClear);
+
+    /* Upload zone drag-and-drop feedback */
+    const zone = $('ast-upload-zone');
+    if (zone) {
+      zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = 'var(--micro-accent)'; });
+      zone.addEventListener('dragleave', () => { zone.style.borderColor = ''; });
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.style.borderColor = '';
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+          $('ast-file-input').files = e.dataTransfer.files;
+          astAnalyze();
+        }
+      });
+    }
+  }
+
+  async function astAnalyze() {
+    const organism = $('ast-organism')?.value;
+    const standard = $('ast-standard')?.value || 'eucast';
+    const fileInput = $('ast-file-input');
+    const hasFile   = fileInput?.files?.length > 0;
+
+    setAnalyzing('ast-analyzing', true);
+    $('ast-results-section').style.display  = 'none';
+    $('ast-treatment-card').style.display   = 'none';
+    $('ast-resistance-alert').style.display = 'none';
+
+    try {
+      let result;
+      if (hasFile) {
+        const b64 = await fileToBase64(fileInput.files[0]);
+        try {
+          result = await postJSON('/micro-ai/api/ast/', {
+            image: b64, organism, standard
+          });
+        } catch { result = mockASTResult(organism); }
+      } else {
+        result = mockASTResult(organism);
+      }
+      renderASTResult(result);
+    } finally {
+      setAnalyzing('ast-analyzing', false);
+    }
+  }
+
+  function mockASTResult(organism) {
+    const resistant  = AST_ANTIBIOTICS.filter(a => a.mock.sir === 'R');
+    const resistance = resistant.length >= 3;
+    return {
+      antibiotics: AST_ANTIBIOTICS.map(a => ({
+        name:     a.name,
+        code:     a.code,
+        zone:     a.mock.zone,
+        bp_s:     a.bp_s,
+        bp_r:     a.bp_r,
+        sir:      a.mock.sir,
+      })),
+      resistance_detected: resistance,
+      resistance_notes: resistance
+        ? 'ESBL suspected — multiple β-lactam resistance. Consider carbapenem-sparing strategies.'
+        : null,
+      treatment_guidance: organism
+        ? `For <em>${organism}</em>: Based on susceptibility profile, first-line options include Ciprofloxacin and Gentamicin. Avoid β-lactams (resistance detected). Review with clinical pharmacist before prescribing. Carbapenem reserved for confirmed pan-resistance.`
+        : 'Select organism for targeted treatment guidance.',
+    };
+  }
+
+  function renderASTResult(data) {
+    /* Resistance alert */
+    if (data.resistance_detected && data.resistance_notes) {
+      const alertEl = $('ast-resistance-alert');
+      alertEl.style.display = '';
+      $('ast-resistance-text').innerHTML = `⚠️ ${esc(data.resistance_notes)}`;
+    }
+
+    /* Antibiotic grid */
+    const grid = $('ast-abx-grid');
+    grid.innerHTML = '';
+    (data.antibiotics || []).forEach(abx => {
+      const sir  = (abx.sir || 'S').toUpperCase();
+      const maxZ = 40;
+      const pct  = Math.min((abx.zone / maxZ) * 100, 100);
+      const bpPct= Math.min((abx.bp_s / maxZ) * 100, 100);
+      const cls  = sir === 'S' ? 'ast-s' : sir === 'I' ? 'ast-i' : 'ast-r';
+
+      const card = document.createElement('div');
+      card.className = `micro-ast-card ${cls}`;
+      card.innerHTML = `
+        <div class="micro-ast-abx-name">${esc(abx.name)}</div>
+        <div style="font-size:10px;color:var(--text-muted);font-family:var(--font-mono)">${esc(abx.code)}</div>
+        <div class="micro-ast-zone">
+          <div class="micro-ast-zone-val">${abx.zone ?? '—'}</div>
+          <div class="micro-ast-zone-unit">mm</div>
+          <div class="micro-sir-badge sir-${sir.toLowerCase()}" style="margin-left:auto">${sir}</div>
+        </div>
+        <div class="micro-ast-zone-bar-wrap">
+          <div class="micro-ast-zone-bar-fill ${cls}" style="width:${pct}%"></div>
+          <div class="micro-ast-breakpoint-line" style="left:${bpPct}%" title="Breakpoint: ${abx.bp_s}mm"></div>
+        </div>
+        <div style="font-size:9px;color:var(--text-muted);margin-top:2px">BP: ${abx.bp_s}mm</div>
+      `;
+      grid.appendChild(card);
+    });
+
+    /* Treatment guidance */
+    const treatCard = $('ast-treatment-card');
+    treatCard.style.display = '';
+    $('ast-treatment-text').innerHTML = data.treatment_guidance || '—';
+
+    $('ast-results-section').style.display = '';
+  }
+
+  function astClear() {
+    $('ast-results-section').style.display  = 'none';
+    $('ast-treatment-card').style.display   = 'none';
+    $('ast-resistance-alert').style.display = 'none';
+    $('ast-abx-grid').innerHTML = '';
+    $('ast-file-input').value = '';
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     API 20 READER
+     ══════════════════════════════════════════════════════════════ */
+  const API20_WELLS = [
+    ['ONPG','ADH','LDC','ODC','CIT','H₂S','URE','TDA','IND','VP'],
+    ['GEL','GLU','MAN','INO','SOR','RHA','SAC','MEL','AMY','ARA'],
+  ];
+
+  async function api20Analyze() {
+    const fileInput = $('api20-file-input');
+    setAnalyzing('api20-analyzing', true);
+    $('api20-result-section').style.display = 'none';
+
+    try {
+      let result;
+      if (fileInput?.files?.length) {
+        const b64 = await fileToBase64(fileInput.files[0]);
+        try {
+          result = await postJSON('/micro-ai/api/api20/', { image: b64 });
+        } catch { result = mockAPI20Result(); }
+      } else {
+        result = mockAPI20Result();
+      }
+      renderAPI20Result(result);
+    } finally {
+      setAnalyzing('api20-analyzing', false);
+    }
+  }
+
+  function api20Demo() {
+    $('api20-result-section').style.display = 'none';
+    setAnalyzing('api20-analyzing', true);
+    setTimeout(() => {
+      setAnalyzing('api20-analyzing', false);
+      renderAPI20Result(mockAPI20Result());
+    }, 1400);
+  }
+
+  function mockAPI20Result() {
+    /* K. pneumoniae typical profile */
+    return {
+      row1: [true, false, true, false, true, false, true, false, false, false],
+      row2: [false, true, true, false, true, true, true, false, false, true],
+      organism:   'Klebsiella pneumoniae',
+      profile:    '5144572',
+      confidence: 97.3,
+      note:       'Best match: K. pneumoniae ssp. pneumoniae · EUCAST breakpoints available',
+    };
+  }
+
+  function renderAPI20Result(data) {
+    const rowIds = ['api20-row1', 'api20-row2'];
+    [data.row1 || [], data.row2 || []].forEach((wells, ri) => {
+      const row = $(rowIds[ri]);
+      if (!row) return;
+      row.innerHTML = '';
+      API20_WELLS[ri].forEach((label, wi) => {
+        const pos = wells[wi];
+        const well = document.createElement('div');
+        well.className = `micro-well ${pos ? 'well-pos' : 'well-neg'}`;
+        well.title     = label + ': ' + (pos ? 'Positive (+)' : 'Negative (−)');
+        well.innerHTML = `<div class="micro-well-label">${esc(label)}</div>${pos ? '+' : '−'}`;
+        row.appendChild(well);
+      });
+    });
+
+    $('api20-organism').textContent   = data.organism   || '—';
+    $('api20-profile').textContent    = 'API Profile: ' + (data.profile || '—');
+    $('api20-note').textContent       = data.note       || '';
+    $('api20-confidence').textContent = (data.confidence ? data.confidence.toFixed(1) : '—') + '%';
+
+    $('api20-result-section').style.display = '';
+    $('annotation-placeholder').style.display = 'none';
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     SAMPLE TRIAGE ENGINE
+     ══════════════════════════════════════════════════════════════ */
+  function initTriage() {
+    const btn = $('btn-triage-submit');
+    if (btn) btn.addEventListener('click', triageSubmit);
+  }
+
+  async function triageSubmit() {
+    const sampleType = $('triage-sample-type')?.value;
+    const origin     = $('triage-patient-origin')?.value;
+    const symptoms   = Array.from(document.querySelectorAll('#tab-triage input[type=checkbox]:checked'))
+      .map(c => c.value);
+
+    $('triage-empty-state').style.display    = 'none';
+    $('triage-result-section').style.display = 'none';
+    setAnalyzing('triage-analyzing', true);
+
+    try {
+      let result;
+      try {
+        result = await postJSON('/micro-ai/api/triage/', {
+          sample_type: sampleType, patient_origin: origin, symptoms,
+        });
+      } catch { result = mockTriageResult(sampleType, symptoms); }
+      renderTriageResult(result);
+    } finally {
+      setAnalyzing('triage-analyzing', false);
+    }
+  }
+
+  function mockTriageResult(sampleType, symptoms) {
+    const isUrgent   = symptoms.includes('meningism') || symptoms.includes('sepsis_signs');
+    const isPara     = sampleType === 'stool';
+    const isSplit    = isPara && symptoms.includes('bloody_diarrhea');
+
+    if (isUrgent) return {
+      route:    'urgent',
+      icon:     '🚨',
+      title:    'URGENT — Immediate Escalation',
+      subtitle: 'Critical clinical indicators detected — bypassing routine queue',
+      steps:    ['Notify senior biomedical scientist immediately','Expedite CSF / blood culture processing','Call clinician with preliminary findings within 1 hour','Document in NEXUS critical flag system'],
+      reflex:   ['STAT CSF culture + microscopy','STAT blood culture x2','Consider broad-spectrum cover protocol'],
+      tat:      '2–4 hours',
+    };
+    if (isSplit) return {
+      route:    'split',
+      icon:     '🔀',
+      title:    'Split Routing — Micro & Parasitology',
+      subtitle: 'Sample requires dual processing pathway',
+      steps:    ['Aliquot sample: 50% Micro / 50% Para','Micro: Stool culture on MacConkey + CCDA','Para: Direct wet prep + formal-ether concentration','Report preliminary findings separately'],
+      reflex:   ['Cryptosporidium antigen if immune-compromised','EHEC culture if bloody diarrhea + outbreak context'],
+      tat:      '48–72 hours',
+    };
+    if (isPara) return {
+      route:    'para',
+      icon:     '🔬',
+      title:    'Parasitology',
+      subtitle: 'Route to parasitology bench — stool ova & parasites',
+      steps:    ['Direct wet mount preparation','Formal-ether concentration technique','Kinyoun acid-fast stain if cryptosporidium suspected','FLOTAC if available for helminth eggs'],
+      reflex:   ['Malaria RDT if travel history','Rotavirus antigen if infant sample'],
+      tat:      '24–48 hours',
+    };
+    return {
+      route:    'micro',
+      icon:     '🦠',
+      title:    'Microbiology',
+      subtitle: 'Route to microbiology bench — standard culture protocol',
+      steps:    ['Label and log in LIS with priority code','Gram stain on direct smear','Culture on appropriate media','Preliminary report at 18 hours — final at 48–72 hours'],
+      reflex:   ['AST if growth detected at 18 hours', 'Gram stain report — notify clinician if significant organisms'],
+      tat:      '48–72 hours',
+    };
+  }
+
+  function renderTriageResult(data) {
+    const banner = $('triage-routing-banner');
+    banner.className = `micro-routing-banner route-${data.route || 'micro'}`;
+    $('triage-routing-icon').textContent    = data.icon    || '🔀';
+    $('triage-routing-title').textContent   = data.title   || '—';
+    $('triage-routing-subtitle').textContent = data.subtitle || '';
+
+    const steps = $('triage-routing-steps');
+    steps.innerHTML = (data.steps || []).map((s, i) =>
+      `<div class="micro-routing-step">
+        <div class="micro-routing-step-num">${i + 1}</div>
+        <div>${esc(s)}</div>
+      </div>`
+    ).join('');
+
+    const reflexEl = $('triage-reflex-list');
+    reflexEl.innerHTML = (data.reflex || []).map(r =>
+      `<div class="micro-reflex-item"><span>⚡</span> ${esc(r)}<span class="micro-reflex-arrow">›</span></div>`
+    ).join('');
+
+    $('triage-tat').textContent = data.tat || '—';
+    $('triage-result-section').style.display = '';
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     REFLEX INTELLIGENCE ENGINE
+     ══════════════════════════════════════════════════════════════ */
+  function initReflex() {
+    const btn = $('btn-reflex-submit');
+    if (btn) btn.addEventListener('click', reflexSubmit);
+  }
+
+  async function reflexSubmit() {
+    const findings = Array.from(document.querySelectorAll('#tab-reflex input[type=checkbox]:checked'))
+      .map(c => c.value);
+
+    $('reflex-empty-state').style.display = 'none';
+    $('reflex-results-container').style.display = 'none';
+    setAnalyzing('reflex-analyzing', true);
+
+    try {
+      let result;
+      try {
+        result = await postJSON('/micro-ai/api/reflex/', { findings });
+      } catch { result = mockReflexResult(findings); }
+      renderReflexResult(result);
+    } finally {
+      setAnalyzing('reflex-analyzing', false);
+    }
+  }
+
+  function mockReflexResult(findings) {
+    const recs = [];
+    if (findings.includes('afb_positive')) recs.push({
+      priority:'urgent', icon:'🟤',
+      title: 'MGIT Culture + GeneXpert MTB/RIF — STAT',
+      body:  'AFB-positive smear requires immediate mycobacterial culture (MGIT 960 or equivalent) and molecular confirmation with GeneXpert. Notify TB focal person within 2 hours per NTLP protocol.',
+    });
+    if (findings.includes('csf_cells')) recs.push({
+      priority:'urgent', icon:'🧠',
+      title: 'CSF Culture — STAT + CrAg Lateral Flow',
+      body:  'Elevated CSF cells require blood agar and chocolate agar culture STAT. Perform India ink and Cryptococcal antigen if immunocompromised. Gram stain result expected within 30 minutes.',
+    });
+    if (findings.includes('bacteria_seen') && findings.includes('culture_growth')) recs.push({
+      priority:'high', icon:'🦠',
+      title: 'AST Disk Diffusion — Expedite',
+      body:  'Organism visible on smear with culture growth confirmed. Set up AST plate immediately — preliminary reading at 18 hours. Select antibiotic panel based on organism morphology (Gram status).',
+    });
+    if (findings.includes('yeast_seen')) recs.push({
+      priority:'high', icon:'🍄',
+      title: 'Fungal Culture (Sabouraud) + Species ID',
+      body:  'Yeast elements observed. Subculture to Sabouraud dextrose agar. Perform germ tube test to distinguish C. albicans. If systemic infection suspected, order serum BDG and galactomannan.',
+    });
+    if (findings.includes('mixed_flora')) recs.push({
+      priority:'medium', icon:'🌿',
+      title: 'Sample Quality Review — Consider Recollection',
+      body:  'Mixed flora suggests sample contamination or inadequate collection technique. Discuss with requesting clinician. If recollection is not feasible, report as mixed flora with clinical correlation note.',
+    });
+    if (findings.includes('gram_negative')) recs.push({
+      priority:'high', icon:'🔵',
+      title: 'Gram-Negative Broad-Spectrum AST Panel',
+      body:  'Gram-negative rod morphology. Set up Enterobacteriaceae AST panel including extended-spectrum β-lactamases (ESBL) screening. Include carbapenem (meropenem) in the panel.',
+    });
+    if (findings.includes('gram_positive')) recs.push({
+      priority:'high', icon:'🔴',
+      title: 'Gram-Positive Panel + MRSA Screening',
+      body:  'Gram-positive cocci in clusters. Consider Staphylococcus aureus. Perform PBP2a latex agglutination or cefoxitin disc for MRSA. Vancomycin MIC required if MRSA confirmed.',
+    });
+    if (findings.includes('wbc_elevated') && !findings.includes('bacteria_seen')) recs.push({
+      priority:'medium', icon:'⬆️',
+      title: 'Extended Culture Period + Repeat Smear',
+      body:  'Elevated WBC without visible organisms. Extend culture incubation to 5 days. Perform repeat Gram stain at 48 hours. Consider anaerobic culture if pelvic or abdominal specimen.',
+    });
+    if (recs.length === 0) recs.push({
+      priority:'medium', icon:'💡',
+      title: 'No Specific Reflex Triggers Detected',
+      body:  'Based on selected findings, no high-priority reflex tests are automatically indicated. Continue routine processing protocol. Re-assess at each culture read point.',
+    });
+    return { recommendations: recs };
+  }
+
+  function renderReflexResult(data) {
+    const container = $('reflex-results-container');
+    container.innerHTML = '';
+    (data.recommendations || []).forEach(rec => {
+      const card = document.createElement('div');
+      card.className = 'micro-reflex-rec-card';
+      card.innerHTML = `
+        <div class="micro-reflex-rec-header">
+          <span class="micro-priority-badge ${esc(rec.priority)}">
+            ${rec.priority === 'urgent' ? '🔴 URGENT' : rec.priority === 'high' ? '🟠 HIGH' : '🟡 MEDIUM'}
+          </span>
+          <div class="micro-reflex-rec-title">${esc(rec.icon)} ${esc(rec.title)}</div>
+        </div>
+        <div class="micro-reflex-rec-body">${esc(rec.body)}</div>
+        <div class="micro-ds-footer">
+          ⚠️ DECISION SUPPORT ONLY — Requires human validation before action
+        </div>
+      `;
+      container.appendChild(card);
+    });
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     AUDIT TRAIL — search / filter
+     ══════════════════════════════════════════════════════════════ */
+  function initAudit() {
+    const search     = $('audit-search');
+    const filterType = $('audit-filter-type');
+    const filterStat = $('audit-filter-status');
+    const rows       = () => Array.from(document.querySelectorAll('#audit-table-body tr'));
+
+    function applyFilters() {
+      const q    = (search?.value || '').toLowerCase();
+      const type = filterType?.value || '';
+      const stat = filterStat?.value || '';
+      rows().forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const matchQ    = !q    || text.includes(q);
+        const matchType = !type || text.includes(type.replace('api20','api 20'));
+        const matchStat = !stat || text.includes(stat);
+        row.style.display = (matchQ && matchType && matchStat) ? '' : 'none';
+      });
+    }
+
+    search?.addEventListener('input', applyFilters);
+    filterType?.addEventListener('change', applyFilters);
+    filterStat?.addEventListener('change', applyFilters);
+
+    /* Export */
+    $('btn-audit-export')?.addEventListener('click', function () {
+      const headers = ['Timestamp','Analysis Type','Sample ID','AI Output','Confidence','Validated By','Status'];
+      const rowData = rows().map(r =>
+        Array.from(r.querySelectorAll('td')).map(td => '"' + td.textContent.replace(/"/g, '""') + '"').join(',')
+      );
+      const csv = [headers.join(','), ...rowData].join('\n');
+      const blob = new Blob([csv], { type:'text/csv' });
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(blob),
+        download: `micro-ai-audit-${new Date().toISOString().slice(0,10)}.csv`,
+      });
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+  }
+
+  /* ── Utility: file → base64 ──────────────────────────────────── */
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload  = e => resolve(e.target.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     INIT
+     ══════════════════════════════════════════════════════════════ */
+  function init() {
+    initKPIs();
+    initTabs();
+    initCamera();
+    initVisionUpload();
+    initAST();
+    initTriage();
+    initReflex();
+    initAudit();
+  }
+
+  /* Public API */
+  return {
+    api20Analyze,
+    api20Demo,
+    visionAnalyze,
+    astAnalyze,
+    triageSubmit,
+    reflexSubmit,
+  };
+
+})();
+
+document.addEventListener('DOMContentLoaded', function () {
+  MicroAI; /* module self-inits via IIFE above */
+  /* Manual init trigger */
+  (function bootstrap() {
+    /* Re-invoke tab setup and camera now DOM is ready */
+    const tabs = document.querySelectorAll('#micro-tabs .tab-btn');
+    tabs.forEach(btn => {
+      btn.addEventListener('click', function () {
+        tabs.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+        document.querySelectorAll('#micro-body .tab-pane').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected','true');
+        const pane = document.getElementById(btn.dataset.pane);
+        if (pane) pane.classList.add('active');
+      });
+    });
+
+    /* Camera */
+    const btnStart  = document.getElementById('btn-start-camera');
+    const video     = document.getElementById('micro-video');
+    const placehold = document.getElementById('cam-placeholder');
+    const guide     = document.getElementById('cam-guide');
+    const status    = document.getElementById('cam-status');
+    let   stream    = null;
+
+    btnStart?.addEventListener('click', async function () {
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
+        stream = null;
+        video.style.display = 'none';
+        placehold.style.display = '';
+        if (guide) guide.style.display = 'none';
+        if (status) status.style.display = 'none';
+        btnStart.textContent = '▶ Camera';
+        return;
+      }
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode:'environment', width:{ideal:1920}, height:{ideal:1080} }
+        });
+        video.srcObject = stream;
+        video.style.display = 'block';
+        placehold.style.display = 'none';
+        if (guide) guide.style.display = '';
+        if (status) status.style.display = '';
+        btnStart.textContent = '⏹ Stop';
+      } catch(e) {
+        alert('Camera unavailable: ' + e.message);
+      }
+    });
+
+    /* Capture */
+    document.getElementById('btn-capture')?.addEventListener('click', function () {
+      const canvas = document.getElementById('micro-canvas');
+      if (stream && video.readyState >= 2) {
+        canvas.width  = video.videoWidth  || 640;
+        canvas.height = video.videoHeight || 480;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        MicroAI.visionAnalyze(canvas.toDataURL('image/jpeg', 0.92));
+      } else {
+        document.getElementById('vision-file-input')?.click();
+      }
+    });
+
+    /* Vision file upload */
+    document.getElementById('vision-file-input')?.addEventListener('change', function () {
+      if (!this.files[0]) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.getElementById('annotation-img');
+        if (img) { img.src = e.target.result; img.style.display = 'block'; }
+        const ph = document.getElementById('annotation-placeholder');
+        if (ph) ph.style.display = 'none';
+        MicroAI.visionAnalyze(e.target.result);
+      };
+      reader.readAsDataURL(this.files[0]);
+    });
+
+    /* AST btn */
+    document.getElementById('btn-ast-analyze')?.addEventListener('click', MicroAI.astAnalyze);
+    document.getElementById('btn-ast-clear')?.addEventListener('click', function () {
+      ['ast-results-section','ast-treatment-card','ast-resistance-alert'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+      document.getElementById('ast-file-input').value = '';
+    });
+
+    /* Triage btn */
+    document.getElementById('btn-triage-submit')?.addEventListener('click', MicroAI.triageSubmit);
+
+    /* Reflex btn */
+    document.getElementById('btn-reflex-submit')?.addEventListener('click', MicroAI.reflexSubmit);
+
+    /* Audit search */
+    function auditFilter() {
+      const q    = (document.getElementById('audit-search')?.value || '').toLowerCase();
+      const type = (document.getElementById('audit-filter-type')?.value || '');
+      const stat = (document.getElementById('audit-filter-status')?.value || '');
+      document.querySelectorAll('#audit-table-body tr').forEach(row => {
+        const t = row.textContent.toLowerCase();
+        row.style.display = (!q || t.includes(q)) && (!type || t.includes(type.replace('api20','api 20'))) && (!stat || t.includes(stat)) ? '' : 'none';
+      });
+    }
+    document.getElementById('audit-search')?.addEventListener('input', auditFilter);
+    document.getElementById('audit-filter-type')?.addEventListener('change', auditFilter);
+    document.getElementById('audit-filter-status')?.addEventListener('change', auditFilter);
+
+    /* Audit export */
+    document.getElementById('btn-audit-export')?.addEventListener('click', function () {
+      const rows = Array.from(document.querySelectorAll('#audit-table-body tr'));
+      const hdr  = ['Timestamp','Analysis Type','Sample ID','AI Output','Confidence','Validated By','Status'];
+      const data = rows.map(r =>
+        Array.from(r.querySelectorAll('td')).map(td => '"' + td.textContent.trim().replace(/"/g,'""') + '"').join(',')
+      );
+      const blob = new Blob([[hdr.join(','),...data].join('\n')], {type:'text/csv'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'micro-ai-audit-' + new Date().toISOString().slice(0,10) + '.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    /* KPI mock data */
+    [['kpi-analyses',148],['kpi-ast',64],['kpi-organisms',83],
+     ['kpi-triaged',211],['kpi-reflex',47],['kpi-pending',12]].forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    });
+
+  })();
+});
+</script>
+{% endblock %}

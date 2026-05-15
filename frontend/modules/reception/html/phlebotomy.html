@@ -1,0 +1,290 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}🩸 Phlebotomy — NEXUS ALIS-X{% endblock %}
+{% block module_id %}phlebotomy{% endblock %}
+{% block nav_active_phlebotomy %}active{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/reception/css/phlebotomy.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="phlebotomy-main">
+
+  <!-- ── Header ── -->
+  <header class="phlebotomy-header">
+    <div class="phlebotomy-header-left">
+      <div class="page-icon-wrap" style="background:rgba(255,23,68,0.08);border-color:rgba(255,23,68,0.18);color:var(--alert-red)">
+        <span style="font-size:20px">🩸</span>
+      </div>
+      <div>
+        <h1 class="phlebotomy-title">🩸 Phlebotomy</h1>
+        <div class="phlebotomy-subtitle">{{ today|date:"l, d F Y" }} · Sample Collection Queue</div>
+      </div>
+    </div>
+    <div class="phlebotomy-header-right">
+      <div class="phlebo-stats">
+        <div class="phlebo-stat">
+          <span class="phlebo-stat-val" id="ps-pending">—</span>
+          <span class="phlebo-stat-lbl">⏳ Pending</span>
+        </div>
+        <div class="phlebo-stat">
+          <span class="phlebo-stat-val" id="ps-collected">—</span>
+          <span class="phlebo-stat-lbl">✅ Collected</span>
+        </div>
+        <div class="phlebo-stat">
+          <span class="phlebo-stat-val" id="ps-stat">—</span>
+          <span class="phlebo-stat-lbl">🚨 STAT</span>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="phlebo-refresh-btn">
+        <i class="fas fa-arrows-rotate"></i> Refresh
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Collection Queue ── -->
+  <div class="phlebo-body">
+
+    <!-- LEFT: Collection list -->
+    <div class="phlebo-queue-panel">
+      <div class="phlebo-queue-header">
+        <div class="phlebo-queue-title"><span>📋</span> Collection Queue</div>
+        <div class="search-wrap" style="max-width:220px">
+          <i class="fas fa-magnifying-glass search-icon"></i>
+          <input type="text" class="fi" id="phlebo-search" placeholder="🔍 Patient or Lab ID…">
+        </div>
+        <select class="fi" style="width:auto;font-size:var(--text-xs);padding:6px 10px" id="phlebo-priority-filter">
+          <option value="">All priorities</option>
+          <option value="stat">🚨 STAT</option>
+          <option value="urgent">🔶 Urgent</option>
+          <option value="routine">📋 Routine</option>
+        </select>
+      </div>
+
+      <div class="phlebo-list" id="phlebo-list">
+        <!-- Demo items -->
+        <div class="phlebo-item phlebo-stat-item" id="phlebo-demo-1">
+          <div class="phlebo-priority stat">🚨 STAT</div>
+          <div class="phlebo-patient-info">
+            <div class="phlebo-patient-name">DEMO — Uwimana Jean</div>
+            <div class="phlebo-patient-meta">PID-001 · Age 34 · Ward 3 · Dr. Nkurunziza</div>
+          </div>
+          <div class="phlebo-tubes">
+            <div class="tube-dot" style="background:#9B59B6" title="EDTA — CBC"></div>
+            <div class="tube-dot" style="background:#E74C3C" title="SST — Chemistry"></div>
+            <div class="tube-dot" style="background:#2980B9" title="Citrate — Coag"></div>
+          </div>
+          <div class="phlebo-lab-id">LAB-2025-0412</div>
+          <button class="btn btn-danger btn-sm phlebo-collect-btn" data-req="demo-1">
+            💉 Collect
+          </button>
+        </div>
+
+        <div class="phlebo-item">
+          <div class="phlebo-priority urgent">🔶 Urgent</div>
+          <div class="phlebo-patient-info">
+            <div class="phlebo-patient-name">DEMO — Mutoni Marie</div>
+            <div class="phlebo-patient-meta">PID-002 · Age 28 · OPD · Dr. Habimana</div>
+          </div>
+          <div class="phlebo-tubes">
+            <div class="tube-dot" style="background:#9B59B6" title="EDTA — CBC"></div>
+            <div class="tube-dot" style="background:#E74C3C" title="SST — LFT/RFT"></div>
+          </div>
+          <div class="phlebo-lab-id">LAB-2025-0413</div>
+          <button class="btn btn-warning btn-sm phlebo-collect-btn" data-req="demo-2">
+            💉 Collect
+          </button>
+        </div>
+
+        <div class="phlebo-item">
+          <div class="phlebo-priority routine">📋 Routine</div>
+          <div class="phlebo-patient-info">
+            <div class="phlebo-patient-name">DEMO — Nzabahimana Claude</div>
+            <div class="phlebo-patient-meta">PID-003 · Age 52 · Ward 1 · Dr. Uwimana</div>
+          </div>
+          <div class="phlebo-tubes">
+            <div class="tube-dot" style="background:#27AE60" title="Fluoride — Glucose"></div>
+            <div class="tube-dot" style="background:#E74C3C" title="SST — HbA1c"></div>
+          </div>
+          <div class="phlebo-lab-id">LAB-2025-0414</div>
+          <button class="btn btn-secondary btn-sm phlebo-collect-btn" data-req="demo-3">
+            💉 Collect
+          </button>
+        </div>
+
+        <div class="phlebo-empty" id="phlebo-empty" style="display:none">
+          <div class="empty-state">
+            <div class="empty-state-icon" style="font-size:32px">🩸</div>
+            <h3>Queue Empty</h3>
+            <p>All samples have been collected for this shift.</p>
+          </div>
+        </div>
+      </div><!-- /phlebo-list -->
+    </div><!-- /phlebo-queue-panel -->
+
+    <!-- RIGHT: Tube guide + TAT -->
+    <div class="phlebo-sidebar">
+
+      <!-- Tube color guide -->
+      <div class="glass-panel phlebo-tube-guide">
+        <div class="phlebo-panel-title"><span>🧪</span> Tube Color Guide</div>
+        <div class="tube-guide-list">
+          <div class="tube-guide-item">
+            <div class="tube-swatch" style="background:linear-gradient(180deg,#9B59B6,#7D3C98)"></div>
+            <div class="tube-guide-info">
+              <div class="tube-guide-name">Purple (EDTA)</div>
+              <div class="tube-guide-tests">CBC · Blood Group · Crossmatch</div>
+            </div>
+          </div>
+          <div class="tube-guide-item">
+            <div class="tube-swatch" style="background:linear-gradient(180deg,#E74C3C,#C0392B)"></div>
+            <div class="tube-guide-info">
+              <div class="tube-guide-name">Red (SST)</div>
+              <div class="tube-guide-tests">Chemistry · Serology · Hormones</div>
+            </div>
+          </div>
+          <div class="tube-guide-item">
+            <div class="tube-swatch" style="background:linear-gradient(180deg,#2980B9,#1A5276)"></div>
+            <div class="tube-guide-info">
+              <div class="tube-guide-name">Blue (Citrate)</div>
+              <div class="tube-guide-tests">Coagulation · PT · APTT · D-Dimer</div>
+            </div>
+          </div>
+          <div class="tube-guide-item">
+            <div class="tube-swatch" style="background:linear-gradient(180deg,#27AE60,#1E8449)"></div>
+            <div class="tube-guide-info">
+              <div class="tube-guide-name">Green (Fluoride)</div>
+              <div class="tube-guide-tests">Glucose · HbA1c · Lactate</div>
+            </div>
+          </div>
+          <div class="tube-guide-item">
+            <div class="tube-swatch" style="background:linear-gradient(180deg,#BDC3C7,#95A5A6)"></div>
+            <div class="tube-guide-info">
+              <div class="tube-guide-name">Grey (Other)</div>
+              <div class="tube-guide-tests">Urinalysis · Misc</div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /tube guide -->
+
+      <!-- TAT countdown -->
+      <div class="glass-panel phlebo-tat-panel">
+        <div class="phlebo-panel-title"><span>⏱️</span> Live TAT Monitor</div>
+        <div id="phlebo-tat-list">
+          <div class="tat-item">
+            <div class="tat-info">
+              <div class="tat-patient">LAB-2025-0412 · Uwimana</div>
+              <div class="tat-dept">Hematology · STAT</div>
+            </div>
+            <div class="tat-bar-col">
+              <div class="tat-bar"><div class="tat-fill red" style="width:78%"></div></div>
+            </div>
+            <span class="tat-elapsed red">78m</span>
+          </div>
+          <div class="tat-item">
+            <div class="tat-info">
+              <div class="tat-patient">LAB-2025-0410 · Nzabahimana</div>
+              <div class="tat-dept">Chemistry</div>
+            </div>
+            <div class="tat-bar-col">
+              <div class="tat-bar"><div class="tat-fill yellow" style="width:52%"></div></div>
+            </div>
+            <span class="tat-elapsed yellow">52m</span>
+          </div>
+          <div class="tat-item">
+            <div class="tat-info">
+              <div class="tat-patient">LAB-2025-0408 · Mukamana</div>
+              <div class="tat-dept">Coagulation</div>
+            </div>
+            <div class="tat-bar-col">
+              <div class="tat-bar"><div class="tat-fill green" style="width:28%"></div></div>
+            </div>
+            <span class="tat-elapsed green">28m</span>
+          </div>
+        </div>
+      </div><!-- /tat panel -->
+
+    </div><!-- /phlebo-sidebar -->
+  </div><!-- /phlebo-body -->
+
+</div><!-- /phlebotomy-main -->
+
+<style>
+.phlebo-body { flex:1;overflow:hidden;display:grid;grid-template-columns:1fr 300px;gap:0; }
+.phlebo-queue-panel { display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border-dim); }
+.phlebo-queue-header {
+  display:flex;align-items:center;gap:var(--space-sm);
+  padding:var(--space-md) var(--space-lg);border-bottom:1px solid var(--border-dim);
+  background:var(--bg-deep);flex-shrink:0;flex-wrap:wrap;
+}
+.phlebo-queue-title { font-family:var(--font-display);font-size:var(--text-md);font-weight:600;color:var(--text-primary);display:flex;align-items:center;gap:8px; }
+.phlebo-list { flex:1;overflow-y:auto;padding:var(--space-md);display:flex;flex-direction:column;gap:var(--space-sm); }
+.phlebo-item {
+  display:flex;align-items:center;gap:var(--space-md);
+  padding:var(--space-md) var(--space-lg);
+  background:var(--bg-card);border:1px solid var(--border-dim);border-radius:var(--radius-lg);
+  transition:background var(--duration-fast),border-color var(--duration-fast);
+  flex-wrap:wrap;
+}
+.phlebo-item:hover { background:var(--bg-glass);border-color:var(--border-mid); }
+.phlebo-stat-item { border-left:3px solid var(--alert-red);animation:card-alert-pulse 2s ease-in-out infinite; }
+.phlebo-priority {
+  font-size:11px;font-weight:700;padding:3px 10px;border-radius:var(--radius-full);
+  flex-shrink:0;white-space:nowrap;
+}
+.phlebo-priority.stat    { background:rgba(255,23,68,0.12);color:var(--alert-red);border:1px solid rgba(255,23,68,0.25); }
+.phlebo-priority.urgent  { background:rgba(255,109,0,0.10);color:var(--alert-orange);border:1px solid rgba(255,109,0,0.22); }
+.phlebo-priority.routine { background:rgba(0,153,255,0.08);color:var(--blue-glow);border:1px solid var(--border-dim); }
+.phlebo-patient-info { flex:1;min-width:0; }
+.phlebo-patient-name { font-size:var(--text-sm);font-weight:600;color:var(--text-primary); }
+.phlebo-patient-meta { font-size:11px;color:var(--text-muted);margin-top:2px; }
+.phlebo-tubes { display:flex;align-items:center;gap:4px;flex-shrink:0; }
+.tube-dot { width:14px;height:28px;border-radius:4px;flex-shrink:0;cursor:help; }
+.phlebo-lab-id { font-family:var(--font-mono);font-size:11px;color:var(--text-muted);flex-shrink:0; }
+/* Stats bar */
+.phlebo-stats { display:flex;gap:var(--space-lg);align-items:center; }
+.phlebo-stat { display:flex;flex-direction:column;align-items:center;gap:2px; }
+.phlebo-stat-val { font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--text-primary);line-height:1; }
+.phlebo-stat-lbl { font-size:10px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.06em; }
+/* Sidebar panels */
+.phlebo-sidebar { display:flex;flex-direction:column;gap:0;overflow-y:auto;background:var(--bg-deep); }
+.phlebo-panel-title {
+  font-family:var(--font-display);font-size:var(--text-sm);font-weight:600;color:var(--text-primary);
+  padding:var(--space-md) var(--space-lg);border-bottom:1px solid var(--border-dim);
+  display:flex;align-items:center;gap:8px;
+}
+.phlebo-tube-guide { border-radius:0;border-left:none;border-top:none; }
+.phlebo-tat-panel  { border-radius:0;border-left:none;flex:1; }
+.tube-guide-list { padding:var(--space-md);display:flex;flex-direction:column;gap:var(--space-sm); }
+.tube-guide-item { display:flex;align-items:center;gap:var(--space-md); }
+.tube-swatch { width:14px;height:32px;border-radius:6px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,0.3); }
+.tube-guide-name { font-size:var(--text-xs);font-weight:600;color:var(--text-primary); }
+.tube-guide-tests { font-size:11px;color:var(--text-muted);margin-top:1px; }
+.phlebo-tat-panel .tat-item { padding:10px var(--space-lg);border-bottom:1px solid var(--border-dim); }
+.phlebo-tat-panel .tat-item:last-child { border-bottom:none; }
+@media (max-width:1000px) { .phlebo-body { grid-template-columns:1fr; } .phlebo-sidebar { display:none; } }
+</style>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  /* Demo collect button feedback */
+  document.querySelectorAll('.phlebo-collect-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var item = btn.closest('.phlebo-item');
+      btn.innerHTML = '<i class="fas fa-check"></i> Collected';
+      btn.className = 'btn btn-success btn-sm';
+      btn.disabled = true;
+      item.style.opacity = '0.5';
+      if (window.NEXUS && NEXUS.Toast) {
+        NEXUS.Toast.success('Sample collected', 'Moved to lab intake queue');
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

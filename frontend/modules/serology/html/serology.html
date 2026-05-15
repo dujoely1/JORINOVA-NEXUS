@@ -1,0 +1,431 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}🔬 Serology — NEXUS ALIS-X{% endblock %}
+{% block module_id %}serology{% endblock %}
+{% block nav_active_lab %}active{% endblock %}
+{% block flyout_sero %}active{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/serology/css/serology.css' %}">
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="serology-main" id="serology-main">
+
+  <!-- ══ Page Header ══ -->
+  <header class="page-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(255,109,0,0.09);border-color:rgba(255,109,0,0.22);color:var(--alert-orange)">
+        <span style="font-size:20px">🔬</span>
+      </div>
+      <div>
+        <h1 class="page-title">Serology Department</h1>
+        <div class="page-subtitle">{{ today|date:"l, d F Y" }} · Immunology · Rapid Tests · ELISA · NEXUS ALIS-X</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <div class="sero-stat-chips">
+        <div class="sero-chip sero-chip-blue" id="sero-chip-pending"><span>⏳</span> <span id="sero-count-pending">—</span> Pending</div>
+        <div class="sero-chip sero-chip-orange" id="sero-chip-critical"><span>🚨</span> <span id="sero-count-critical">—</span> Critical</div>
+        <div class="sero-chip sero-chip-green" id="sero-chip-done"><span>✅</span> <span id="sero-count-done">—</span> Done Today</div>
+      </div>
+      <button class="btn btn-primary btn-sm" id="sero-refresh-btn">
+        <i class="fas fa-arrows-rotate"></i> Refresh
+      </button>
+    </div>
+  </header>
+
+  <!-- ══ Tab Navigation ══ -->
+  <div class="tab-nav sero-tab-nav" role="tablist">
+    <button class="tab-btn active" data-pane="sero-worklist" role="tab">📋 Serology Worklist</button>
+    <button class="tab-btn" data-pane="sero-results" role="tab">🧪 Result Entry</button>
+    <button class="tab-btn" data-pane="sero-dashboard" role="tab">📊 Serology Dashboard</button>
+    <button class="tab-btn" data-pane="sero-confirmatory" role="tab">🧬 Confirmatory &amp; Reflexes</button>
+  </div>
+
+  <!-- ══ Tab Body ══ -->
+  <div class="sero-body">
+
+    <!-- ════════════════════════════════════════════
+         TAB 1: 📋 SEROLOGY WORKLIST
+         ════════════════════════════════════════════ -->
+    <div class="tab-pane active" id="sero-worklist">
+
+      <!-- Toolbar -->
+      <div class="sero-toolbar glass-panel">
+        <div class="sero-toolbar-left">
+          <div class="momo-search-wrap" style="max-width:260px">
+            <i class="fas fa-magnifying-glass"></i>
+            <input type="text" id="sero-search" class="fi" placeholder="Patient name, Lab ID, PID…" autocomplete="off">
+          </div>
+          <select class="fi sero-filter" id="sero-filter-status">
+            <option value="">All statuses</option>
+            <option value="pending">⏳ Pending</option>
+            <option value="processing">🔄 Processing</option>
+            <option value="validated">✅ Validated</option>
+          </select>
+          <select class="fi sero-filter" id="sero-filter-priority">
+            <option value="">All priorities</option>
+            <option value="stat">🚨 STAT</option>
+            <option value="urgent">⚡ Urgent</option>
+            <option value="routine">📋 Routine</option>
+          </select>
+          <select class="fi sero-filter" id="sero-filter-test">
+            <option value="">All tests</option>
+            <option value="hiv">HIV 1/2</option>
+            <option value="hbsag">HBsAg</option>
+            <option value="hcv">Anti-HCV</option>
+            <option value="syphilis">VDRL/RPR</option>
+            <option value="malaria">Malaria RDT</option>
+            <option value="widal">Widal</option>
+            <option value="crp">CRP</option>
+          </select>
+          <input type="date" class="fi sero-filter" id="sero-filter-date" value="{{ today|date:'Y-m-d' }}">
+        </div>
+        <div class="sero-toolbar-right">
+          <span class="sero-result-count" id="sero-result-count">Loading…</span>
+        </div>
+      </div>
+
+      <!-- Worklist Table -->
+      <div class="glass-panel" style="overflow:hidden">
+        <div style="overflow-x:auto">
+          <table class="nx-table sero-worklist-table">
+            <thead>
+              <tr>
+                <th>🧬 Patient</th>
+                <th>🔖 Lab ID</th>
+                <th>🧪 Tests</th>
+                <th>⏱️ TAT</th>
+                <th>📊 Status</th>
+                <th>🚨 Priority</th>
+                <th>⚡ Actions</th>
+              </tr>
+            </thead>
+            <tbody id="sero-worklist-tbody">
+              <tr><td colspan="7">
+                <div class="worklist-loading" style="padding:var(--space-2xl);text-align:center;color:var(--text-muted)">
+                  <i class="fas fa-spinner" style="animation:spin 0.65s linear infinite;font-size:24px"></i>
+                  <p style="margin-top:8px">Loading serology worklist…</p>
+                </div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /sero-worklist -->
+
+
+    <!-- ════════════════════════════════════════════
+         TAB 2: 🧪 RESULT ENTRY
+         ════════════════════════════════════════════ -->
+    <div class="tab-pane" id="sero-results">
+
+      <div class="sero-result-layout">
+
+        <!-- Left: Request selector -->
+        <div class="sero-req-panel glass-panel">
+          <div class="sero-panel-header">
+            <div class="fo-chart-title"><span>📋</span> Select Request</div>
+          </div>
+          <div class="sero-req-search-wrap">
+            <i class="fas fa-magnifying-glass"></i>
+            <input type="text" id="sero-req-search" class="fi" placeholder="Lab ID or patient…">
+          </div>
+          <div class="sero-req-list" id="sero-req-list">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Right: Result entry form -->
+        <div class="sero-result-form glass-panel" id="sero-result-form">
+          <div class="sero-panel-header">
+            <div class="fo-chart-title"><span>🧪</span> Enter Results</div>
+            <span class="badge badge-blue" id="sero-req-id-badge">Select a request</span>
+          </div>
+
+          <!-- Patient info bar -->
+          <div class="sero-patient-bar" id="sero-patient-bar" style="display:none">
+            <div class="sero-patient-avatar" id="sero-patient-avatar">JD</div>
+            <div class="sero-patient-info">
+              <div class="sero-patient-name" id="sero-patient-name">—</div>
+              <div class="sero-patient-meta" id="sero-patient-meta">—</div>
+            </div>
+            <div class="bsl-alert bsl-2" id="bsl-alert" style="display:none">
+              <span>⚠️ BSL-2</span> Enhanced Biosafety Required
+            </div>
+          </div>
+
+          <!-- Tests list -->
+          <div class="sero-tests-area" id="sero-tests-area">
+            <div class="empty-state" style="padding:var(--space-3xl)">
+              <div class="empty-state-icon">🔬</div>
+              <h3>Select a Request</h3>
+              <p>Choose a request from the left panel to begin entering results.</p>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="sero-result-footer" id="sero-result-footer" style="display:none">
+            <div style="display:flex;align-items:center;gap:var(--space-sm)">
+              <i class="fas fa-shield-halved" style="color:var(--text-muted);font-size:13px"></i>
+              <span class="text-xs text-muted-c">Results are audit-logged with your identity and timestamp</span>
+            </div>
+            <div style="display:flex;gap:var(--space-sm)">
+              <button class="btn btn-success" id="sero-validate-btn" type="button">
+                <i class="fas fa-check-double"></i> Validate All
+              </button>
+              <button class="btn btn-primary" id="sero-save-btn" type="button">
+                <i class="fas fa-floppy-disk"></i> Save Results
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /sero-results -->
+
+
+    <!-- ════════════════════════════════════════════
+         TAB 3: 📊 SEROLOGY DASHBOARD
+         ════════════════════════════════════════════ -->
+    <div class="tab-pane" id="sero-dashboard">
+
+      <!-- Stats Row -->
+      <div class="sero-dash-stats">
+        <div class="sero-dash-stat sero-ds-blue">
+          <div class="sero-ds-icon">🔬</div>
+          <div class="sero-ds-val" id="sd-total">—</div>
+          <div class="sero-ds-lbl">Total This Month</div>
+        </div>
+        <div class="sero-dash-stat sero-ds-red">
+          <div class="sero-ds-icon">🔴</div>
+          <div class="sero-ds-val" id="sd-reactive">—</div>
+          <div class="sero-ds-lbl">Reactive Results</div>
+        </div>
+        <div class="sero-dash-stat sero-ds-orange">
+          <div class="sero-ds-icon">🚨</div>
+          <div class="sero-ds-val" id="sd-critical">—</div>
+          <div class="sero-ds-lbl">Critical / Follow-up</div>
+        </div>
+        <div class="sero-dash-stat sero-ds-green">
+          <div class="sero-ds-icon">✅</div>
+          <div class="sero-ds-val" id="sd-validated">—</div>
+          <div class="sero-ds-lbl">Validated Today</div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="sero-dash-charts">
+        <div class="glass-panel fo-chart-card">
+          <div class="fo-chart-header">
+            <div class="fo-chart-title"><span>📈</span> HIV Positivity Trend — Last 6 Months</div>
+          </div>
+          <div class="fo-chart-body">
+            <canvas id="sero-hiv-trend" style="height:200px"></canvas>
+          </div>
+        </div>
+        <div class="glass-panel fo-chart-card">
+          <div class="fo-chart-header">
+            <div class="fo-chart-title"><span>🥧</span> Test Volume Distribution</div>
+          </div>
+          <div class="fo-chart-body">
+            <canvas id="sero-vol-pie" style="height:200px"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Positivity Rates -->
+      <div class="glass-panel" style="overflow:hidden">
+        <div class="fo-chart-header">
+          <div class="fo-chart-title"><span>📊</span> Positivity Rates — This Month</div>
+        </div>
+        <div class="sero-positivity-grid" id="sero-positivity-grid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Reactive Results Follow-up List -->
+      <div class="sero-dash-row">
+        <div class="glass-panel" style="overflow:hidden;flex:1">
+          <div class="fo-chart-header">
+            <div class="fo-chart-title"><span>⚠️</span> Reactive Results Requiring Follow-up</div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="nx-table">
+              <thead>
+                <tr>
+                  <th>🧬 Patient</th>
+                  <th>🧪 Test</th>
+                  <th>📊 Result</th>
+                  <th>🕐 Reported</th>
+                  <th>⚡ Action</th>
+                </tr>
+              </thead>
+              <tbody id="sero-reactive-tbody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Critical notifications -->
+        <div class="glass-panel sero-critical-panel">
+          <div class="fo-chart-header">
+            <div class="fo-chart-title"><span>🚨</span> Critical Results</div>
+          </div>
+          <div class="sero-critical-list" id="sero-critical-list">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Biosafety alerts -->
+      <div class="glass-panel sero-bsl-panel">
+        <div class="fo-chart-header">
+          <div class="fo-chart-title"><span>🛡️</span> Biosafety Level Alerts</div>
+        </div>
+        <div class="sero-bsl-list" id="sero-bsl-list">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+    </div><!-- /sero-dashboard -->
+
+
+    <!-- ════════════════════════════════════════════
+         TAB 4: 🧬 CONFIRMATORY & REFLEXES
+         ════════════════════════════════════════════ -->
+    <div class="tab-pane" id="sero-confirmatory">
+
+      <!-- Stats -->
+      <div class="sero-conf-stats">
+        <div class="sero-conf-stat glass-panel">
+          <div class="sero-cs-icon">🧬</div>
+          <div class="sero-cs-val" id="conf-pending-count">—</div>
+          <div class="sero-cs-lbl">Confirmatory Pending</div>
+        </div>
+        <div class="sero-conf-stat glass-panel">
+          <div class="sero-cs-icon">🔄</div>
+          <div class="sero-cs-val" id="reflex-queue-count">—</div>
+          <div class="sero-cs-lbl">Reflex Queue</div>
+        </div>
+        <div class="sero-conf-stat glass-panel">
+          <div class="sero-cs-icon">🚀</div>
+          <div class="sero-cs-val" id="ext-referral-count">—</div>
+          <div class="sero-cs-lbl">External Referrals</div>
+        </div>
+      </div>
+
+      <!-- Confirmatory Tests -->
+      <div class="glass-panel" style="overflow:hidden">
+        <div class="fo-chart-header">
+          <div class="fo-chart-title"><span>🧬</span> Pending Confirmatory Tests</div>
+          <span class="badge badge-orange" id="conf-count-badge">—</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="nx-table">
+            <thead>
+              <tr>
+                <th>🧬 Patient</th>
+                <th>🧪 Screening Test</th>
+                <th>📊 Screen Result</th>
+                <th>🔬 Confirmatory Test</th>
+                <th>📊 Status</th>
+                <th>🕐 Ordered</th>
+                <th>⚡ Actions</th>
+              </tr>
+            </thead>
+            <tbody id="sero-conf-tbody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Reflex Testing Queue -->
+      <div class="glass-panel" style="overflow:hidden">
+        <div class="fo-chart-header">
+          <div class="fo-chart-title"><span>🔄</span> Reflex Testing Queue</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="nx-table">
+            <thead>
+              <tr>
+                <th>🧬 Patient</th>
+                <th>🧪 Triggered By</th>
+                <th>🔄 Reflex Test</th>
+                <th>📊 Trigger Result</th>
+                <th>📋 Status</th>
+                <th>⚡ Actions</th>
+              </tr>
+            </thead>
+            <tbody id="sero-reflex-tbody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- External Referrals -->
+      <div class="glass-panel" style="overflow:hidden">
+        <div class="fo-chart-header">
+          <div class="fo-chart-title"><span>🚀</span> External Referral Tracking</div>
+          <button class="btn btn-secondary btn-sm" id="sero-add-referral-btn"><i class="fas fa-plus"></i> Add Referral</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="nx-table">
+            <thead>
+              <tr>
+                <th>🧬 Patient</th>
+                <th>🧪 Test</th>
+                <th>🏥 Reference Lab</th>
+                <th>📅 Sent</th>
+                <th>📅 Expected</th>
+                <th>📊 Status</th>
+                <th>⚡ Actions</th>
+              </tr>
+            </thead>
+            <tbody id="sero-referral-tbody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /sero-confirmatory -->
+
+  </div><!-- /sero-body -->
+</div><!-- /serology-main -->
+
+<!-- ══ Result Entry Modal (for rapid tests) ══ -->
+<div class="modal-overlay" id="sero-rapid-modal" role="dialog" aria-modal="true" aria-label="Rapid Test Result Entry">
+  <div class="modal modal-lg glass-card" id="sero-rapid-modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title" id="sero-modal-title">🧪 Rapid Test Entry</h3>
+      <button class="modal-close" id="sero-modal-close" type="button" aria-label="Close">
+        <i class="fas fa-xmark"></i>
+      </button>
+    </div>
+    <div class="modal-body" id="sero-modal-body">
+      <!-- Populated by JS -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="sero-modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="sero-modal-save">
+        <i class="fas fa-floppy-disk"></i> Save Result
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/serology/js/serology.js' %}" defer></script>
+{% endblock %}

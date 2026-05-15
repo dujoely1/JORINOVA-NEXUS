@@ -1,0 +1,187 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}🩺 Doctor Portal — NEXUS ALIS-X{% endblock %}
+{% block module_id %}doctor-portal{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/doctor_portal/css/doctor_portal.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dp-main">
+
+  <header class="page-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(0,128,255,0.09);border-color:rgba(0,128,255,0.22);color:#4488FF">
+        <span style="font-size:20px">🩺</span>
+      </div>
+      <div>
+        <h1 class="page-title">🩺 Doctor Portal</h1>
+        <div class="page-subtitle">{{ today|date:"l, d F Y" }} · Patient Results · Clinical Intelligence · Cross-Hospital Access</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <div class="dp-doctor-chip">
+        <span style="font-size:16px">👨‍⚕️</span>
+        <div><div style="font-weight:700;font-size:var(--text-sm)">{{ request.user.get_full_name }}</div>
+        <div style="font-size:10px;color:var(--text-muted)">{{ request.user.get_role_display|default:"Doctor" }}</div></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="tab-nav dp-tab-nav" role="tablist">
+    <button class="tab-btn active" data-pane="dp-patients-pane">🧬 My Patients</button>
+    <button class="tab-btn" data-pane="dp-results-pane">📋 Recent Results</button>
+    <button class="tab-btn" data-pane="dp-critical-pane">🚨 Critical Alerts</button>
+    <button class="tab-btn" data-pane="dp-history-pane">📚 Patient History</button>
+    <button class="tab-btn" data-pane="dp-order-pane">🧪 Order Tests</button>
+  </div>
+
+  <div class="dp-body">
+
+    <!-- ══ MY PATIENTS ══ -->
+    <div class="tab-pane active" id="dp-patients-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-lg);flex-wrap:wrap;gap:var(--space-md)">
+          <div style="display:flex;align-items:center;gap:var(--space-sm)">
+            <div class="worklist-search-wrap">
+              <i class="fas fa-magnifying-glass"></i>
+              <input type="text" id="dp-patient-search" class="worklist-search" placeholder="Search patient name, PID…">
+            </div>
+            <select class="filter-select" id="dp-ward-filter">
+              <option value="">All Wards</option>
+              <option>Medical Ward A</option><option>Medical Ward B</option>
+              <option>ICU</option><option>Maternity</option><option>Surgery</option>
+              <option>Paediatrics</option><option>Outpatient</option>
+            </select>
+          </div>
+          <span class="badge badge-blue" id="dp-patient-count">Loading…</span>
+        </div>
+        <div class="dp-patient-grid" id="dp-patient-grid">
+          <div class="worklist-loading"><i class="fas fa-spinner"></i> Loading patients…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ RECENT RESULTS ══ -->
+    <div class="tab-pane" id="dp-results-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:var(--space-lg);flex-wrap:wrap">
+          <div class="worklist-search-wrap">
+            <i class="fas fa-magnifying-glass"></i>
+            <input type="text" id="dp-result-search" class="worklist-search" placeholder="Lab ID, patient, test name…">
+          </div>
+          <select class="filter-select" id="dp-result-filter">
+            <option value="">All results</option>
+            <option value="critical">🚨 Critical only</option>
+            <option value="abnormal">⚠️ Abnormal</option>
+            <option value="today">📅 Today</option>
+          </select>
+          <select class="filter-select" id="dp-dept-filter">
+            <option value="">All departments</option>
+            <option>Hematology</option><option>Chemistry</option>
+            <option>Microbiology</option><option>Serology</option>
+            <option>Blood Bank</option>
+          </select>
+        </div>
+        <table class="nx-table">
+          <thead><tr>
+            <th>🧬 Patient</th><th>🔖 Lab ID</th><th>🧪 Test</th>
+            <th>📊 Result</th><th>🚦 Flag</th><th>🕐 Released</th><th>Action</th>
+          </tr></thead>
+          <tbody id="dp-results-tbody">
+            <tr><td colspan="7"><div class="worklist-loading"><i class="fas fa-spinner"></i> Loading results…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ CRITICAL ALERTS ══ -->
+    <div class="tab-pane" id="dp-critical-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="background:rgba(255,23,68,.06);border:1px solid rgba(255,23,68,.20);border-radius:var(--radius-lg);padding:var(--space-lg);margin-bottom:var(--space-lg)">
+          <div style="font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;color:var(--alert-red);margin-bottom:var(--space-sm)">🚨 Unacknowledged Critical Results</div>
+          <div style="font-size:var(--text-xs);color:var(--text-muted)">These results require your immediate clinical attention and acknowledgment.</div>
+        </div>
+        <div id="dp-critical-list"></div>
+      </div>
+    </div>
+
+    <!-- ══ PATIENT HISTORY (Cross-hospital LID) ══ -->
+    <div class="tab-pane" id="dp-history-pane">
+      <div style="padding:var(--space-xl);max-width:900px">
+        <div style="margin-bottom:var(--space-lg)">
+          <div style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);margin-bottom:var(--space-sm)">📚 Cross-Hospital Patient History (LID Lookup)</div>
+          <div style="font-size:var(--text-xs);color:var(--text-muted)">Enter a patient's Lifelong ID (LID) to access their complete laboratory history across all NEXUS-connected facilities.</div>
+        </div>
+        <div style="display:flex;gap:var(--space-sm);margin-bottom:var(--space-xl)">
+          <input type="text" class="form-input" id="dp-lid-input" placeholder="Enter LID (e.g. NXS-LID-2024-000142) or PID…" style="flex:1">
+          <button class="btn btn-primary" id="dp-lid-search-btn">🔍 Search History</button>
+        </div>
+        <div id="dp-history-results">
+          <div class="empty-state">
+            <div class="empty-state-icon" style="font-size:40px">🔍</div>
+            <p>Enter a patient LID or PID to load their complete cross-hospital laboratory history.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ORDER TESTS ══ -->
+    <div class="tab-pane" id="dp-order-pane">
+      <div style="max-width:720px;margin:0 auto;padding:var(--space-xl)">
+        <div style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);margin-bottom:var(--space-lg)">🧪 Order Laboratory Tests</div>
+        <div style="display:flex;flex-direction:column;gap:var(--space-md)">
+          <div class="form-group">
+            <label class="form-label">🧬 Patient</label>
+            <input type="text" class="form-input" id="dp-order-patient" placeholder="Search by PID or name…">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🏥 Ward / Location</label>
+            <select class="form-input" id="dp-order-ward">
+              <option>Medical Ward A</option><option>Medical Ward B</option>
+              <option>ICU</option><option>Maternity</option><option>Surgery</option>
+              <option>Outpatient</option><option>Emergency</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">📋 Clinical Indication</label>
+            <textarea class="form-input fi fi-ta" id="dp-order-indication" rows="2" placeholder="Reason for testing…"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">⚡ Priority</label>
+            <div style="display:flex;gap:var(--space-sm)">
+              <label class="priority-pill routine selected"><input type="radio" name="dp-priority" value="routine" checked> 📋 Routine</label>
+              <label class="priority-pill urgent"><input type="radio" name="dp-priority" value="urgent"> ⚡ Urgent</label>
+              <label class="priority-pill emerg"><input type="radio" name="dp-priority" value="emergency"> 🚨 STAT</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">🧪 Select Tests</label>
+            <div style="display:flex;gap:var(--space-sm);margin-bottom:var(--space-sm);flex-wrap:wrap">
+              <button class="btn btn-ghost btn-sm dp-preset" data-tests="CBC,ESR,CRP">📋 FBC Panel</button>
+              <button class="btn btn-ghost btn-sm dp-preset" data-tests="Glucose,Creatinine,Urea,Electrolytes">⚗️ U+E Panel</button>
+              <button class="btn btn-ghost btn-sm dp-preset" data-tests="ALT,AST,ALP,Bilirubin,Albumin">🫀 LFT Panel</button>
+              <button class="btn btn-ghost btn-sm dp-preset" data-tests="HIV,HBsAg,HCV,VDRL">🔬 Serology Screen</button>
+              <button class="btn btn-ghost btn-sm dp-preset" data-tests="Malaria RDT,Blood Film (Giemsa),CBC">🦟 Malaria Panel</button>
+              <button class="btn btn-ghost btn-sm dp-preset" data-tests="GeneXpert MTB/RIF,ZN Stain,Culture">🫁 TB Panel</button>
+            </div>
+            <div id="dp-selected-tests" style="display:flex;flex-wrap:wrap;gap:5px;min-height:32px;padding:var(--space-sm);background:var(--bg-glass);border-radius:var(--radius-md);border:1px solid var(--border-dim)">
+              <span style="color:var(--text-muted);font-size:11px;padding:3px">No tests selected — choose a panel or add individually</span>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="dp-submit-order-btn" style="width:100%;margin-top:var(--space-sm)">
+            🧪 Submit Laboratory Order
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /dp-body -->
+</div>
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/doctor_portal/js/doctor_portal.js' %}" defer></script>
+{% endblock %}

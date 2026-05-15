@@ -1,0 +1,165 @@
+/* ═══════════════════════════════════════════════════════════════
+   JORINOVA NEXUS ALIS-X — Hematology AI Module
+   ═══════════════════════════════════════════════════════════════ */
+
+.hema-main { display:flex; flex-direction:column; flex:1; overflow:hidden; }
+.hema-header { background:linear-gradient(90deg, var(--bg-deep), rgba(255,23,68,0.03)); }
+
+.hema-iso-pill {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:5px 13px; border-radius:var(--radius-full);
+  background:rgba(255,23,68,0.07); border:1px solid rgba(255,23,68,0.20);
+  font-size:11px; font-weight:600; color:rgba(255,80,80,.85); letter-spacing:.04em;
+}
+
+.hema-tab-nav { padding:0 var(--space-xl); background:var(--bg-deep); border-bottom:1px solid var(--border-dim); flex-shrink:0; }
+.hema-body { flex:1; overflow-y:auto; }
+
+/* ─── Two-panel layout ──────────────────────────────────────── */
+.hema-cbc-layout {
+  display:grid; grid-template-columns:380px 1fr;
+  min-height:calc(100vh - 200px); overflow:hidden;
+}
+
+.hema-input-panel {
+  border-right:1px solid var(--border-dim);
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.hema-panel-title {
+  padding:var(--space-md) var(--space-lg);
+  background:var(--bg-deep); border-bottom:1px solid var(--border-dim);
+  font-family:var(--font-display); font-size:var(--text-sm); font-weight:700;
+  color:var(--text-primary); letter-spacing:.04em; flex-shrink:0;
+}
+.hema-input-body { flex:1; overflow-y:auto; padding:var(--space-lg); display:flex; flex-direction:column; gap:var(--space-md); }
+
+.cbc-section-label {
+  font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.09em;
+  color:var(--text-muted); padding:var(--space-xs) 0; margin-top:var(--space-sm);
+  border-bottom:1px solid var(--border-dim);
+}
+
+/* ─── CBC Parameter Grid ────────────────────────────────────── */
+.cbc-param-grid { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-sm); }
+.cbc-param-item { display:flex; flex-direction:column; gap:2px; }
+.cbc-param-item label { font-size:11px; font-weight:600; color:var(--text-secondary); }
+.cbc-unit { font-size:9px; color:var(--text-muted); font-weight:400; }
+
+.cbc-input {
+  background:var(--bg-surface); border:1px solid var(--border-dim);
+  border-radius:var(--radius-sm); color:var(--text-primary);
+  font-family:var(--font-mono); font-size:var(--text-sm); font-weight:600;
+  padding:6px 8px; outline:none; width:100%;
+  transition:border-color var(--duration-fast), box-shadow var(--duration-fast);
+}
+.cbc-input:focus { border-color:var(--border-bright); box-shadow:0 0 0 3px rgba(0,153,255,.10); }
+.cbc-input.abnormal { border-color:var(--alert-yellow); background:rgba(255,214,0,.05); }
+.cbc-input.critical { border-color:var(--alert-red); background:rgba(255,23,68,.06); animation:pulse-border 1.2s infinite; }
+
+@keyframes pulse-border { 0%,100%{box-shadow:0 0 0 2px rgba(255,23,68,.15)} 50%{box-shadow:0 0 0 4px rgba(255,23,68,.30)} }
+
+.cbc-ref { font-size:9px; color:var(--text-muted); font-style:italic; }
+
+/* ─── Result Panel ──────────────────────────────────────────── */
+.hema-result-panel {
+  background:var(--bg-surface); overflow-y:auto;
+  display:flex; flex-direction:column;
+}
+.hema-result-empty {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  flex:1; gap:var(--space-md); color:var(--text-muted); font-size:var(--text-sm); text-align:center;
+  padding:var(--space-2xl);
+}
+
+/* ─── AI Interpretation Output ──────────────────────────────── */
+.ai-result-content { padding:var(--space-xl); display:flex; flex-direction:column; gap:var(--space-lg); }
+
+.finding-primary {
+  font-family:var(--font-display); font-size:22px; font-weight:700;
+  color:var(--text-primary); letter-spacing:.03em; line-height:1.2;
+}
+.finding-severity {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:4px 14px; border-radius:var(--radius-full);
+  font-size:11px; font-weight:700; letter-spacing:.06em; border:1px solid;
+  margin-top:4px;
+}
+.sev-normal  { color:var(--alert-green); border-color:var(--alert-green); background:rgba(0,230,118,.08); }
+.sev-mild    { color:var(--alert-yellow);border-color:var(--alert-yellow);background:rgba(255,214,0,.08); }
+.sev-moderate{ color:var(--alert-orange);border-color:var(--alert-orange);background:rgba(255,109,0,.08); }
+.sev-severe  { color:var(--alert-red);   border-color:var(--alert-red);   background:rgba(255,23,68,.08); }
+
+.interp-section {
+  background:var(--bg-glass); border:1px solid var(--border-dim);
+  border-radius:var(--radius-md); padding:var(--space-md);
+}
+.interp-section-title {
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em;
+  color:var(--text-muted); margin-bottom:var(--space-sm);
+}
+.interp-finding { font-size:var(--text-sm); color:var(--text-secondary); line-height:1.6; }
+.interp-finding strong { color:var(--text-primary); }
+
+.reflex-tags { display:flex; flex-wrap:wrap; gap:6px; }
+.reflex-tag {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:4px 10px; border-radius:var(--radius-full);
+  background:rgba(0,153,255,.08); border:1px solid rgba(0,153,255,.20);
+  font-size:11px; font-weight:600; color:var(--blue-glow);
+  cursor:pointer; transition:background var(--duration-fast);
+}
+.reflex-tag:hover { background:rgba(0,153,255,.15); }
+
+.leukemia-flag {
+  padding:var(--space-md); border-radius:var(--radius-md);
+  background:rgba(255,109,0,.09); border:1px solid rgba(255,109,0,.30);
+  color:var(--alert-orange); font-weight:700; font-size:var(--text-sm);
+  display:flex; align-items:center; gap:var(--space-sm);
+  animation:pulse-orange 1.4s infinite;
+}
+@keyframes pulse-orange { 0%,100%{box-shadow:0 0 0 0 rgba(255,109,0,.0)} 50%{box-shadow:0 0 0 6px rgba(255,109,0,.12)} }
+
+.sepsis-alert {
+  padding:var(--space-md); border-radius:var(--radius-md);
+  background:rgba(255,23,68,.09); border:2px solid var(--alert-red);
+  color:var(--alert-red); font-weight:700; font-size:var(--text-sm);
+  display:flex; align-items:center; gap:var(--space-sm);
+  animation:pulse-red 1s infinite;
+}
+@keyframes pulse-red { 0%,100%{box-shadow:0 0 0 0 rgba(255,23,68,.0)} 50%{box-shadow:0 0 0 8px rgba(255,23,68,.15)} }
+
+.iso-disclaimer {
+  padding:var(--space-sm) var(--space-md); border-radius:var(--radius-sm);
+  background:rgba(0,153,255,.05); border:1px solid rgba(0,153,255,.15);
+  font-size:10px; color:var(--text-muted); letter-spacing:.03em;
+}
+
+/* ─── Smear Upload Zone ──────────────────────────────────────── */
+.smear-upload-zone {
+  border:2px dashed var(--border-mid); border-radius:var(--radius-lg);
+  padding:var(--space-xl); text-align:center; cursor:pointer;
+  transition:border-color var(--duration-fast), background var(--duration-fast);
+  display:flex; flex-direction:column; align-items:center; gap:var(--space-sm);
+}
+.smear-upload-zone:hover, .smear-upload-zone.drag-over {
+  border-color:var(--blue-glow); background:rgba(0,153,255,.04);
+}
+.smear-upload-icon { font-size:40px; }
+
+/* ─── Morphology bar ─────────────────────────────────────────── */
+.morphology-row { display:flex; align-items:center; gap:var(--space-md); margin-bottom:6px; }
+.morphology-name { font-size:var(--text-xs); color:var(--text-secondary); width:140px; flex-shrink:0; }
+.morphology-bar-wrap { flex:1; background:var(--bg-glass); border-radius:var(--radius-full); height:8px; overflow:hidden; }
+.morphology-bar-fill { height:100%; border-radius:var(--radius-full); transition:width .6s var(--ease-out); }
+.morphology-pct { font-size:11px; font-family:var(--font-mono); color:var(--text-muted); width:36px; text-align:right; flex-shrink:0; }
+
+/* ─── KPI Cards ──────────────────────────────────────────────── */
+.hema-kpi-card {
+  background:var(--bg-surface); border:1px solid var(--border-dim);
+  border-radius:var(--radius-lg); padding:var(--space-lg);
+  display:flex; flex-direction:column; align-items:flex-start; gap:6px;
+}
+.hema-kpi-val { font-family:var(--font-display); font-size:28px; font-weight:700; color:var(--text-primary); line-height:1; }
+.hema-kpi-lbl { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); }
+
+@media (max-width:900px) { .hema-cbc-layout { grid-template-columns:1fr; } }

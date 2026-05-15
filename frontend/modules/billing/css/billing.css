@@ -1,0 +1,20 @@
+/* JORINOVA NEXUS ALIS-X — Billing Module */
+.billing-main { display:flex;flex-direction:column;flex:1;overflow:hidden; }
+.billing-tab-nav { padding:0 var(--space-xl);background:var(--bg-deep);border-bottom:1px solid var(--border-dim);flex-shrink:0; }
+.billing-body { flex:1;overflow-y:auto;padding:var(--space-xl);display:flex;flex-direction:column;gap:var(--space-lg); }
+.billing-stat-row { display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-md); }
+.billing-stat {
+  background:var(--bg-card);border:1px solid var(--border-dim);border-radius:var(--radius-lg);
+  padding:var(--space-lg);display:flex;align-items:center;gap:var(--space-md);
+  transition:border-color var(--duration-fast);
+}
+.billing-stat:hover { border-color:var(--border-mid); }
+.billing-stat-icon { font-size:28px;line-height:1;width:44px;text-align:center;flex-shrink:0; }
+.billing-stat-val { font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--text-primary);line-height:1; }
+.billing-stat-lbl { font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-top:3px; }
+.epi-badge {
+  display:inline-flex;align-items:center;gap:8px;padding:8px 16px;
+  background:rgba(0,153,255,0.07);border:1px solid var(--border-dim);border-radius:var(--radius-full);
+  font-size:var(--text-xs);font-weight:600;color:var(--text-secondary);
+}
+@media (max-width:900px) { .billing-stat-row { grid-template-columns:1fr 1fr; } }

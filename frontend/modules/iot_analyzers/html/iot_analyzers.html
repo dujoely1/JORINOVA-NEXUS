@@ -1,0 +1,95 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}🔧 Analyzers & IoT — NEXUS ALIS-X{% endblock %}
+{% block module_id %}iot-analyzers{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/iot_analyzers/css/iot_analyzers.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="iot-main">
+
+  <header class="page-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(0,255,150,0.08);border-color:rgba(0,255,150,0.22);color:#00FF96">
+        <span style="font-size:20px">🔧</span>
+      </div>
+      <div>
+        <h1 class="page-title">🔧 Analyzer &amp; IoT Hub</h1>
+        <div class="page-subtitle">{{ today|date:"l, d F Y" }} · Real-time Device Monitoring · Calibration · Connectivity</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <div class="iot-live-indicator"><span class="iot-live-dot"></span> Live Monitoring</div>
+      <button class="btn btn-ghost btn-sm" id="iot-refresh-all"><i class="fas fa-arrows-rotate"></i> Refresh All</button>
+    </div>
+  </header>
+
+  <div class="tab-nav iot-tab-nav" role="tablist">
+    <button class="tab-btn active" data-pane="iot-dashboard-pane">🖥️ Dashboard</button>
+    <button class="tab-btn" data-pane="iot-calibration-pane">📐 Calibration &amp; QC</button>
+    <button class="tab-btn" data-pane="iot-maintenance-pane">🔧 Maintenance</button>
+    <button class="tab-btn" data-pane="iot-connectivity-pane">📡 Connectivity</button>
+  </div>
+
+  <div class="iot-body">
+
+    <!-- DASHBOARD -->
+    <div class="tab-pane active" id="iot-dashboard-pane">
+      <div class="iot-summary-strip">
+        <div class="iot-summary-item"><span style="font-size:20px">🟢</span><div><div class="iot-sum-val" id="sum-online">—</div><div class="iot-sum-lbl">Online</div></div></div>
+        <div class="iot-summary-item"><span style="font-size:20px">🔴</span><div><div class="iot-sum-val" id="sum-offline" style="color:var(--alert-red)">—</div><div class="iot-sum-lbl">Offline</div></div></div>
+        <div class="iot-summary-item"><span style="font-size:20px">🟡</span><div><div class="iot-sum-val" id="sum-warning" style="color:var(--alert-orange)">—</div><div class="iot-sum-lbl">Warnings</div></div></div>
+        <div class="iot-summary-item"><span style="font-size:20px">⚠️</span><div><div class="iot-sum-val" id="sum-alerts" style="color:var(--alert-red)">—</div><div class="iot-sum-lbl">Active Alerts</div></div></div>
+        <div class="iot-summary-item"><span style="font-size:20px">📊</span><div><div class="iot-sum-val" id="sum-today">—</div><div class="iot-sum-lbl">Tests Today</div></div></div>
+      </div>
+      <div class="analyzer-grid" id="analyzer-grid">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- CALIBRATION -->
+    <div class="tab-pane" id="iot-calibration-pane">
+      <div style="padding:var(--space-xl)">
+        <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);margin-bottom:var(--space-lg)">📐 Calibration Schedule</h2>
+        <table class="nx-table">
+          <thead><tr><th>🔬 Analyzer</th><th>Calibrator</th><th>Frequency</th><th>Last Cal</th><th>Next Cal</th><th>⏰ Due In</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="cal-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MAINTENANCE -->
+    <div class="tab-pane" id="iot-maintenance-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-lg)">
+          <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary)">🔧 Maintenance Log</h2>
+          <button class="btn btn-primary btn-sm">➕ Log Maintenance</button>
+        </div>
+        <table class="nx-table">
+          <thead><tr><th>🔬 Analyzer</th><th>Task</th><th>Type</th><th>Performed By</th><th>Date</th><th>Next Due</th><th>Status</th></tr></thead>
+          <tbody id="maint-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CONNECTIVITY -->
+    <div class="tab-pane" id="iot-connectivity-pane">
+      <div style="padding:var(--space-xl)">
+        <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);margin-bottom:var(--space-lg)">📡 LIS Connectivity Status</h2>
+        <table class="nx-table">
+          <thead><tr><th>🔬 Analyzer</th><th>Protocol</th><th>Direction</th><th>Last Msg</th><th>Orders Sent</th><th>Results Received</th><th>Status</th></tr></thead>
+          <tbody id="conn-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/iot_analyzers/js/iot_analyzers.js' %}" defer></script>
+{% endblock %}

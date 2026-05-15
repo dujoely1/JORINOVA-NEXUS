@@ -1,0 +1,74 @@
+/* JORINOVA NEXUS ALIS-X — Doctor Portal */
+.dp-main  { display:flex; flex-direction:column; flex:1; overflow:hidden; }
+.dp-tab-nav { padding:0 var(--space-xl); background:var(--bg-deep); border-bottom:1px solid var(--border-dim); flex-shrink:0; }
+.dp-body  { flex:1; overflow-y:auto; }
+
+.dp-doctor-chip {
+  display:flex; align-items:center; gap:var(--space-sm);
+  padding:6px 14px; border-radius:var(--radius-full);
+  background:rgba(68,136,255,.08); border:1px solid rgba(68,136,255,.22);
+}
+
+/* Patient Grid */
+.dp-patient-grid {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:var(--space-md);
+}
+.dp-patient-card {
+  background:var(--bg-surface); border:1px solid var(--border-dim);
+  border-radius:var(--radius-lg); padding:var(--space-md);
+  cursor:pointer; transition:all var(--duration-fast);
+}
+.dp-patient-card:hover { border-color:var(--border-bright); box-shadow:var(--shadow-card); transform:translateY(-1px); }
+.dp-patient-card.has-critical { border-left:3px solid var(--alert-red); }
+.dp-patient-card.has-pending  { border-left:3px solid var(--alert-orange); }
+
+.dp-card-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:var(--space-sm); }
+.dp-patient-name { font-size:var(--text-sm); font-weight:700; color:var(--text-primary); }
+.dp-patient-meta { font-size:11px; color:var(--text-muted); margin-top:2px; font-family:var(--font-mono); }
+.dp-dx { font-size:11px; color:var(--text-secondary); font-style:italic; margin-bottom:var(--space-sm); border-left:2px solid var(--border-mid); padding-left:6px; }
+
+.dp-result-flags { display:flex; flex-wrap:wrap; gap:4px; margin-top:var(--space-sm); }
+.dp-flag-pill {
+  padding:2px 8px; border-radius:var(--radius-full); font-size:10px; font-weight:700; border:1px solid;
+}
+.dp-flag-critical { color:var(--alert-red); border-color:var(--alert-red); background:rgba(255,23,68,.08); animation:pulse-dp .8s infinite; }
+.dp-flag-abnormal { color:var(--alert-orange); border-color:var(--alert-orange); background:rgba(255,109,0,.08); }
+.dp-flag-normal   { color:var(--alert-green); border-color:var(--alert-green); background:rgba(0,230,118,.08); }
+@keyframes pulse-dp { 0%,100%{opacity:1} 50%{opacity:.6} }
+
+/* Result row flag colors */
+.result-flag-HH, .result-flag-LL { color:var(--alert-red); font-weight:700; }
+.result-flag-H, .result-flag-L   { color:var(--alert-orange); font-weight:700; }
+.result-flag-N { color:var(--alert-green); }
+.result-flag-A { color:var(--alert-yellow); }
+
+/* Critical alert cards */
+.dp-critical-card {
+  background:rgba(255,23,68,.05); border:1px solid rgba(255,23,68,.25);
+  border-radius:var(--radius-lg); padding:var(--space-lg);
+  margin-bottom:var(--space-md);
+}
+.dp-critical-title { font-family:var(--font-display); font-size:var(--text-sm); font-weight:700; color:var(--alert-red); }
+.dp-critical-meta  { font-size:11px; color:var(--text-muted); margin-top:3px; }
+
+/* History timeline */
+.dp-history-timeline { display:flex; flex-direction:column; gap:0; }
+.dp-history-entry {
+  display:flex; gap:var(--space-md); padding:var(--space-md) 0;
+  border-bottom:1px solid var(--border-dim); position:relative;
+}
+.dp-history-dot {
+  width:10px; height:10px; border-radius:50%; background:var(--blue-glow);
+  flex-shrink:0; margin-top:4px; box-shadow:0 0 6px rgba(0,153,255,.5);
+}
+.dp-history-content { flex:1; }
+.dp-history-date  { font-size:11px; font-family:var(--font-mono); color:var(--text-muted); }
+.dp-history-test  { font-size:var(--text-sm); font-weight:600; color:var(--text-primary); }
+.dp-history-val   { font-size:11px; color:var(--text-secondary); margin-top:2px; }
+.dp-history-hosp  { font-size:10px; color:var(--cyan); margin-top:2px; }
+
+/* Order presets */
+.dp-preset.selected { background:rgba(0,153,255,.12); border-color:var(--blue-glow); color:var(--blue-glow); }
+
+@media (max-width:900px) { .dp-patient-grid { grid-template-columns:1fr; } }

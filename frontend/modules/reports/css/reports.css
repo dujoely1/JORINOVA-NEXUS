@@ -1,0 +1,109 @@
+/* JORINOVA NEXUS ALIS-X — Reports Module */
+.reports-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+.reports-tab-nav {
+  padding: 0 var(--space-xl);
+  background: var(--bg-deep);
+  border-bottom: 1px solid var(--border-dim);
+  flex-shrink: 0;
+}
+.reports-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+/* KPI row */
+.reports-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-md);
+}
+.kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  position: relative;
+  overflow: hidden;
+  transition: border-color var(--duration-fast);
+}
+.kpi-card:hover { border-color: var(--border-mid); }
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--gold-dim);
+  opacity: 0.7;
+}
+.kpi-icon {
+  width: 40px; height: 40px;
+  border-radius: var(--radius-md);
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+.kpi-value {
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.kpi-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+.kpi-trend {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+}
+.kpi-up   { color: var(--alert-green); }
+.kpi-down { color: var(--alert-orange); }
+/* Charts row */
+.reports-charts-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-lg);
+}
+.report-chart-lg {}
+/* Epi badges */
+.epi-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(0,153,255,0.07);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+@media (max-width: 1300px) {
+  .reports-kpi-row      { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 1000px) {
+  .reports-charts-row   { grid-template-columns: 1fr; }
+  .reports-kpi-row      { grid-template-columns: repeat(2, 1fr); }
+}

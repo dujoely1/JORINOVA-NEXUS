@@ -1,0 +1,130 @@
+# ════════════════════════════════════════════════
+#  JORINOVA NEXUS — .gitignore
+# ════════════════════════════════════════════════
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+*.pyo
+*.pyw
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+.env.local
+.env.*.local
+
+# Environment & secrets
+.env
+.env.production
+.env.staging
+*.secret
+secrets.json
+local_settings.py
+
+# Django
+*.sqlite3
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+static_root/
+*.log
+local.py
+
+# Celery
+celerybeat-schedule
+celerybeat-schedule.db
+celerybeat.pid
+
+# Redis
+dump.rdb
+redis-server.pid
+
+# Coverage & testing
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.pytest_cache/
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+MANIFEST
+wheels/
+.eggs/
+
+# Node (if any tooling is ever added)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE / editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V7
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Migrations (keep in version control — comment out to ignore)
+# */migrations/
+
+# Backup files
+*.bak
+*.orig
+*.rej
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# Profiling
+*.prof
+
+# Docker
+.dockerignore (generated)
+docker-compose.override.yml

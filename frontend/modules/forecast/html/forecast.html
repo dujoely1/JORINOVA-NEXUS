@@ -1,0 +1,254 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}🔮 Forecast Intelligence — NEXUS ALIS-X{% endblock %}
+{% block module_id %}forecast{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/forecast/css/forecast.css' %}">
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="fc-main">
+
+  <header class="page-header fc-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(150,50,255,0.10);border-color:rgba(150,50,255,0.25);color:#A855F7">
+        <span style="font-size:20px">🔮</span>
+      </div>
+      <div>
+        <h1 class="page-title">🔮 Forecast Intelligence Engine</h1>
+        <div class="page-subtitle">AI Predictive Analytics · 14 Forecast Domains · Confidence-Scored · Continuously Learning</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <select class="fi" id="fc-horizon" style="width:130px;font-size:var(--text-xs)">
+        <option value="7">📅 7 Days</option>
+        <option value="30">📆 30 Days</option>
+        <option value="90">🗓️ 90 Days</option>
+      </select>
+      <button class="btn btn-primary btn-sm" id="fc-refresh-all-btn">🔄 Refresh All Forecasts</button>
+      <div class="fc-ai-badge">🤖 AI Engine Active</div>
+    </div>
+  </header>
+
+  <!-- Alert strip -->
+  <div id="fc-alert-strip" class="fc-alert-strip" style="display:none"></div>
+
+  <div class="tab-nav fc-tab-nav" role="tablist">
+    <button class="tab-btn active" data-pane="fc-overview-pane">🌐 Overview</button>
+    <button class="tab-btn" data-pane="fc-workload-pane">📊 Lab Workload</button>
+    <button class="tab-btn" data-pane="fc-inventory-pane">🧪 Inventory & Reagents</button>
+    <button class="tab-btn" data-pane="fc-blood-pane">🩸 Blood Bank</button>
+    <button class="tab-btn" data-pane="fc-outbreak-pane">🦠 Outbreak & Epidemic</button>
+    <button class="tab-btn" data-pane="fc-analyzer-pane">🔧 Analyzer Health</button>
+    <button class="tab-btn" data-pane="fc-custom-pane">⚙️ Custom Forecast</button>
+  </div>
+
+  <div class="fc-body">
+
+    <!-- ══ OVERVIEW — All 14 domain tiles ══ -->
+    <div class="tab-pane active" id="fc-overview-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:var(--space-lg)">
+          🔮 14-Domain Forecast Summary — <span id="fc-overview-horizon">Next 7 Days</span>
+        </div>
+        <div class="fc-domain-grid" id="fc-domain-grid">
+          <!-- Populated by JS -->
+          <div class="fc-loading-state">
+            <div style="font-size:40px">🔮</div>
+            <div>Loading AI Forecasts…</div>
+            <div class="fc-spinner"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ LAB WORKLOAD ══ -->
+    <div class="tab-pane" id="fc-workload-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:var(--space-xl)">
+          <div>
+            <div style="font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;color:var(--text-primary);margin-bottom:var(--space-lg)">
+              📊 Laboratory Workload Forecast
+            </div>
+            <div class="glass-panel" style="padding:var(--space-lg)">
+              <div class="fc-chart-header">
+                <div class="chart-title">Daily Test Volume Prediction</div>
+                <div id="fc-workload-confidence" class="fc-confidence-badge">—</div>
+              </div>
+              <div style="height:220px"><canvas id="fc-workload-chart"></canvas></div>
+            </div>
+            <div style="margin-top:var(--space-lg)">
+              <div class="glass-panel" style="padding:var(--space-lg)">
+                <div class="chart-title">⏱️ TAT Delay Risk Forecast</div>
+                <div style="height:160px"><canvas id="fc-tat-chart"></canvas></div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--space-lg)">
+            <div class="fc-insight-card" id="fc-workload-insight"></div>
+            <div class="fc-insight-card" id="fc-patient-influx-insight"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ INVENTORY & REAGENTS ══ -->
+    <div class="tab-pane" id="fc-inventory-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-xl)">
+          <div class="glass-panel" style="padding:var(--space-lg)">
+            <div class="fc-chart-header">
+              <div class="chart-title">🧪 Reagent Consumption Forecast</div>
+              <div id="fc-reagent-conf" class="fc-confidence-badge">—</div>
+            </div>
+            <div style="height:200px"><canvas id="fc-reagent-chart"></canvas></div>
+          </div>
+          <div class="glass-panel" style="padding:var(--space-lg)">
+            <div class="fc-chart-header">
+              <div class="chart-title">📦 Stock Depletion Risk</div>
+              <div id="fc-stock-conf" class="fc-confidence-badge">—</div>
+            </div>
+            <div style="height:200px"><canvas id="fc-stock-chart"></canvas></div>
+          </div>
+        </div>
+        <div style="margin-top:var(--space-lg)" id="fc-inventory-alerts"></div>
+        <div style="margin-top:var(--space-lg)">
+          <div class="glass-panel" style="padding:var(--space-lg)">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:var(--space-md)">
+              📋 Predicted Depletion by Item (7 days)
+            </div>
+            <table class="nx-table" id="fc-depletion-table">
+              <thead><tr><th>Item</th><th>Current Stock</th><th>7-Day Forecast Consumption</th><th>Est. Depletion</th><th>Risk</th></tr></thead>
+              <tbody id="fc-depletion-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ BLOOD BANK ══ -->
+    <div class="tab-pane" id="fc-blood-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:var(--space-xl)">
+          <div>
+            <div class="glass-panel" style="padding:var(--space-lg)">
+              <div class="fc-chart-header">
+                <div class="chart-title">🩸 Blood Demand Forecast by Group</div>
+                <div id="fc-blood-conf" class="fc-confidence-badge">—</div>
+              </div>
+              <div style="height:220px"><canvas id="fc-blood-chart"></canvas></div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--space-md)">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted)">🩸 Blood Group Shortage Risk</div>
+            <div id="fc-blood-risk-grid" class="fc-blood-risk-grid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ OUTBREAK & EPIDEMIC ══ -->
+    <div class="tab-pane" id="fc-outbreak-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:var(--space-xl)">
+          <div style="display:flex;flex-direction:column;gap:var(--space-lg)">
+            <div class="glass-panel" style="padding:var(--space-lg)">
+              <div class="fc-chart-header">
+                <div class="chart-title">🦠 Outbreak Case Forecast (All Diseases)</div>
+                <div id="fc-outbreak-conf" class="fc-confidence-badge">—</div>
+              </div>
+              <div style="height:200px"><canvas id="fc-outbreak-chart"></canvas></div>
+            </div>
+            <div class="glass-panel" style="padding:var(--space-lg)">
+              <div class="chart-title">🌍 AMR Resistance Trend Forecast</div>
+              <div style="height:160px"><canvas id="fc-amr-chart"></canvas></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:var(--space-md)">🗺️ District Risk Heatmap</div>
+            <div class="fc-district-heatmap" id="fc-district-heatmap"></div>
+            <div style="margin-top:var(--space-lg)">
+              <div id="fc-seasonal-insight" class="fc-insight-card"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ANALYZER HEALTH ══ -->
+    <div class="tab-pane" id="fc-analyzer-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-xl)">
+          <div class="glass-panel" style="padding:var(--space-lg)">
+            <div class="fc-chart-header">
+              <div class="chart-title">🔧 Analyzer Downtime Risk</div>
+              <div id="fc-analyzer-conf" class="fc-confidence-badge">—</div>
+            </div>
+            <div style="height:200px"><canvas id="fc-analyzer-chart"></canvas></div>
+          </div>
+          <div class="glass-panel" style="padding:var(--space-lg)">
+            <div class="chart-title">📐 QC Failure Probability</div>
+            <div style="height:200px"><canvas id="fc-qc-chart"></canvas></div>
+          </div>
+        </div>
+        <div style="margin-top:var(--space-lg)">
+          <div class="glass-panel" style="padding:var(--space-lg)">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:var(--space-md)">⚙️ Predicted Maintenance Schedule</div>
+            <div id="fc-maintenance-schedule"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ CUSTOM FORECAST ══ -->
+    <div class="tab-pane" id="fc-custom-pane">
+      <div style="max-width:900px;margin:0 auto;padding:var(--space-xl)">
+        <div style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);margin-bottom:var(--space-lg)">⚙️ Custom Forecast Configuration</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-lg);margin-bottom:var(--space-lg)">
+          <div class="form-group"><label class="form-label">🔮 Forecast Domain</label>
+            <select class="form-input" id="custom-domain">
+              {% for value, label in domains %}
+              <option value="{{ value }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">📅 Horizon (days)</label>
+            <select class="form-input" id="custom-horizon">
+              <option value="7">7 Days</option><option value="14">14 Days</option>
+              <option value="30">30 Days</option><option value="90">90 Days</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">🤖 Algorithm</label>
+            <select class="form-input" id="custom-algo">
+              <option value="ensemble">🏆 Ensemble (Recommended)</option>
+              <option value="ets_smoothing">📈 ETS Triple Smoothing (Holt-Winters)</option>
+              <option value="linear_trend">📐 Linear Trend Regression</option>
+              <option value="moving_avg">📉 Adaptive Moving Average</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">📊 Confidence Level</label>
+            <select class="form-input" id="custom-ci">
+              <option value="95">95% Confidence Interval</option>
+              <option value="90">90% Confidence Interval</option>
+              <option value="80">80% Confidence Interval</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="run-custom-forecast-btn" style="margin-bottom:var(--space-xl)">🔮 Run Custom Forecast</button>
+        <div id="custom-forecast-result"></div>
+      </div>
+    </div>
+
+  </div><!-- /fc-body -->
+</div>
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/forecast/js/forecast.js' %}" defer></script>
+{% endblock %}

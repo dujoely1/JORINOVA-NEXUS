@@ -1,0 +1,1061 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#020818">
+  <title>{% block title %}JORINOVA NEXUS ALIS-X{% endblock %}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="{% static 'shared/css/variables.css' %}">
+  <link rel="stylesheet" href="{% static 'shared/css/layout.css' %}">
+  <link rel="stylesheet" href="{% static 'shared/css/themes.css' %}">
+  <link rel="stylesheet" href="{% static 'shared/css/components.css' %}">
+  <link rel="stylesheet" href="{% static 'shared/css/nexus-ui-extras.css' %}">
+
+  {% block module_css %}{% endblock %}
+  {% block extra_head %}{% endblock %}
+
+  <style>
+  /* ── Submenu flyout ───────────────────────────────────────────── */
+  .nav-group { position: relative; }
+
+  .nav-flyout {
+    position: fixed;
+    left: calc(var(--sidebar-width) + 6px);
+    min-width: 210px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-mid);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,153,255,0.08);
+    padding: 6px;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-6px);
+    transition: opacity 160ms var(--ease-out), transform 160ms var(--ease-out);
+    backdrop-filter: saturate(180%) blur(16px);
+    -webkit-backdrop-filter: saturate(180%) blur(16px);
+  }
+
+  .nav-group:hover .nav-flyout,
+  .nav-flyout:hover {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateX(0);
+  }
+
+  .sidebar:hover .nav-flyout { left: calc(var(--sidebar-expanded) + 6px); }
+
+  .flyout-header {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 4px 10px 6px;
+    border-bottom: 1px solid var(--border-dim);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .flyout-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    transition: background var(--duration-fast), color var(--duration-fast);
+    white-space: nowrap;
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+  .flyout-item:hover {
+    background: rgba(0,153,255,0.08);
+    color: var(--text-primary);
+  }
+  .flyout-item.active {
+    background: rgba(0,153,255,0.10);
+    color: var(--blue-glow);
+  }
+  .flyout-emoji {
+    font-size: 15px;
+    line-height: 1;
+    width: 20px;
+    text-align: center;
+    filter: drop-shadow(0 0 4px rgba(0,170,255,0.3));
+    transition: filter var(--duration-fast), transform var(--duration-fast);
+  }
+  .flyout-item:hover .flyout-emoji {
+    filter: drop-shadow(0 0 8px rgba(0,212,255,0.7));
+    transform: scale(1.15);
+  }
+
+  /* ── Profile Sphere ──────────────────────────────────────────── */
+  .profile-sphere-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-left: 4px;
+  }
+
+  .profile-sphere {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    text-decoration: none;
+    flex-shrink: 0;
+    background: radial-gradient(circle at 35% 30%,
+      rgba(120, 200, 255, 0.9) 0%,
+      rgba(0, 120, 220, 0.85) 35%,
+      rgba(0, 40, 120, 0.95) 70%,
+      rgba(0, 10, 50, 1) 100%
+    );
+    border: 1.5px solid rgba(0, 180, 255, 0.55);
+    box-shadow:
+      0 0 0 2px rgba(0, 160, 255, 0.12),
+      0 3px 10px rgba(0, 0, 0, 0.45),
+      inset 0 2px 5px rgba(255, 255, 255, 0.18),
+      inset 0 -2px 5px rgba(0, 0, 0, 0.3);
+    transition: box-shadow var(--duration-fast), transform var(--duration-fast);
+    overflow: hidden;
+  }
+
+  .profile-sphere:hover {
+    box-shadow:
+      0 0 0 3px rgba(0, 200, 255, 0.25),
+      0 0 16px rgba(0, 180, 255, 0.45),
+      0 4px 12px rgba(0, 0, 0, 0.5),
+      inset 0 2px 5px rgba(255, 255, 255, 0.22),
+      inset 0 -2px 5px rgba(0, 0, 0, 0.3);
+    transform: scale(1.07);
+  }
+
+  .profile-sphere-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  .profile-sphere-initials {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.03em;
+    z-index: 1;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  }
+
+  .profile-sphere-glow {
+    position: absolute;
+    top: 4px; left: 5px;
+    width: 12px; height: 7px;
+    background: radial-gradient(ellipse, rgba(255,255,255,0.55) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .profile-online-dot {
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--alert-green);
+    border: 1.5px solid var(--bg-deep);
+    box-shadow: 0 0 5px rgba(0,230,118,0.7);
+    z-index: 3;
+  }
+
+  /* ── Profile Mini Dropdown ────────────────────────────────────── */
+  .profile-mini-drop {
+    position: fixed;
+    right: 12px;
+    top: 36px;
+    width: 230px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-mid);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,153,255,0.08);
+    backdrop-filter: saturate(180%) blur(16px);
+    -webkit-backdrop-filter: saturate(180%) blur(16px);
+    padding: 6px;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-6px) scale(0.97);
+    transition: opacity 160ms var(--ease-out), transform 160ms var(--ease-out);
+  }
+  .profile-mini-drop.open {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateY(0) scale(1);
+  }
+
+  .pmd-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px 10px;
+  }
+  .pmd-avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: radial-gradient(circle at 35% 30%, rgba(120,200,255,0.9), rgba(0,40,120,0.95));
+    border: 1.5px solid rgba(0,180,255,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-size: 13px; font-weight: 700; color: #fff;
+    box-shadow: 0 0 8px rgba(0,160,255,0.25), inset 0 2px 4px rgba(255,255,255,0.15);
+  }
+  .pmd-avatar img { width:100%; height:100%; object-fit:cover; }
+  .pmd-info { flex:1; min-width:0; }
+  .pmd-name { font-size: var(--text-sm); font-weight: 700; color: var(--text-primary); white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .pmd-role { font-size: 10px; color: var(--blue-glow); font-weight:600; text-transform:uppercase; letter-spacing:0.06em; margin-top:1px; }
+  .pmd-hospital { font-size: 10px; color: var(--text-muted); margin-top:1px; }
+  .pmd-divider { height:1px; background:var(--border-dim); margin:4px 0; }
+  .pmd-item {
+    display: flex; align-items: center; gap:10px;
+    padding: 8px 10px; border-radius: var(--radius-md);
+    color: var(--text-secondary); text-decoration: none;
+    font-size: var(--text-sm); font-weight: 500;
+    transition: background var(--duration-fast), color var(--duration-fast);
+    cursor: pointer; border: none; background: none; width:100%; text-align:left;
+  }
+  .pmd-item:hover { background: rgba(0,153,255,0.08); color: var(--text-primary); }
+  .pmd-item span { font-size:14px; width:18px; text-align:center; }
+  .pmd-logout { color: var(--text-muted); }
+  .pmd-logout:hover { background: rgba(255,23,68,0.08); color: var(--alert-red); }
+
+  /* Parent item arrow indicator */
+  .nav-arrow {
+    margin-left: auto;
+    font-size: 9px;
+    color: var(--text-muted);
+    opacity: 0;
+    transition: opacity var(--duration-fast), color var(--duration-fast);
+    flex-shrink: 0;
+  }
+  .sidebar:hover .nav-arrow { opacity: 1; }
+  .nav-group:hover .nav-arrow { color: var(--blue-glow); }
+
+  /* Expand flyout on sidebar collapsed hover */
+  .nav-group:hover .nav-flyout { opacity: 1; pointer-events: all; transform: translateX(0); }
+  </style>
+</head>
+<body>
+
+<div class="app-shell" id="app-shell">
+
+  <!-- ══════════════════════ SIDEBAR ══════════════════════ -->
+  <nav class="sidebar" id="sidebar" aria-label="Main navigation">
+
+    <div class="sidebar-brand">
+      <div class="brand-mark">⚡</div>
+      <span class="brand-text">🌐 NEXUS</span>
+    </div>
+
+    <div class="sidebar-nav" role="navigation">
+
+      <!-- 🖥️ Dashboard -->
+      <a href="/dashboard/"
+         class="nav-item {% block nav_active_dashboard %}{% endblock %}"
+         data-tooltip="🖥️ Dashboard">
+        <span class="nav-emoji">🖥️</span>
+        <span class="nav-label">🖥️ Dashboard</span>
+      </a>
+
+      <!-- 🧬 Patients + submenu -->
+      {% if request.user.role in 'receptionist,lab_manager,lab_technician,pathologist,doctor,nurse,phlebotomist,super_admin,it_admin,viewer' %}
+      <div class="nav-group">
+        <a href="/patients/hub/"
+           class="nav-item {% block nav_active_patients %}{% endblock %}"
+           data-tooltip="🧬 Patients">
+          <span class="nav-emoji">🧬</span>
+          <span class="nav-label">🧬 Patients</span>
+          <i class="fas fa-chevron-right nav-arrow"></i>
+        </a>
+        <div class="nav-flyout" style="top:0">
+          <div class="flyout-header"><span>🧬</span> Patient Management</div>
+          <a href="/patients/hub/" class="flyout-item {% block flyout_patient_hub %}{% endblock %}">
+            <span class="flyout-emoji">👤</span> Patient Hub
+          </a>
+          <a href="/patients/register/" class="flyout-item {% block flyout_patient_reg %}{% endblock %}">
+            <span class="flyout-emoji">➕</span> Register Patient
+          </a>
+          <a href="/patients/search/" class="flyout-item {% block flyout_patient_search %}{% endblock %}">
+            <span class="flyout-emoji">🔍</span> Search Records
+          </a>
+          <a href="/patients/history/" class="flyout-item {% block flyout_patient_hist %}{% endblock %}">
+            <span class="flyout-emoji">📋</span> Medical History
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- 📡 Reception + submenu -->
+      {% if request.user.role in 'receptionist,lab_manager,super_admin,it_admin' %}
+      <div class="nav-group">
+        <a href="/reception/"
+           class="nav-item {% block nav_active_reception %}{% endblock %}"
+           data-tooltip="📡 Reception">
+          <span class="nav-emoji">📡</span>
+          <span class="nav-label">📡 Reception</span>
+          <i class="fas fa-chevron-right nav-arrow"></i>
+        </a>
+        <div class="nav-flyout" style="top:0">
+          <div class="flyout-header"><span>📡</span> Front Desk</div>
+          <a href="/reception/" class="flyout-item {% block flyout_reception %}{% endblock %}">
+            <span class="flyout-emoji">🗂️</span> Reception Desk
+          </a>
+          <a href="/reception/queue/" class="flyout-item {% block flyout_queue %}{% endblock %}">
+            <span class="flyout-emoji">📊</span> Patient Queue
+          </a>
+          <a href="/reception/appointments/" class="flyout-item {% block flyout_appt %}{% endblock %}">
+            <span class="flyout-emoji">📅</span> Appointments
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- 🩸 Phlebotomy -->
+      {% if request.user.role in 'phlebotomist,lab_manager,super_admin,it_admin,receptionist' %}
+      <div class="nav-group">
+        <a href="/reception/phlebotomy/"
+           class="nav-item {% block nav_active_phlebotomy %}{% endblock %}"
+           data-tooltip="🩸 Phlebotomy">
+          <span class="nav-emoji">🩸</span>
+          <span class="nav-label">🩸 Phlebotomy</span>
+          <i class="fas fa-chevron-right nav-arrow"></i>
+        </a>
+        <div class="nav-flyout" style="top:0">
+          <div class="flyout-header"><span>🩸</span> Sample Collection</div>
+          <a href="/reception/phlebotomy/" class="flyout-item {% block flyout_phlebo %}{% endblock %}">
+            <span class="flyout-emoji">💉</span> Collection Queue
+          </a>
+          <a href="/reception/phlebotomy/tubes/" class="flyout-item {% block flyout_tubes %}{% endblock %}">
+            <span class="flyout-emoji">🧪</span> Tube Management
+          </a>
+          <a href="/reception/phlebotomy/tat/" class="flyout-item {% block flyout_tat %}{% endblock %}">
+            <span class="flyout-emoji">⏱️</span> TAT Monitor
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- ⚗️ Laboratory + submenu -->
+      {% if request.user.role in 'lab_technician,lab_manager,pathologist,phlebotomist,super_admin,it_admin' %}
+      <div class="nav-group">
+        <a href="/laboratory/"
+           class="nav-item {% block nav_active_lab %}{% endblock %}"
+           data-tooltip="⚗️ Laboratory">
+          <span class="nav-emoji">⚗️</span>
+          <span class="nav-label">⚗️ Laboratory</span>
+          <i class="fas fa-chevron-right nav-arrow"></i>
+        </a>
+        <div class="nav-flyout" style="top:0">
+          <div class="flyout-header"><span>⚗️</span> Lab Modules</div>
+          <a href="/laboratory/" class="flyout-item {% block flyout_lab_worklist %}{% endblock %}">
+            <span class="flyout-emoji">📋</span> Worklist
+          </a>
+          <a href="/hematology/" class="flyout-item {% block flyout_hema %}{% endblock %}">
+            <span class="flyout-emoji">🔴</span> Hematology AI
+          </a>
+          <a href="/laboratory/chemistry/" class="flyout-item {% block flyout_chem %}{% endblock %}">
+            <span class="flyout-emoji">🧫</span> Chemistry
+          </a>
+          <a href="/laboratory/microbiology/" class="flyout-item {% block flyout_micro %}{% endblock %}">
+            <span class="flyout-emoji">🦠</span> Microbiology
+          </a>
+          <a href="/laboratory/serology/" class="flyout-item {% block flyout_sero %}{% endblock %}">
+            <span class="flyout-emoji">🔬</span> Serology
+          </a>
+          <a href="/blood-bank/" class="flyout-item {% block flyout_blood %}{% endblock %}">
+            <span class="flyout-emoji">🩸</span> Blood Bank
+          </a>
+          <a href="/laboratory/coagulation/" class="flyout-item {% block flyout_coag %}{% endblock %}">
+            <span class="flyout-emoji">💙</span> Coagulation
+          </a>
+          <a href="/toxicology/" class="flyout-item {% block flyout_tox %}{% endblock %}">
+            <span class="flyout-emoji">☠️</span> Toxicology
+          </a>
+          <a href="/pathology/" class="flyout-item {% block flyout_path %}{% endblock %}">
+            <span class="flyout-emoji">🩺</span> Anatomical Path.
+          </a>
+          <a href="/laboratory/genomics/" class="flyout-item {% block flyout_genome %}{% endblock %}">
+            <span class="flyout-emoji">🧬</span> Genomics
+          </a>
+        </div>
+
+        <!-- Second lab flyout row: quality + IoT -->
+        <div class="nav-flyout" style="top:0;left:calc(var(--sidebar-width) + 220px)" id="lab-tools-flyout">
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- 🔮 Reports + submenu -->
+      {% if request.user.role in 'lab_manager,pathologist,doctor,nurse,super_admin,it_admin,finance,viewer' %}
+      <div class="nav-group">
+        <a href="/reports/"
+           class="nav-item {% block nav_active_reports %}{% endblock %}"
+           data-tooltip="🔮 Reports">
+          <span class="nav-emoji">🔮</span>
+          <span class="nav-label">🔮 Reports</span>
+          <i class="fas fa-chevron-right nav-arrow"></i>
+        </a>
+        <div class="nav-flyout" style="top:0">
+          <div class="flyout-header"><span>🔮</span> Reports & Analytics</div>
+          <a href="/reports/" class="flyout-item {% block flyout_rep_overview %}{% endblock %}">
+            <span class="flyout-emoji">📊</span> Overview
+          </a>
+          <a href="/reports/lab-results/" class="flyout-item {% block flyout_rep_lab %}{% endblock %}">
+            <span class="flyout-emoji">📄</span> Lab Results
+          </a>
+          <a href="/reports/tat-analysis/" class="flyout-item {% block flyout_rep_tat %}{% endblock %}">
+            <span class="flyout-emoji">⏱️</span> TAT Analysis
+          </a>
+          <a href="/reports/epidemiology/" class="flyout-item {% block flyout_rep_epi %}{% endblock %}">
+            <span class="flyout-emoji">🦠</span> Epidemiology
+          </a>
+          <a href="/reports/exports/" class="flyout-item {% block flyout_rep_export %}{% endblock %}">
+            <span class="flyout-emoji">📤</span> Export Data
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- 💠 Billing + submenu -->
+      {% if request.user.role in 'receptionist,finance,lab_manager,super_admin,it_admin' %}
+      <div class="nav-group">
+        <a href="/billing/"
+           class="nav-item {% block nav_active_billing %}{% endblock %}"
+           data-tooltip="💠 Billing">
+          <span class="nav-emoji">💠</span>
+          <span class="nav-label">💠 Billing</span>
+          <i class="fas fa-chevron-right nav-arrow"></i>
+        </a>
+        <div class="nav-flyout" style="top:0">
+          <div class="flyout-header"><span>💠</span> Finance & Billing</div>
+          <a href="/billing/" class="flyout-item {% block flyout_bill_overview %}{% endblock %}">
+            <span class="flyout-emoji">💳</span> Invoices
+          </a>
+          <a href="/billing/payments/" class="flyout-item {% block flyout_bill_pay %}{% endblock %}">
+            <span class="flyout-emoji">💰</span> Payments
+          </a>
+          <a href="/billing/insurance/" class="flyout-item {% block flyout_bill_ins %}{% endblock %}">
+            <span class="flyout-emoji">🛡️</span> Insurance Claims
+          </a>
+          <a href="/billing/summary/" class="flyout-item {% block flyout_bill_sum %}{% endblock %}">
+            <span class="flyout-emoji">📊</span> Daily Summary
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- 🗂️ Inventory + submenu -->
+      {% if request.user.role in 'lab_manager,super_admin,it_admin' %}
+      <div class="nav-group">
+        <a href="/inventory/"
+           class="nav-item {% block nav_active_inventory %}{% endblock %}"
+           data-tooltip="🗂️ Inventory">
+          <span class="nav-emoji">🗂️</span>
+          <span class="nav-label">🗂️ Inventory</span>
+          <i class="fas fa-chevron-right nav-arrow"></i>
+        </a>
+        <div class="nav-flyout" style="top:0">
+          <div class="flyout-header"><span>🗂️</span> Inventory & Stock</div>
+          <a href="/inventory/" class="flyout-item {% block flyout_inv_overview %}{% endblock %}">
+            <span class="flyout-emoji">📦</span> Stock Overview
+          </a>
+          <a href="/inventory/reagents/" class="flyout-item {% block flyout_inv_reag %}{% endblock %}">
+            <span class="flyout-emoji">🧪</span> Reagents
+          </a>
+          <a href="/inventory/equipment/" class="flyout-item {% block flyout_inv_equip %}{% endblock %}">
+            <span class="flyout-emoji">🔭</span> Equipment
+          </a>
+          <a href="/inventory/orders/" class="flyout-item {% block flyout_inv_ord %}{% endblock %}">
+            <span class="flyout-emoji">📝</span> Purchase Orders
+          </a>
+          <a href="/inventory/low-stock/" class="flyout-item {% block flyout_inv_low %}{% endblock %}">
+            <span class="flyout-emoji">⚠️</span> Low Stock Alerts
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- 🔔 Notifications -->
+      <a href="/notifications/"
+         class="nav-item {% block nav_active_notifs %}{% endblock %}"
+         data-tooltip="🔔 Notifications">
+        <span class="nav-emoji">🔔</span>
+        <span class="nav-label">🔔 Notifications</span>
+      </a>
+
+      <div class="nav-divider"></div>
+
+      <!-- 📚 Records -->
+      <div class="nav-group">
+        <a href="/records/"
+           class="nav-item {% block nav_active_records %}{% endblock %}"
+           data-tooltip="📚 Lab Records">
+          <span class="nav-emoji">📚</span>
+          <span class="nav-label">📚 Lab Records</span>
+          <i class="fas fa-chevron-right nav-arrow"></i>
+        </a>
+        <div class="nav-flyout" style="top:0">
+          <div class="flyout-header"><span>📚</span> Lab Record Books</div>
+          <a href="/records/hematology/" class="flyout-item"><span class="flyout-emoji">🔴</span> Hematology</a>
+          <a href="/records/chemistry/"  class="flyout-item"><span class="flyout-emoji">🧫</span> Chemistry</a>
+          <a href="/records/microbiology/" class="flyout-item"><span class="flyout-emoji">🦠</span> Microbiology</a>
+          <a href="/records/coagulation/" class="flyout-item"><span class="flyout-emoji">💙</span> Coagulation</a>
+          <a href="/records/blood_group/" class="flyout-item"><span class="flyout-emoji">🩸</span> Blood Group</a>
+          <a href="/records/" class="flyout-item"><span class="flyout-emoji">📋</span> All Books</a>
+        </div>
+      </div>
+
+      <!-- 🔐 Security -->
+      {% if request.user.role in 'super_admin,it_admin,lab_manager' %}
+      <a href="/security/"
+         class="nav-item {% block nav_active_security %}{% endblock %}"
+         data-tooltip="🔐 Security">
+        <span class="nav-emoji">🔐</span>
+        <span class="nav-label">🔐 Security</span>
+      </a>
+      {% endif %}
+
+      <!-- 👥 StaffHub -->
+      <a href="/staffhub/"
+         class="nav-item {% block nav_active_staffhub %}{% endblock %}"
+         data-tooltip="👥 StaffHub">
+        <span class="nav-emoji">👥</span>
+        <span class="nav-label">👥 StaffHub</span>
+      </a>
+
+      <!-- 🧬 MedGenome -->
+      <a href="/genomics/"
+         class="nav-item {% block nav_active_genomics %}{% endblock %}"
+         data-tooltip="🧬 MedGenome">
+        <span class="nav-emoji">🧬</span>
+        <span class="nav-label">🧬 MedGenome</span>
+      </a>
+
+      <!-- 🦠 Microbiology AI -->
+      {% if request.user.role in 'lab_technician,lab_manager,pathologist,super_admin,it_admin' %}
+      <a href="/micro-ai/"
+         class="nav-item {% block nav_active_micro_ai %}{% endblock %}"
+         data-tooltip="🦠 Micro AI">
+        <span class="nav-emoji">🦠</span>
+        <span class="nav-label">🦠 Micro AI</span>
+      </a>
+      {% endif %}
+
+      <!-- ☠️ Toxicology -->
+      {% if request.user.role in 'lab_technician,lab_manager,pathologist,super_admin,it_admin' %}
+      <a href="/toxicology/"
+         class="nav-item {% block nav_active_toxicology %}{% endblock %}"
+         data-tooltip="☠️ Toxicology">
+        <span class="nav-emoji">☠️</span>
+        <span class="nav-label">☠️ Toxicology</span>
+      </a>
+      {% endif %}
+
+      <!-- 🩺 Anatomical Pathology -->
+      {% if request.user.role in 'pathologist,lab_manager,super_admin,it_admin' %}
+      <a href="/pathology/"
+         class="nav-item {% block nav_active_pathology %}{% endblock %}"
+         data-tooltip="🩺 Pathology">
+        <span class="nav-emoji">🩺</span>
+        <span class="nav-label">🩺 Pathology</span>
+      </a>
+      {% endif %}
+
+      <!-- 📐 Quality Management -->
+      {% if request.user.role in 'lab_manager,pathologist,super_admin,it_admin,quality_officer' %}
+      <a href="/quality/"
+         class="nav-item {% block nav_active_quality %}{% endblock %}"
+         data-tooltip="📐 Quality">
+        <span class="nav-emoji">📐</span>
+        <span class="nav-label">📐 Quality</span>
+      </a>
+      {% endif %}
+
+      <!-- 🔧 IoT / Analyzers -->
+      {% if request.user.role in 'lab_manager,super_admin,it_admin,biomedical_eng' %}
+      <a href="/iot-analyzers/"
+         class="nav-item {% block nav_active_iot %}{% endblock %}"
+         data-tooltip="🔧 IoT Analyzers">
+        <span class="nav-emoji">🔧</span>
+        <span class="nav-label">🔧 IoT Analyzers</span>
+      </a>
+      {% endif %}
+
+      <!-- 🔭 Surveillance -->
+      <a href="/surveillance/"
+         class="nav-item {% block nav_active_surveillance %}{% endblock %}"
+         data-tooltip="🔭 Surveillance">
+        <span class="nav-emoji">🔭</span>
+        <span class="nav-label">🔭 Surveillance</span>
+      </a>
+
+      <!-- 🧫 BioTrack -->
+      {% if request.user.role in 'lab_manager,pathologist,super_admin,it_admin' %}
+      <a href="/biotrack/"
+         class="nav-item {% block nav_active_biotrack %}{% endblock %}"
+         data-tooltip="🧫 BioTrack">
+        <span class="nav-emoji">🧫</span>
+        <span class="nav-label">🧫 BioTrack</span>
+      </a>
+      {% endif %}
+
+      <!-- 💰 FinaOps -->
+      {% if request.user.role in 'lab_manager,super_admin,it_admin,finance' %}
+      <a href="/finaops/"
+         class="nav-item {% block nav_active_finaops %}{% endblock %}"
+         data-tooltip="💰 FinaOps">
+        <span class="nav-emoji">💰</span>
+        <span class="nav-label">💰 FinaOps</span>
+      </a>
+      {% endif %}
+
+      <!-- 🏥 NexusCare -->
+      {% if request.user.role in 'nurse,doctor,lab_manager,super_admin,it_admin' %}
+      <a href="/nexuscare/"
+         class="nav-item {% block nav_active_nexuscare %}{% endblock %}"
+         data-tooltip="🏥 NexusCare">
+        <span class="nav-emoji">🏥</span>
+        <span class="nav-label">🏥 NexusCare</span>
+      </a>
+      {% endif %}
+
+      <!-- 🤖 AI Nexus -->
+      <a href="/ai-nexus/"
+         class="nav-item {% block nav_active_ai %}{% endblock %}"
+         data-tooltip="🤖 AI Nexus">
+        <span class="nav-emoji">🤖</span>
+        <span class="nav-label">🤖 AI Nexus</span>
+      </a>
+
+      <!-- 📡 TeleDiagnostic -->
+      {% if request.user.role in 'lab_manager,super_admin,it_admin,lab_technician,pathologist,doctor,nurse' %}
+      <div class="nav-group">
+        <a href="/telediagnostic/"
+           class="nav-item {% block nav_active_telediag %}{% endblock %}"
+           data-tooltip="📡 TeleDiagnostic">
+          <span class="nav-emoji">📡</span>
+          <span class="nav-label">📡 TeleDiagnostic</span>
+          <i class="fas fa-chevron-right nav-arrow"></i>
+        </a>
+        <div class="nav-flyout" style="top:0">
+          <div class="flyout-header"><span>📡</span> TeleDiagnostic</div>
+          <a href="/telediagnostic/" class="flyout-item">
+            <span class="flyout-emoji">🖥️</span> Command Center
+          </a>
+          <a href="/telediagnostic/" class="flyout-item">
+            <span class="flyout-emoji">🚀</span> Deploy Session
+          </a>
+          <a href="/telediagnostic/" class="flyout-item">
+            <span class="flyout-emoji">📸</span> AI Gallery
+          </a>
+          <a href="/telediagnostic/" class="flyout-item">
+            <span class="flyout-emoji">🗺️</span> Field Map
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- 🏷️ Specimen Tracking -->
+      {% if request.user.role in 'lab_technician,lab_manager,phlebotomist,receptionist,super_admin,it_admin' %}
+      <a href="/specimen-tracking/"
+         class="nav-item {% block nav_active_specimen %}{% endblock %}"
+         data-tooltip="🏷️ Specimens">
+        <span class="nav-emoji">🏷️</span>
+        <span class="nav-label">🏷️ Specimens</span>
+      </a>
+      {% endif %}
+
+      <!-- 🩺 Doctor Portal -->
+      {% if request.user.role in 'doctor,pathologist,super_admin,it_admin,lab_manager' %}
+      <a href="/doctor-portal/"
+         class="nav-item {% block nav_active_doctor_portal %}{% endblock %}"
+         data-tooltip="🩺 Doctor Portal">
+        <span class="nav-emoji">🩺</span>
+        <span class="nav-label">🩺 Doctor Portal</span>
+      </a>
+      {% endif %}
+
+      <!-- 🔮 Forecast Intelligence -->
+      <a href="/forecast/"
+         class="nav-item {% block nav_active_forecast %}{% endblock %}"
+         data-tooltip="🔮 Forecast AI">
+        <span class="nav-emoji">🔮</span>
+        <span class="nav-label">🔮 Forecast AI</span>
+      </a>
+
+      <!-- 🔗 Interoperability -->
+      {% if request.user.role in 'super_admin,it_admin,lab_manager' %}
+      <a href="/interoperability/"
+         class="nav-item {% block nav_active_interop %}{% endblock %}"
+         data-tooltip="🔗 Interoperability">
+        <span class="nav-emoji">🔗</span>
+        <span class="nav-label">🔗 Interoperability</span>
+      </a>
+      {% endif %}
+
+      <!-- 🕵️ Audit Trail (security admin only) -->
+      {% if request.user.role in 'super_admin,it_admin,security_officer' or request.user.is_superuser %}
+      <a href="/audit-trail/"
+         class="nav-item {% block nav_active_audit %}{% endblock %}"
+         data-tooltip="🕵️ Audit Trail">
+        <span class="nav-emoji">🕵️</span>
+        <span class="nav-label">🕵️ Audit Trail</span>
+      </a>
+      {% endif %}
+
+      {% block nav_extra %}{% endblock %}
+
+    </div><!-- /sidebar-nav -->
+
+    <div class="sidebar-bottom">
+      {% if request.user.role in 'super_admin,it_admin,lab_manager' %}
+      <div class="nav-group">
+        <a href="/nexuscore-admin/"
+           class="nav-item"
+           data-tooltip="⚙️ Admin"
+           target="_blank">
+          <span class="nav-emoji">⚙️</span>
+          <span class="nav-label">⚙️ Admin Panel</span>
+          <i class="fas fa-chevron-right nav-arrow"></i>
+        </a>
+        <div class="nav-flyout" style="bottom:10px;top:auto">
+          <div class="flyout-header"><span>⚙️</span> Administration</div>
+          <a href="/nexuscore-admin/" target="_blank" class="flyout-item">
+            <span class="flyout-emoji">🖥️</span> System Admin
+          </a>
+          <a href="/core-config/" class="flyout-item">
+            <span class="flyout-emoji">⚙️</span> Core Configuration
+          </a>
+          <a href="/core-config/" class="flyout-item">
+            <span class="flyout-emoji">🏥</span> Hospital Profile
+          </a>
+          <a href="/core-config/" class="flyout-item">
+            <span class="flyout-emoji">🧪</span> Departments
+          </a>
+          <a href="/core-config/" class="flyout-item">
+            <span class="flyout-emoji">📋</span> Test Catalog
+          </a>
+          <a href="/core-config/" class="flyout-item">
+            <span class="flyout-emoji">🕐</span> Shift Settings
+          </a>
+          <a href="/core-config/" class="flyout-item">
+            <span class="flyout-emoji">👥</span> User Management
+          </a>
+          <a href="/interoperability/" class="flyout-item">
+            <span class="flyout-emoji">🔗</span> Interoperability
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- My Profile -->
+      <div class="nav-group">
+        <button class="nav-item" id="profile-nav-btn" type="button" data-tooltip="👤 {{ request.user.get_full_name|default:'My Profile' }}">
+          <span class="nav-emoji">👤</span>
+          <span class="nav-label">👤 {{ request.user.get_full_name|default:'My Profile' }}</span>
+          <i class="fas fa-chevron-right nav-arrow"></i>
+        </button>
+        <div class="nav-flyout" style="bottom:50px;top:auto">
+          <div class="flyout-header"><span>👤</span> {{ request.user.get_full_name|default:'User' }}</div>
+          <a href="/auth/profile/" class="flyout-item">
+            <span class="flyout-emoji">🪪</span> My Profile
+          </a>
+          <div class="flyout-item" style="font-size:11px;color:var(--text-muted);padding:4px 10px;pointer-events:none">
+            <span class="flyout-emoji">🏷️</span> {{ request.user.get_role_display|default:'Staff' }}
+          </div>
+        </div>
+      </div>
+
+      <button class="nav-item nav-item-logout" id="logout-btn" type="button" data-tooltip="🚀 Sign Out">
+        <span class="nav-emoji">🚀</span>
+        <span class="nav-label">🚀 Sign Out</span>
+      </button>
+      <form id="logout-form" action="/auth/logout/" method="post" style="display:none">
+        {% csrf_token %}
+      </form>
+    </div>
+
+  </nav><!-- /sidebar -->
+
+  <!-- ══════════════════════ MAIN ══════════════════════ -->
+  <div class="app-main" id="app-main">
+
+    <!-- Shift Intelligence Bar -->
+    <div class="shift-bar" id="shift-bar" role="status" aria-live="polite">
+      <div class="shift-bar-left">
+        <span class="shift-icon" id="shift-icon" aria-hidden="true">☀️</span>
+        <span class="shift-name"  id="shift-name">Loading…</span>
+        <span class="shift-sep"   aria-hidden="true">|</span>
+        <time class="shift-time"  id="shift-time"></time>
+      </div>
+      <div class="shift-bar-right">
+        <!-- 🔍 Global Search trigger -->
+        <button class="ns-trigger-btn" id="ns-trigger-btn" onclick="window.NexusSearch?.open?.()" title="Global Search (Ctrl+K)" aria-label="Open search">
+          <span>🔍</span>
+          <span style="display:none" id="ns-label">Search</span>
+          <kbd class="cp-kbd" style="font-size:9px">Ctrl+K</kbd>
+        </button>
+
+        <!-- ⚡ Command Palette trigger -->
+        <button class="cp-trigger-btn" id="cp-trigger-btn" onclick="window.NexusShortcuts?.openPalette?.()" title="Command Palette (Ctrl+K)" aria-label="Command palette">
+          <span>⚡</span>
+        </button>
+
+        <!-- 🧬 Recent Patients trigger -->
+        <button class="nr-trigger-btn" id="nr-trigger-btn" onclick="window.NexusRecent?.togglePanel?.()" title="Recent Patients (Ctrl+R)" aria-label="Recent patients">
+          <span>🧬</span>
+          <span class="nr-badge" id="nr-trigger-badge"></span>
+        </button>
+
+        <!-- ⌨️ Shortcuts Help -->
+        <button class="qa-trigger-btn" id="qa-trigger-btn" title="Quick Actions & Shortcuts" aria-label="Quick actions">
+          <span>⌨️</span>
+        </button>
+
+        <!-- Voice Command Trigger -->
+        <button class="voice-wake-btn" id="voice-wake-btn" data-voice-trigger title="Activate Voice — Hello Jorinova" aria-label="Activate voice command">
+          <span class="voice-wake-icon">🎙️</span>
+          <span class="voice-wake-label">Hello Jorinova</span>
+        </button>
+        <span class="shift-hospital">{{ hospital.name|default:"NEXUS LAB" }}</span>
+        {% if request.user.role in 'lab_manager,super_admin,it_admin' %}
+        <a href="/core-config/shifts/" class="shift-config-link" title="Configure shift times">
+          <i class="fas fa-gear"></i>
+        </a>
+        {% endif %}
+
+        <!-- 3D Profile Sphere -->
+        <div class="profile-sphere-wrap" id="profile-sphere-wrap">
+          <a href="/auth/profile/" class="profile-sphere" id="profile-sphere"
+             title="{{ request.user.get_full_name|default:'My Profile' }} · {{ request.user.get_role_display|default:'' }}"
+             aria-label="User profile">
+            {% if request.user.photo %}
+            <img src="{{ request.user.photo.url }}" alt="{{ request.user.get_full_name }}" class="profile-sphere-img">
+            {% else %}
+            <span class="profile-sphere-initials">{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}</span>
+            {% endif %}
+            <span class="profile-sphere-glow" aria-hidden="true"></span>
+            <span class="profile-online-dot" aria-hidden="true"></span>
+          </a>
+          <!-- Mini dropdown -->
+          <div class="profile-mini-drop" id="profile-mini-drop" role="menu">
+            <div class="pmd-header">
+              <div class="pmd-avatar">
+                {% if request.user.photo %}
+                <img src="{{ request.user.photo.url }}" alt="{{ request.user.get_full_name }}">
+                {% else %}
+                <span>{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}</span>
+                {% endif %}
+              </div>
+              <div class="pmd-info">
+                <div class="pmd-name">{{ request.user.get_full_name|default:"User" }}</div>
+                <div class="pmd-role">{{ request.user.get_role_display|default:"Staff" }}</div>
+                {% if hospital %}<div class="pmd-hospital">{{ hospital.name }}</div>{% endif %}
+              </div>
+            </div>
+            <div class="pmd-divider"></div>
+            <a href="/auth/profile/" class="pmd-item" role="menuitem"><span>🪪</span> My Profile</a>
+            <a href="/security/" class="pmd-item" role="menuitem"><span>🔐</span> Security Settings</a>
+            <div class="pmd-divider"></div>
+            <button class="pmd-item pmd-logout" id="pmd-logout-btn" role="menuitem"><span>🚀</span> Sign Out</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Page Content -->
+    {% block content %}{% endblock %}
+
+  </div><!-- /app-main -->
+
+</div><!-- /app-shell -->
+
+<!-- ══════════════ TOAST CONTAINER ══════════════ -->
+<div class="toast-container" id="toast-container" aria-live="assertive" aria-atomic="true"></div>
+
+<!-- ══════════════ GLOBAL CONFIRM MODAL ══════════════ -->
+<div class="modal-overlay" id="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+  <div class="modal glass-card">
+    <div class="modal-header">
+      <h3 class="modal-title" id="confirm-title">Confirm</h3>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-message" style="color:var(--text-secondary);line-height:1.6;font-size:var(--text-sm)"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="confirm-cancel">Cancel</button>
+      <button class="btn btn-danger"    id="confirm-ok">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ NEXUS GLOBAL CONFIG ══════════════ -->
+<script>
+window.NEXUS = Object.assign(window.NEXUS || {}, {
+  csrf:          '{{ csrf_token }}',
+  apiBase:       '/api/v1',
+  wsBase:        'ws://{{ request.get_host }}',
+  userId:        '{{ request.user.id }}',
+  userRole:      '{{ request.user.role|default:"" }}',
+  userName:      '{{ request.user.get_full_name|escapejs }}',
+  userInitials:  '{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}',
+  hospitalId:    '{{ hospital.id|default:"" }}',
+  hospitalName:  '{{ hospital.name|default:""|escapejs }}',
+  module:        '{% block module_id %}default{% endblock %}',
+  debug:         {% if debug %}true{% else %}false{% endif %},
+});
+</script>
+
+<script src="{% static 'shared/js/nexus-core.js' %}" defer></script>
+<script src="{% static 'shared/js/nexus-signature.js' %}" defer></script>
+<script src="{% static 'shared/js/nexus-search.js' %}" defer></script>
+<script src="{% static 'shared/js/nexus-recent.js' %}" defer></script>
+<script src="{% static 'shared/js/nexus-shortcuts.js' %}" defer></script>
+<script src="{% static 'shared/js/voice-command.js' %}" defer></script>
+
+<!-- Profile sphere dropdown -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var sphere  = document.getElementById('profile-sphere');
+  var drop    = document.getElementById('profile-mini-drop');
+  var pmdOut  = document.getElementById('pmd-logout-btn');
+  if (sphere && drop) {
+    sphere.addEventListener('click', function (e) { e.preventDefault(); drop.classList.toggle('open'); });
+    document.addEventListener('click', function (e) {
+      if (!document.getElementById('profile-sphere-wrap')?.contains(e.target)) drop.classList.remove('open');
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') drop.classList.remove('open'); });
+  }
+  if (pmdOut) pmdOut.addEventListener('click', function () { var f = document.getElementById('logout-form'); if (f) f.submit(); });
+});
+</script>
+
+<!-- NEXUS Global UX Bridge — connects search/shortcuts/recent to nav buttons -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  /* Search trigger bar shortcut hint tooltip on hover */
+  var searchBtn = document.getElementById('ns-trigger-btn');
+  if (searchBtn) {
+    searchBtn.addEventListener('click', function() {
+      if (window.NexusSearch) window.NexusSearch.open();
+    });
+  }
+
+  /* Ctrl+/ shows shortcuts help */
+  document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey||e.metaKey) && (e.key === '/' || e.key === '?')) {
+      e.preventDefault();
+      if (window.NexusShortcuts) window.NexusShortcuts.openShortcutsHelp();
+    }
+  });
+
+  /* F5: trigger module refresh event */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'F5' && !e.ctrlKey) {
+      e.preventDefault();
+      document.dispatchEvent(new CustomEvent('shortcut:refresh', {bubbles:true}));
+      /* Also trigger visible refresh buttons */
+      document.querySelector('[id*=refresh-btn],[id*=refresh_btn]')?.click();
+    }
+  });
+
+  /* Ctrl+Enter: fast submit — trigger primary btn on current tab pane */
+  document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey||e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      var pane = document.querySelector('.tab-pane.active');
+      var btn  = pane
+        ? pane.querySelector('.btn-primary')
+        : document.querySelector('.btn-primary');
+      if (btn && !btn.disabled) btn.click();
+    }
+  });
+
+  /* Alt+1..9: switch tabs */
+  document.addEventListener('keydown', function(e) {
+    if (e.altKey && e.key >= '1' && e.key <= '9') {
+      var idx  = parseInt(e.key) - 1;
+      var tabs = document.querySelectorAll('.tab-nav .tab-btn, [role=tab]');
+      if (tabs[idx]) { e.preventDefault(); tabs[idx].click(); }
+    }
+  });
+
+  /* Ctrl+F: focus in-page search input */
+  document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey||e.metaKey) && e.key === 'f') {
+      var inp = document.querySelector('.worklist-search, [id*=search]:not([type=hidden]), input[placeholder*="earch"]');
+      if (inp) { e.preventDefault(); inp.focus(); inp.select(); }
+    }
+  });
+
+  /* Recent patients badge update */
+  if (window.NexusRecent) window.NexusRecent.updateBadge();
+
+  /* Announce shortcut hints once for new users */
+  var hinted = sessionStorage.getItem('nexus_shortcut_hint');
+  if (!hinted) {
+    sessionStorage.setItem('nexus_shortcut_hint', '1');
+    setTimeout(function() {
+      if (window.NEXUS && window.NEXUS.Toast) {
+        window.NEXUS.Toast.show('⌨️ Ctrl+K — Command Palette · Ctrl+R — Recent Patients · Ctrl+? — All Shortcuts', 'info');
+      }
+    }, 3000);
+  }
+});
+</script>
+
+<!-- Flyout position fix: adjust top based on nav-group's viewport position -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.nav-group').forEach(function (group) {
+    var flyout = group.querySelector('.nav-flyout');
+    if (!flyout || flyout.style.top === 'auto') return;
+    group.addEventListener('mouseenter', function () {
+      var rect   = group.getBoundingClientRect();
+      var fh     = flyout.offsetHeight || 200;
+      var top    = rect.top;
+      var maxTop = window.innerHeight - fh - 12;
+      flyout.style.top = Math.min(top, maxTop) + 'px';
+    });
+  });
+});
+</script>
+
+{% block module_scripts %}{% endblock %}
+{% block extra_scripts %}{% endblock %}
+
+</body>
+</html>

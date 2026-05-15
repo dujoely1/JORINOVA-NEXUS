@@ -1,0 +1,225 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}🔬 Anatomical Pathology — NEXUS ALIS-X{% endblock %}
+{% block module_id %}pathology{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/pathology/css/pathology.css' %}">
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="path-main">
+
+  <header class="page-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(138,43,226,0.10);border-color:rgba(138,43,226,0.25);color:#9B59B6">
+        <span style="font-size:20px">🔬</span>
+      </div>
+      <div>
+        <h1 class="page-title">🔬 Anatomical Pathology &amp; AI Vision</h1>
+        <div class="page-subtitle">{{ today|date:"l, d F Y" }} · Histopathology · Cytology · IHC · Slide AI · ISO 15189 DSS</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <div class="path-iso-pill">🔒 AI Vision — Histopathologist Confirmation Required</div>
+    </div>
+  </header>
+
+  <div class="tab-nav path-tab-nav" role="tablist">
+    <button class="tab-btn active" data-pane="path-worklist-pane">📋 Worklist</button>
+    <button class="tab-btn" data-pane="path-accession-pane">🧫 Accessioning</button>
+    <button class="tab-btn" data-pane="path-slide-pane">🔬 Slide AI Vision</button>
+    <button class="tab-btn" data-pane="path-report-pane">📝 Report Generation</button>
+    <button class="tab-btn" data-pane="path-registry-pane">📊 Tumor Registry</button>
+  </div>
+
+  <div class="path-body">
+
+    <!-- WORKLIST -->
+    <div class="tab-pane active" id="path-worklist-pane">
+      <div class="worklist-toolbar" style="padding:var(--space-lg) var(--space-xl)">
+        <div class="toolbar-left">
+          <div class="worklist-search-wrap"><i class="fas fa-magnifying-glass"></i>
+            <input type="text" id="path-search" class="worklist-search" placeholder="Specimen ID, patient…"></div>
+          <select id="path-filter-type" class="filter-select">
+            <option value="">All types</option><option>Biopsy</option><option>FNAC</option>
+            <option>Frozen Section</option><option>Cytology</option>
+          </select>
+          <select id="path-filter-urgency" class="filter-select">
+            <option value="">All urgencies</option><option value="frozen">🚨 Frozen Section</option><option value="urgent">⚡ Urgent</option><option value="routine">Routine</option>
+          </select>
+        </div>
+        <div class="toolbar-right"><button class="btn btn-ghost btn-sm" id="path-refresh-btn"><i class="fas fa-arrows-rotate"></i></button></div>
+      </div>
+      <div class="worklist-area">
+        <table class="worklist-table">
+          <thead><tr>
+            <th>🧬 Patient</th><th>🔖 Specimen ID</th><th>🧫 Type</th>
+            <th>📍 Body Site</th><th>⚡ Urgency</th><th>🔄 Workflow</th><th>👤 Pathologist</th><th style="text-align:right">Action</th>
+          </tr></thead>
+          <tbody id="path-worklist-tbody">
+            <tr><td colspan="8"><div class="worklist-loading"><i class="fas fa-spinner"></i> Loading…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ACCESSIONING -->
+    <div class="tab-pane" id="path-accession-pane">
+      <div style="max-width:800px;margin:0 auto;padding:var(--space-xl)">
+        <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary);margin-bottom:var(--space-lg)">🧫 Receive &amp; Register New Specimen</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-lg)">
+          <div class="form-group"><label class="form-label">🧬 Patient</label><input type="text" class="form-input" placeholder="Search PID/name…"></div>
+          <div class="form-group"><label class="form-label">🧫 Specimen Type</label>
+            <select class="form-input" id="acc-type">
+              <option>Core Needle Biopsy</option><option>Excision Biopsy</option><option>Incision Biopsy</option>
+              <option>FNAC</option><option>Frozen Section (STAT)</option><option>Liquid Biopsy</option>
+              <option>Bone Marrow Trephine</option><option>Autopsy</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">📍 Body Site</label>
+            <select class="form-input"><option>Breast</option><option>Colon / Rectum</option><option>Cervix / Uterus</option>
+              <option>Prostate</option><option>Stomach</option><option>Liver</option><option>Lung</option>
+              <option>Lymph Node</option><option>Skin</option><option>Thyroid</option><option>Kidney</option><option>Other</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">⚡ Urgency</label>
+            <select class="form-input" id="acc-urgency">
+              <option value="routine">Routine (3–5 days)</option>
+              <option value="urgent">Urgent (24–48 hrs)</option>
+              <option value="frozen">🚨 Frozen Section (INTRAOPERATIVE)</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">👨‍⚕️ Requesting Clinician</label><input type="text" class="form-input" placeholder="Dr. name…"></div>
+          <div class="form-group"><label class="form-label">🏥 Specialty</label>
+            <select class="form-input"><option>Surgery</option><option>Oncology</option><option>Gynecology</option><option>Gastroenterology</option><option>Urology</option><option>Other</option></select>
+          </div>
+          <div class="form-group" style="grid-column:1/-1"><label class="form-label">📋 Clinical History &amp; Indication</label>
+            <textarea class="form-input fi fi-ta" rows="3" placeholder="Clinical information, indication, previous relevant investigations…"></textarea>
+          </div>
+          <div class="form-group"><label class="form-label">🧪 Fixative Used</label>
+            <select class="form-input"><option>10% Neutral Buffered Formalin</option><option>Glutaraldehyde</option><option>Frozen (no fixative)</option><option>Dry smear</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">🔢 Number of Pieces</label><input type="number" class="form-input" placeholder="1" min="1"></div>
+        </div>
+
+        <div style="margin-top:var(--space-lg)">
+          <div class="form-label" style="margin-bottom:var(--space-sm)">🧪 Special Stains Requested</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            {% for stain in 'H&E,PAS,ZN (AFB),Masson Trichrome,Congo Red,Reticulin,Alcian Blue,Giemsa,Oil Red O,Iron (Perl\'s)' %}
+            <label style="display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:var(--radius-full);background:var(--bg-glass);border:1px solid var(--border-dim);font-size:11px;cursor:pointer">
+              <input type="checkbox"> {{ stain }}
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div style="margin-top:var(--space-lg)">
+          <div class="form-label" style="margin-bottom:var(--space-sm)">🧬 Immunohistochemistry Panel</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px" id="ihc-panel-wrap">
+            <button class="btn btn-ghost btn-sm ihc-preset" data-preset="carcinoma">🔬 Carcinoma Panel</button>
+            <button class="btn btn-ghost btn-sm ihc-preset" data-preset="lymphoma">🩸 Lymphoma Panel</button>
+            <button class="btn btn-ghost btn-sm ihc-preset" data-preset="breast">🎗️ Breast Panel (ER/PR/HER2/Ki67)</button>
+            <button class="btn btn-ghost btn-sm ihc-preset" data-preset="neural">🧠 Neural/NE Panel</button>
+          </div>
+          <div id="ihc-selected" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:var(--space-sm)"></div>
+        </div>
+
+        <button class="btn btn-primary" style="width:100%;margin-top:var(--space-xl)" id="acc-submit-btn">🧫 Register Specimen &amp; Generate ID</button>
+      </div>
+    </div>
+
+    <!-- SLIDE AI VISION -->
+    <div class="tab-pane" id="path-slide-pane">
+      <div class="path-slide-layout">
+        <div class="path-slide-left">
+          <div class="hema-panel-title">📋 Pending Slide Review</div>
+          <div class="path-slide-list" id="path-slide-list"><!-- populated by JS --></div>
+        </div>
+        <div class="path-slide-right">
+          <div class="path-viewer-area" id="path-viewer-area">
+            <div class="path-viewer-placeholder"><div style="font-size:56px">🔬</div><p>Select a case from the list or upload a slide image</p></div>
+          </div>
+          <div class="path-ai-output" id="path-ai-output" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORT GENERATION -->
+    <div class="tab-pane" id="path-report-pane">
+      <div style="max-width:850px;margin:0 auto;padding:var(--space-xl)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-lg)">
+          <h2 style="font-family:var(--font-display);font-size:var(--text-xl);color:var(--text-primary)">📝 Pathology Report</h2>
+          <select class="fi" id="report-template" style="width:200px">
+            <option>Breast Biopsy</option><option>Colorectal Biopsy</option><option>Cervical Biopsy</option>
+            <option>FNAC Report</option><option>Bone Marrow</option><option>Generic Template</option>
+          </select>
+        </div>
+        <div id="path-report-form" style="display:flex;flex-direction:column;gap:var(--space-lg)">
+          <div class="form-group"><label class="form-label">📋 Clinical Information Received</label>
+            <textarea class="form-input fi fi-ta" id="rpt-clinical" rows="2"></textarea></div>
+          <div class="form-group"><label class="form-label">🔢 Gross (Macroscopic) Description</label>
+            <textarea class="form-input fi fi-ta" id="rpt-gross" rows="3" placeholder="Size, colour, consistency, margins, satellite lesions…"></textarea></div>
+          <div class="form-group"><label class="form-label">🔬 Microscopic Description</label>
+            <textarea class="form-input fi fi-ta" id="rpt-micro" rows="4" placeholder="Tissue architecture, cellularity, nuclear features, stroma…"></textarea></div>
+          <div>
+            <label class="form-label">🧬 IHC Results</label>
+            <table class="nx-table" style="margin-top:var(--space-sm)">
+              <thead><tr><th>Marker</th><th>Result</th><th>Score / Interpretation</th></tr></thead>
+              <tbody id="ihc-results-tbody">
+                <tr><td>ER</td><td><select class="fi" style="width:130px"><option>—</option><option>Positive</option><option>Negative</option></select></td><td><input class="form-input" placeholder="Allred / H-score…"></td></tr>
+                <tr><td>PR</td><td><select class="fi" style="width:130px"><option>—</option><option>Positive</option><option>Negative</option></select></td><td><input class="form-input" placeholder="Allred / H-score…"></td></tr>
+                <tr><td>HER2</td><td><select class="fi" style="width:130px"><option>—</option><option>1+ (negative)</option><option>2+ (equivocal)</option><option>3+ (positive)</option></select></td><td><input class="form-input" placeholder="ISH recommended if 2+…"></td></tr>
+                <tr><td>Ki-67</td><td><select class="fi" style="width:130px"><option>—</option><option>Low (&lt;15%)</option><option>Intermediate</option><option>High (&gt;30%)</option></select></td><td><input class="form-input" placeholder="% positive cells"></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="form-group"><label class="form-label">🎯 Diagnosis</label>
+            <textarea class="form-input fi fi-ta" id="rpt-diagnosis" rows="2" placeholder="e.g. Invasive ductal carcinoma, grade 2, ER+, PR+, HER2-…"></textarea></div>
+          <div class="form-group"><label class="form-label">💬 Comment / Differential</label>
+            <textarea class="form-input fi fi-ta" id="rpt-comment" rows="2"></textarea></div>
+          <div style="display:flex;gap:var(--space-md);flex-wrap:wrap">
+            <button class="btn btn-success" id="rpt-release-btn">📤 Release Report</button>
+            <button class="btn btn-primary" id="rpt-print-btn">🖨️ Print (Auto-Sign)</button>
+            <button class="btn btn-ghost" id="rpt-save-btn">💾 Save Draft</button>
+          </div>
+          <div id="rpt-sig-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TUMOR REGISTRY -->
+    <div class="tab-pane" id="path-registry-pane">
+      <div style="padding:var(--space-xl)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-lg);margin-bottom:var(--space-lg)">
+          <div class="glass-panel" style="padding:var(--space-lg)">
+            <div class="chart-title">🔬 Cancer Type Distribution</div>
+            <div style="height:200px;margin-top:var(--space-md)"><canvas id="path-cancer-chart"></canvas></div>
+          </div>
+          <div class="glass-panel" style="padding:var(--space-lg)">
+            <div class="chart-title">📊 Monthly Biopsy Volume</div>
+            <div style="height:200px;margin-top:var(--space-md)"><canvas id="path-volume-chart"></canvas></div>
+          </div>
+        </div>
+        <div class="glass-panel" style="padding:var(--space-lg)">
+          <div class="chart-title">🎗️ Tumor Registry</div>
+          <table class="nx-table" style="margin-top:var(--space-md)">
+            <thead><tr><th>Specimen ID</th><th>Patient</th><th>Diagnosis</th><th>Site</th><th>Grade</th><th>Date</th><th>Pathologist</th></tr></thead>
+            <tbody id="registry-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/pathology/js/pathology.js' %}" defer></script>
+{% endblock %}

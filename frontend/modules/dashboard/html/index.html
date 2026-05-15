@@ -1,0 +1,322 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}🖥️ Dashboard — NEXUS ALIS-X{% endblock %}
+{% block module_id %}dashboard{% endblock %}
+{% block nav_active_dashboard %}active{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/dashboard/css/dashboard.css' %}">
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-main">
+
+  <!-- ── Header ── -->
+  <header class="dashboard-header">
+    <div class="dash-title-wrap">
+      <div class="page-icon-wrap"><span style="font-size:20px">🖥️</span></div>
+      <div>
+        <h1 class="dash-title">Operational Dashboard</h1>
+        <div class="dash-date">
+          <span id="dash-date-label">{{ today|date:"l, d F Y" }}</span>
+          <span style="color:var(--border-mid);margin:0 6px">·</span>
+          <span class="text-mono" id="dash-live-time"></span>
+          <span style="color:var(--border-mid);margin:0 6px">·</span>
+          <span id="dash-shift-tag" style="color:var(--cyan-dim);font-size:11px"></span>
+        </div>
+      </div>
+    </div>
+    <div class="dash-header-right">
+      <button class="refresh-btn" id="refresh-btn" type="button">
+        <i class="fas fa-arrows-rotate"></i> Refresh
+      </button>
+      <div class="user-chip" title="{{ request.user.get_full_name }}">
+        <div class="user-avatar">{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}</div>
+        <span class="user-name">{{ request.user.get_full_name }}</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Scrollable body ── -->
+  <div class="dashboard-body">
+
+    <!-- ══ STAT CARDS ══ -->
+    <div class="stat-grid">
+
+      <div class="stat-card stat-blue" role="button" tabindex="0" onclick="window.location='/patients/hub/'">
+        <div class="stat-card-glow"></div>
+        <div class="stat-icon-wrap"><span style="font-size:18px">🧬</span></div>
+        <div class="stat-value" id="stat-today-patients">{{ today_patients|default:0 }}</div>
+        <div class="stat-label">Today's Patients</div>
+        <div class="stat-trend"><i class="fas fa-calendar-day"></i> {{ today|date:"d M" }}</div>
+      </div>
+
+      <div class="stat-card stat-yellow" role="button" tabindex="0" onclick="window.location='/laboratory/'">
+        <div class="stat-card-glow"></div>
+        <div class="stat-icon-wrap"><span style="font-size:18px">⏳</span></div>
+        <div class="stat-value" id="stat-pending">{{ pending_tests|default:0 }}</div>
+        <div class="stat-label">Pending Tests</div>
+        <div class="stat-trend"><i class="fas fa-circle-half-stroke"></i> In progress</div>
+      </div>
+
+      <div class="stat-card stat-green" role="button" tabindex="0" onclick="window.location='/reports/'">
+        <div class="stat-card-glow"></div>
+        <div class="stat-icon-wrap"><span style="font-size:18px">✅</span></div>
+        <div class="stat-value" id="stat-completed">{{ completed_today|default:0 }}</div>
+        <div class="stat-label">Validated Today</div>
+        <div class="stat-trend"><i class="fas fa-check"></i> Results released</div>
+      </div>
+
+      <div class="stat-card stat-orange" role="button" tabindex="0" onclick="window.location='/reception/phlebotomy/'">
+        <div class="stat-card-glow"></div>
+        <div class="stat-icon-wrap"><span style="font-size:18px">🩸</span></div>
+        <div class="stat-value" id="stat-active-samples">{{ active_samples|default:0 }}</div>
+        <div class="stat-label">Active Samples</div>
+        <div class="stat-trend"><i class="fas fa-flask"></i> Processing now</div>
+      </div>
+
+      <div class="stat-card stat-critical {% if critical_alerts %}has-alerts{% endif %}"
+           id="stat-card-critical" role="button" tabindex="0"
+           onclick="window.location='/laboratory/'">
+        <div class="stat-card-glow"></div>
+        <div class="stat-icon-wrap"><span style="font-size:18px">🚨</span></div>
+        <div class="stat-value" id="stat-critical">{{ critical_alerts|default:0 }}</div>
+        <div class="stat-label">Critical Alerts</div>
+        <div class="stat-trend">
+          {% if critical_alerts %}
+          <i class="fas fa-bell anim-pulse-critical"></i> Needs attention
+          {% else %}
+          <i class="fas fa-shield-check"></i> All clear
+          {% endif %}
+        </div>
+      </div>
+
+    </div><!-- /stat-grid -->
+
+    <!-- ══ QUICK ACTIONS ══ -->
+    <div class="quick-actions-row">
+      <div class="quick-actions-header">
+        <span class="quick-label">⚡ Quick Actions</span>
+      </div>
+      <div class="quick-actions-grid">
+        <a href="/patients/register/" class="quick-tile">
+          <span class="quick-emoji">➕</span>
+          <span>New Patient</span>
+        </a>
+        <a href="/reception/phlebotomy/" class="quick-tile">
+          <span class="quick-emoji">💉</span>
+          <span>Collect Sample</span>
+        </a>
+        <a href="/laboratory/" class="quick-tile">
+          <span class="quick-emoji">⚗️</span>
+          <span>Lab Worklist</span>
+        </a>
+        <a href="/reports/lab-results/" class="quick-tile">
+          <span class="quick-emoji">📄</span>
+          <span>Release Results</span>
+        </a>
+        <a href="/billing/" class="quick-tile">
+          <span class="quick-emoji">💳</span>
+          <span>New Invoice</span>
+        </a>
+        <a href="/notifications/" class="quick-tile">
+          <span class="quick-emoji">🔔</span>
+          <span>Notifications</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- ══ CHARTS ROW ══ -->
+    <div class="charts-row">
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title"><span style="font-size:15px">📊</span> 7-Day Lab Volume</div>
+          <span class="chart-badge">Last 7 days</span>
+        </div>
+        <div class="chart-body">
+          <div class="chart-canvas-wrap">
+            <canvas id="chart-daily"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title"><span style="font-size:15px">🍩</span> By Department</div>
+          <span class="chart-badge">Today</span>
+        </div>
+        <div class="chart-body">
+          <div class="chart-canvas-wrap" style="height:180px">
+            <canvas id="chart-depts"></canvas>
+          </div>
+          <div class="pie-legend" id="dept-legend"></div>
+        </div>
+      </div>
+
+    </div><!-- /charts-row -->
+
+    <!-- ══ BOTTOM WIDGETS ══ -->
+    <div class="bottom-row">
+
+      <!-- TAT Monitor -->
+      <div class="tat-monitor">
+        <div class="tat-header">
+          <div class="tat-title">
+            <span style="font-size:15px">⏱️</span> TAT Monitor
+            <div class="tat-live-dot" title="Live updating"></div>
+          </div>
+          <span class="badge badge-blue">Active samples</span>
+        </div>
+        <div class="tat-list" id="tat-list">
+          <div class="tat-empty">
+            <i class="fas fa-clock"></i>
+            <span>Loading active samples…</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Critical Alerts Feed -->
+      <div class="alerts-feed">
+        <div class="alerts-header">
+          <div class="alerts-title">
+            <span style="font-size:15px">🚨</span> Critical Results
+          </div>
+          {% if critical_alerts %}
+          <span class="badge badge-red anim-pulse-critical">{{ critical_alerts }} pending</span>
+          {% else %}
+          <span class="badge badge-green">All notified</span>
+          {% endif %}
+        </div>
+        <div class="alert-list" id="alert-list">
+          <div class="no-alerts">
+            <i class="fas fa-shield-check"></i>
+            <div><span>Loading…</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /bottom-row -->
+
+    <!-- ══ MODULE OVERVIEW TILES ══ -->
+    <div class="module-overview">
+      <div class="module-overview-header">
+        <span style="font-size:15px">🌐</span> ALIS-X Modules
+      </div>
+      <div class="module-tiles">
+
+        <a href="/patients/hub/" class="module-tile">
+          <div class="module-tile-icon" style="background:rgba(0,153,255,0.1);border-color:rgba(0,153,255,0.2)">🧬</div>
+          <div class="module-tile-info">
+            <div class="module-tile-name">Patient Hub</div>
+            <div class="module-tile-desc">Registration · Records · History</div>
+          </div>
+          <i class="fas fa-chevron-right module-tile-arrow"></i>
+        </a>
+
+        <a href="/reception/" class="module-tile">
+          <div class="module-tile-icon" style="background:rgba(0,255,221,0.08);border-color:rgba(0,255,221,0.15)">📡</div>
+          <div class="module-tile-info">
+            <div class="module-tile-name">Reception</div>
+            <div class="module-tile-desc">Queue · Appointments · Desk</div>
+          </div>
+          <i class="fas fa-chevron-right module-tile-arrow"></i>
+        </a>
+
+        <a href="/reception/phlebotomy/" class="module-tile">
+          <div class="module-tile-icon" style="background:rgba(255,23,68,0.08);border-color:rgba(255,23,68,0.15)">🩸</div>
+          <div class="module-tile-info">
+            <div class="module-tile-name">Phlebotomy</div>
+            <div class="module-tile-desc">Collection · Tubes · TAT</div>
+          </div>
+          <i class="fas fa-chevron-right module-tile-arrow"></i>
+        </a>
+
+        <a href="/laboratory/" class="module-tile">
+          <div class="module-tile-icon" style="background:rgba(139,92,246,0.1);border-color:rgba(139,92,246,0.2)">⚗️</div>
+          <div class="module-tile-info">
+            <div class="module-tile-name">Laboratory</div>
+            <div class="module-tile-desc">Hematology · Chemistry · Micro</div>
+          </div>
+          <i class="fas fa-chevron-right module-tile-arrow"></i>
+        </a>
+
+        <a href="/reports/" class="module-tile">
+          <div class="module-tile-icon" style="background:rgba(255,214,0,0.08);border-color:rgba(255,214,0,0.15)">🔮</div>
+          <div class="module-tile-info">
+            <div class="module-tile-name">Reports</div>
+            <div class="module-tile-desc">Analytics · Exports · TAT</div>
+          </div>
+          <i class="fas fa-chevron-right module-tile-arrow"></i>
+        </a>
+
+        <a href="/billing/" class="module-tile">
+          <div class="module-tile-icon" style="background:rgba(0,255,65,0.07);border-color:rgba(0,255,65,0.14)">💠</div>
+          <div class="module-tile-info">
+            <div class="module-tile-name">Billing</div>
+            <div class="module-tile-desc">Invoices · Payments · Insurance</div>
+          </div>
+          <i class="fas fa-chevron-right module-tile-arrow"></i>
+        </a>
+
+        <a href="/inventory/" class="module-tile">
+          <div class="module-tile-icon" style="background:rgba(255,109,0,0.08);border-color:rgba(255,109,0,0.15)">🗂️</div>
+          <div class="module-tile-info">
+            <div class="module-tile-name">Inventory</div>
+            <div class="module-tile-desc">Reagents · Equipment · Orders</div>
+          </div>
+          <i class="fas fa-chevron-right module-tile-arrow"></i>
+        </a>
+
+        <a href="/laboratory/genomics/" class="module-tile">
+          <div class="module-tile-icon" style="background:rgba(213,0,249,0.08);border-color:rgba(213,0,249,0.15)">🧬</div>
+          <div class="module-tile-info">
+            <div class="module-tile-name">Genomics</div>
+            <div class="module-tile-desc">DNA · Sequencing · Variants</div>
+          </div>
+          <i class="fas fa-chevron-right module-tile-arrow"></i>
+        </a>
+
+      </div>
+    </div><!-- /module-overview -->
+
+  </div><!-- /dashboard-body -->
+</div><!-- /dashboard-main -->
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/dashboard/js/dashboard.js' %}" defer></script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+  /* Live clock */
+  var el = document.getElementById('dash-live-time');
+  var st = document.getElementById('dash-shift-tag');
+  function tick() {
+    if (el) el.textContent = new Date().toLocaleTimeString('en-GB', {
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+    if (st && window.NEXUS && NEXUS.ShiftEngine) {
+      var s = NEXUS.ShiftEngine.currentTag();
+      st.textContent = s.icon + ' ' + s.name + ' Shift';
+    }
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  /* Stat card keyboard nav */
+  document.querySelectorAll('.stat-card[role="button"]').forEach(function(c) {
+    c.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') c.click();
+    });
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,660 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}🔐 Security Center — NEXUS ALIS-X{% endblock %}
+{% block module_id %}nexuscore{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/security/css/security.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="sec-main">
+
+  <!-- ══ HEADER ══ -->
+  <header class="page-header sec-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap sec-icon-wrap">
+        <span style="font-size:20px">🔐</span>
+      </div>
+      <div>
+        <h1 class="page-title sec-title">Security Command Center</h1>
+        <div class="page-subtitle sec-sub">
+          Post-Quantum · RBAC · Biometric · Behavioral Intelligence · Zero Trust
+        </div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <div class="sec-pq-badge">
+        <span class="sec-pq-icon">⚛️</span>
+        <div>
+          <div class="sec-pq-label">CRYSTALS-Kyber-1024</div>
+          <div class="sec-pq-sub">NIST Level 5 · Quantum-Safe</div>
+        </div>
+      </div>
+      <div class="sec-threat-level" id="sec-threat-level">
+        <div class="sec-threat-dot low"></div>
+        <span>🟢 Threat Level: LOW</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ KPI STRIP ══ -->
+  <div class="sec-kpi-strip">
+    <div class="sec-kpi"><span class="sec-kpi-emoji">👥</span><div><div class="sec-kpi-val" id="sk-users">—</div><div class="sec-kpi-lbl">Total Users</div></div></div>
+    <div class="sec-kpi"><span class="sec-kpi-emoji">🔐</span><div><div class="sec-kpi-val" id="sk-biometric">—</div><div class="sec-kpi-lbl">Biometric Enrolled</div></div></div>
+    <div class="sec-kpi"><span class="sec-kpi-emoji">📋</span><div><div class="sec-kpi-val" id="sk-events">—</div><div class="sec-kpi-lbl">Today's Events</div></div></div>
+    <div class="sec-kpi"><span class="sec-kpi-emoji">🚨</span><div><div class="sec-kpi-val" id="sk-threats" style="color:#FF1744">—</div><div class="sec-kpi-lbl">Open Threats</div></div></div>
+    <div class="sec-kpi"><span class="sec-kpi-emoji">❌</span><div><div class="sec-kpi-val" id="sk-failed" style="color:#FF6D00">—</div><div class="sec-kpi-lbl">Failed Logins</div></div></div>
+    <div class="sec-kpi"><span class="sec-kpi-emoji">⚛️</span><div><div class="sec-kpi-val" style="color:#00FF41">L5</div><div class="sec-kpi-lbl">PQ Security Level</div></div></div>
+  </div>
+
+  <!-- ══ TABS ══ -->
+  <div class="tab-nav sec-tabs">
+    <button class="tab-btn active sec-tab" data-pane="sp-overview">🖥️ Overview</button>
+    <button class="tab-btn sec-tab" data-pane="sp-rbac">🗂️ RBAC Matrix</button>
+    <button class="tab-btn sec-tab" data-pane="sp-biometric">👆 Biometric Center</button>
+    <button class="tab-btn sec-tab" data-pane="sp-pq">⚛️ Post-Quantum</button>
+    <button class="tab-btn sec-tab" data-pane="sp-behavioral">🧠 Behavioral AI</button>
+    <button class="tab-btn sec-tab" data-pane="sp-audit">📋 Audit Log</button>
+    <button class="tab-btn sec-tab" data-pane="sp-threats">🚨 Threat Intelligence</button>
+  </div>
+
+  <div class="sec-body">
+
+    <!-- ══ OVERVIEW ══ -->
+    <div class="tab-pane active" id="sp-overview">
+      <div class="sec-overview-grid">
+
+        <!-- Post-Quantum stack card -->
+        <div class="sec-card sec-pq-card">
+          <div class="sec-card-header"><span>⚛️</span> Post-Quantum Cryptography Stack</div>
+          <div class="sec-pq-layers">
+            <div class="sec-pq-layer layer-5">
+              <div class="sec-layer-badge">L5</div>
+              <div class="sec-layer-info">
+                <div class="sec-layer-name">CRYSTALS-Kyber-1024</div>
+                <div class="sec-layer-role">Key Encapsulation (KEM) · Session Key Exchange</div>
+              </div>
+              <div class="sec-layer-status active">✅ Active</div>
+            </div>
+            <div class="sec-pq-layer layer-5">
+              <div class="sec-layer-badge">L5</div>
+              <div class="sec-layer-info">
+                <div class="sec-layer-name">CRYSTALS-Dilithium-3</div>
+                <div class="sec-layer-role">Digital Signatures · Identity Verification</div>
+              </div>
+              <div class="sec-layer-status active">✅ Active</div>
+            </div>
+            <div class="sec-pq-layer layer-5">
+              <div class="sec-layer-badge">L5</div>
+              <div class="sec-layer-info">
+                <div class="sec-layer-name">SPHINCS+-SHA3-256</div>
+                <div class="sec-layer-role">Stateless Hash-Based Signatures · Audit Signing</div>
+              </div>
+              <div class="sec-layer-status active">✅ Active</div>
+            </div>
+            <div class="sec-pq-layer layer-3">
+              <div class="sec-layer-badge">L3</div>
+              <div class="sec-layer-info">
+                <div class="sec-layer-name">SHAKE-256 (SHA-3)</div>
+                <div class="sec-layer-role">Hashing · Template Fingerprinting · Audit Chains</div>
+              </div>
+              <div class="sec-layer-status active">✅ Active</div>
+            </div>
+            <div class="sec-pq-layer layer-5">
+              <div class="sec-layer-badge">SYM</div>
+              <div class="sec-layer-info">
+                <div class="sec-layer-name">AES-256-GCM</div>
+                <div class="sec-layer-role">Symmetric Encryption · Biometric Template Storage</div>
+              </div>
+              <div class="sec-layer-status active">✅ Active</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Zero Trust architecture -->
+        <div class="sec-card sec-zt-card">
+          <div class="sec-card-header"><span>🛡️</span> Zero Trust Architecture</div>
+          <div class="sec-zt-layers">
+            <div class="sec-zt-item">
+              <div class="sec-zt-icon">🔐</div>
+              <div class="sec-zt-info">
+                <div class="sec-zt-name">Never Trust, Always Verify</div>
+                <div class="sec-zt-desc">Every request authenticated per session</div>
+              </div>
+              <div class="sec-zt-dot active"></div>
+            </div>
+            <div class="sec-zt-item">
+              <div class="sec-zt-icon">👆</div>
+              <div class="sec-zt-info">
+                <div class="sec-zt-name">Biometric Continuous Auth</div>
+                <div class="sec-zt-desc">Re-verify on sensitive operations</div>
+              </div>
+              <div class="sec-zt-dot active"></div>
+            </div>
+            <div class="sec-zt-item">
+              <div class="sec-zt-icon">🧠</div>
+              <div class="sec-zt-info">
+                <div class="sec-zt-name">Behavioral Baseline</div>
+                <div class="sec-zt-desc">AI detects deviations from user norms</div>
+              </div>
+              <div class="sec-zt-dot active"></div>
+            </div>
+            <div class="sec-zt-item">
+              <div class="sec-zt-icon">🗂️</div>
+              <div class="sec-zt-info">
+                <div class="sec-zt-name">Least Privilege RBAC</div>
+                <div class="sec-zt-desc">Minimal permissions per role</div>
+              </div>
+              <div class="sec-zt-dot active"></div>
+            </div>
+            <div class="sec-zt-item">
+              <div class="sec-zt-icon">📋</div>
+              <div class="sec-zt-info">
+                <div class="sec-zt-name">Immutable Audit Chain</div>
+                <div class="sec-zt-desc">SHAKE-256 signed audit log</div>
+              </div>
+              <div class="sec-zt-dot active"></div>
+            </div>
+            <div class="sec-zt-item">
+              <div class="sec-zt-icon">⏱️</div>
+              <div class="sec-zt-info">
+                <div class="sec-zt-name">5-min Auto-Lock</div>
+                <div class="sec-zt-desc">Inactivity auto-logout enforced</div>
+              </div>
+              <div class="sec-zt-dot active"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live activity feed -->
+        <div class="sec-card sec-activity-card">
+          <div class="sec-card-header">
+            <span>📡</span> Live Security Feed
+            <div class="tat-live-dot" style="margin-left:8px"></div>
+          </div>
+          <div class="sec-activity-list" id="sec-activity-list">
+            <div class="sec-act-item sec-act-info">
+              <div class="sec-act-dot" style="background:var(--alert-green)"></div>
+              <div class="sec-act-content">
+                <div class="sec-act-msg">✅ {{ request.user.get_full_name }} authenticated via {{ request.user.role|default:'Staff' }}</div>
+                <div class="sec-act-time">{{ today|date:"d M Y" }} · {{ request.user.last_login|date:"H:i" }}</div>
+              </div>
+            </div>
+            <div class="sec-act-item">
+              <div class="sec-act-dot" style="background:var(--blue-glow)"></div>
+              <div class="sec-act-content">
+                <div class="sec-act-msg">🔐 Post-quantum key rotation scheduled · Next: 90 days</div>
+                <div class="sec-act-time">System · Auto-rotation</div>
+              </div>
+            </div>
+            <div class="sec-act-item">
+              <div class="sec-act-dot" style="background:var(--alert-yellow)"></div>
+              <div class="sec-act-content">
+                <div class="sec-act-msg">⚠️ 3 users without biometric enrollment</div>
+                <div class="sec-act-time">Security Advisory · Medium</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Security score gauge -->
+        <div class="sec-card sec-score-card">
+          <div class="sec-card-header"><span>📊</span> Security Posture Score</div>
+          <div class="sec-score-gauge">
+            <div class="sec-score-circle">
+              <svg viewBox="0 0 120 120" class="sec-gauge-svg">
+                <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(0,255,65,0.1)" stroke-width="12"/>
+                <circle cx="60" cy="60" r="50" fill="none" stroke="#00FF41" stroke-width="12"
+                  stroke-dasharray="251.2" stroke-dashoffset="62.8" stroke-linecap="round"
+                  transform="rotate(-90 60 60)" style="filter:drop-shadow(0 0 8px rgba(0,255,65,0.5))"/>
+              </svg>
+              <div class="sec-score-val">75<span>%</span></div>
+            </div>
+            <div class="sec-score-breakdown">
+              <div class="sec-sb-row"><span>⚛️ PQ Crypto</span><span style="color:#00FF41">100%</span></div>
+              <div class="sec-sb-row"><span>🔐 RBAC</span><span style="color:#00FF41">95%</span></div>
+              <div class="sec-sb-row"><span>👆 Biometrics</span><span style="color:#FFD600">62%</span></div>
+              <div class="sec-sb-row"><span>🧠 Behavioral</span><span style="color:#FFD600">55%</span></div>
+              <div class="sec-sb-row"><span>📋 Audit</span><span style="color:#00FF41">98%</span></div>
+              <div class="sec-sb-row"><span>🛡️ Zero Trust</span><span style="color:#00FF41">88%</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /overview -->
+
+    <!-- ══ RBAC MATRIX ══ -->
+    <div class="tab-pane" id="sp-rbac">
+      <div class="sec-rbac-wrap">
+        <div class="sec-rbac-header">
+          <h2 style="font-family:var(--font-display);font-size:var(--text-lg);color:#C8FFD8">
+            🗂️ Role-Based Access Control Matrix
+          </h2>
+          <p style="color:#4A9A5A;font-size:var(--text-xs);margin-top:4px">
+            Permissions: <span class="rbac-legend crud">CRUD</span>
+            <span class="rbac-legend read">READ</span>
+            <span class="rbac-legend edit">EDIT</span>
+            <span class="rbac-legend create">CREATE</span>
+            <span class="rbac-legend none">NONE</span>
+          </p>
+        </div>
+        <div class="sec-rbac-table-wrap">
+          <table class="sec-rbac-table" id="rbac-table">
+            <thead>
+              <tr>
+                <th class="rbac-role-col">👤 Role</th>
+                <th>⚗️ Lab Tests</th>
+                <th>🧬 Patients</th>
+                <th>📋 Results</th>
+                <th>🔮 Reports</th>
+                <th>💠 Billing</th>
+                <th>🗂️ Inventory</th>
+                <th>⚙️ Settings</th>
+                <th>🔐 Security</th>
+                <th>👥 Users</th>
+                <th>📚 Records</th>
+                <th>🦠 Surveillance</th>
+                <th>🤖 AI</th>
+              </tr>
+            </thead>
+            <tbody id="rbac-tbody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ BIOMETRIC CENTER ══ -->
+    <div class="tab-pane" id="sp-biometric">
+      <div class="sec-bio-layout">
+
+        <!-- Enrollment panel -->
+        <div class="sec-bio-enroll-panel sec-card">
+          <div class="sec-card-header"><span>👆</span> Biometric Enrollment Center</div>
+
+          <div class="sec-bio-methods">
+
+            <!-- Fingerprint -->
+            <div class="sec-bio-method" id="bio-fingerprint">
+              <div class="sec-bio-icon fp-icon">👆</div>
+              <div class="sec-bio-info">
+                <div class="sec-bio-name">Fingerprint</div>
+                <div class="sec-bio-sub">WebAuthn FIDO2 · Platform authenticator</div>
+                <div class="sec-bio-status" id="fp-status">Not enrolled</div>
+              </div>
+              <button class="btn sec-bio-btn" id="fp-enroll-btn">🔐 Enroll</button>
+            </div>
+
+            <!-- Face Recognition -->
+            <div class="sec-bio-method" id="bio-face">
+              <div class="sec-bio-icon face-icon">👤</div>
+              <div class="sec-bio-info">
+                <div class="sec-bio-name">Face Recognition</div>
+                <div class="sec-bio-sub">Camera capture · Liveness detection · AES-256 template</div>
+                <div class="sec-bio-status" id="face-status">Not enrolled</div>
+              </div>
+              <button class="btn sec-bio-btn" id="face-enroll-btn">🎥 Enroll</button>
+            </div>
+
+            <!-- Palm Recognition -->
+            <div class="sec-bio-method" id="bio-palm">
+              <div class="sec-bio-icon palm-icon">🖐️</div>
+              <div class="sec-bio-info">
+                <div class="sec-bio-name">Palm Vein Recognition</div>
+                <div class="sec-bio-sub">Near-infrared capture · Vein pattern · Liveness check</div>
+                <div class="sec-bio-status" id="palm-status">Not enrolled</div>
+              </div>
+              <button class="btn sec-bio-btn" id="palm-enroll-btn">🖐️ Enroll</button>
+            </div>
+
+          </div>
+
+          <!-- Camera capture area (face/palm) -->
+          <div class="sec-bio-camera-area" id="sec-bio-camera-area" style="display:none">
+            <div class="sec-bio-cam-header" id="sec-bio-cam-header">👤 Face Recognition Enrollment</div>
+            <div class="sec-bio-cam-wrap">
+              <video id="bio-video" autoplay playsinline muted></video>
+              <canvas id="bio-canvas" style="display:none"></canvas>
+              <div class="sec-bio-cam-overlay" id="bio-cam-overlay">
+                <div class="sec-bio-face-guide" id="bio-guide">
+                  <!-- Dynamic: face oval, palm outline, etc. -->
+                </div>
+                <div class="sec-bio-cam-instructions" id="bio-instructions">
+                  Position your face within the oval
+                </div>
+              </div>
+              <div class="sec-bio-liveness" id="bio-liveness">
+                <div class="sec-liveness-dot"></div>
+                <span id="bio-liveness-text">Performing liveness check…</span>
+              </div>
+            </div>
+            <div class="sec-bio-cam-controls">
+              <button class="btn btn-primary sec-capture-btn" id="bio-capture-btn">
+                <i class="fas fa-camera"></i> Capture Sample
+              </button>
+              <button class="btn btn-ghost sec-bio-cancel" id="bio-camera-cancel">Cancel</button>
+            </div>
+            <div class="sec-bio-quality-bar">
+              <div class="sec-bio-q-label">Image Quality:</div>
+              <div class="sec-bio-q-track">
+                <div class="sec-bio-q-fill" id="bio-quality-fill" style="width:0%"></div>
+              </div>
+              <span id="bio-quality-pct">0%</span>
+            </div>
+          </div>
+
+          <!-- Result display -->
+          <div class="sec-bio-result" id="sec-bio-result" style="display:none">
+            <div class="sec-bio-result-icon" id="bio-result-icon">✅</div>
+            <div class="sec-bio-result-title" id="bio-result-title">Enrollment Complete</div>
+            <div class="sec-bio-result-detail" id="bio-result-detail"></div>
+          </div>
+        </div>
+
+        <!-- User biometric status -->
+        <div class="sec-bio-users-panel sec-card">
+          <div class="sec-card-header"><span>👥</span> User Biometric Status</div>
+          <table class="nx-table sec-bio-table" id="bio-users-table">
+            <thead><tr>
+              <th>👤 User</th><th>🏷️ Role</th>
+              <th>👆 Finger</th><th>👤 Face</th><th>🖐️ Palm</th>
+              <th>📊 MFA</th><th>🔐 Risk</th>
+            </tr></thead>
+            <tbody>
+              {% for role, emoji in "lab_manager:🥼,pathologist:🔬,quality_manager:📊,lab_officer:⚗️,lab_technician:🧪,receptionist:📡"|make_list|slice:":1" %}
+              {% endfor %}
+              <!-- Populated by JS -->
+              <tr>
+                <td><div style="display:flex;align-items:center;gap:8px"><div class="user-avatar" style="width:28px;height:28px">{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}</div>{{ request.user.get_full_name }}</div></td>
+                <td><span class="badge badge-blue">{{ request.user.get_role_display|default:"Staff" }}</span></td>
+                <td><span class="badge badge-yellow">⏳ Pending</span></td>
+                <td><span class="badge badge-yellow">⏳ Pending</span></td>
+                <td><span class="badge badge-yellow">⏳ Pending</span></td>
+                <td><span class="badge badge-grey">None</span></td>
+                <td><span style="color:var(--alert-green);font-family:var(--font-mono);font-size:11px">0.0</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div><!-- /biometric -->
+
+    <!-- ══ POST-QUANTUM ══ -->
+    <div class="tab-pane" id="sp-pq">
+      <div class="sec-pq-full-layout">
+
+        <!-- Algorithm details -->
+        <div class="sec-pq-algo-grid">
+          <div class="sec-pq-algo-card">
+            <div class="sec-algo-badge kyber">KEM</div>
+            <div class="sec-algo-name">CRYSTALS-Kyber-1024</div>
+            <div class="sec-algo-purpose">Key Encapsulation Mechanism</div>
+            <div class="sec-algo-spec">
+              <div class="sec-spec-row"><span>Security Level</span><span class="sec-spec-val">NIST Level 5</span></div>
+              <div class="sec-spec-row"><span>Public Key</span><span class="sec-spec-val">1,568 bytes</span></div>
+              <div class="sec-spec-row"><span>Ciphertext</span><span class="sec-spec-val">1,568 bytes</span></div>
+              <div class="sec-spec-row"><span>Shared Secret</span><span class="sec-spec-val">32 bytes</span></div>
+              <div class="sec-spec-row"><span>Lattice Problem</span><span class="sec-spec-val">Module LWE</span></div>
+              <div class="sec-spec-row"><span>Quantum-Safe</span><span class="sec-spec-val" style="color:#00FF41">✅ Yes</span></div>
+            </div>
+            <div class="sec-algo-use-cases">
+              <span class="sec-use-badge">🔑 Session keys</span>
+              <span class="sec-use-badge">🔒 Key exchange</span>
+              <span class="sec-use-badge">📡 WebSocket</span>
+            </div>
+          </div>
+
+          <div class="sec-pq-algo-card">
+            <div class="sec-algo-badge dilithium">SIGN</div>
+            <div class="sec-algo-name">CRYSTALS-Dilithium-3</div>
+            <div class="sec-algo-purpose">Digital Signature Algorithm</div>
+            <div class="sec-algo-spec">
+              <div class="sec-spec-row"><span>Security Level</span><span class="sec-spec-val">NIST Level 3</span></div>
+              <div class="sec-spec-row"><span>Public Key</span><span class="sec-spec-val">1,952 bytes</span></div>
+              <div class="sec-spec-row"><span>Signature</span><span class="sec-spec-val">3,293 bytes</span></div>
+              <div class="sec-spec-row"><span>Lattice Problem</span><span class="sec-spec-val">Module LWE + SIS</span></div>
+              <div class="sec-spec-row"><span>Operations</span><span class="sec-spec-val">fast sign+verify</span></div>
+              <div class="sec-spec-row"><span>Quantum-Safe</span><span class="sec-spec-val" style="color:#00FF41">✅ Yes</span></div>
+            </div>
+            <div class="sec-algo-use-cases">
+              <span class="sec-use-badge">✍️ Audit signatures</span>
+              <span class="sec-use-badge">🪪 Identity tokens</span>
+            </div>
+          </div>
+
+          <div class="sec-pq-algo-card">
+            <div class="sec-algo-badge sphincs">HASH</div>
+            <div class="sec-algo-name">SPHINCS+-SHA3-256</div>
+            <div class="sec-algo-purpose">Stateless Hash-Based Signature</div>
+            <div class="sec-algo-spec">
+              <div class="sec-spec-row"><span>Security Level</span><span class="sec-spec-val">NIST Level 5</span></div>
+              <div class="sec-spec-row"><span>Hash Function</span><span class="sec-spec-val">SHA3-256 / SHAKE</span></div>
+              <div class="sec-spec-row"><span>Signature Size</span><span class="sec-spec-val">49,856 bytes</span></div>
+              <div class="sec-spec-row"><span>Assumption</span><span class="sec-spec-val">Hash security only</span></div>
+              <div class="sec-spec-row"><span>Stateless</span><span class="sec-spec-val" style="color:#00FF41">✅ Yes</span></div>
+              <div class="sec-spec-row"><span>Quantum-Safe</span><span class="sec-spec-val" style="color:#00FF41">✅ Yes</span></div>
+            </div>
+            <div class="sec-algo-use-cases">
+              <span class="sec-use-badge">📋 Audit chain</span>
+              <span class="sec-use-badge">🏛️ Long-term</span>
+            </div>
+          </div>
+
+          <div class="sec-pq-algo-card">
+            <div class="sec-algo-badge aes">SYM</div>
+            <div class="sec-algo-name">AES-256-GCM</div>
+            <div class="sec-algo-purpose">Symmetric Authenticated Encryption</div>
+            <div class="sec-algo-spec">
+              <div class="sec-spec-row"><span>Key Size</span><span class="sec-spec-val">256 bits</span></div>
+              <div class="sec-spec-row"><span>Mode</span><span class="sec-spec-val">GCM (AEAD)</span></div>
+              <div class="sec-spec-row"><span>IV</span><span class="sec-spec-val">96 bits (random)</span></div>
+              <div class="sec-spec-row"><span>Auth Tag</span><span class="sec-spec-val">128 bits</span></div>
+              <div class="sec-spec-row"><span>Grover's reduction</span><span class="sec-spec-val">128 bit QC security</span></div>
+              <div class="sec-spec-row"><span>Quantum-Safe</span><span class="sec-spec-val" style="color:#FFD600">⚠️ Partial</span></div>
+            </div>
+            <div class="sec-algo-use-cases">
+              <span class="sec-use-badge">👆 Biometric templates</span>
+              <span class="sec-use-badge">💾 At-rest data</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Key rotation timeline -->
+        <div class="sec-card" style="margin-top:var(--space-lg)">
+          <div class="sec-card-header"><span>🔄</span> Key Rotation Schedule</div>
+          <div class="sec-rotation-timeline">
+            <div class="sec-rot-item done"><div class="sec-rot-dot done"></div><div><div class="sec-rot-name">Initial Key Generation</div><div class="sec-rot-date">System deployment · KYBER-1024 + DILITHIUM-3</div></div></div>
+            <div class="sec-rot-item active"><div class="sec-rot-dot active"></div><div><div class="sec-rot-name">Current Active Keys</div><div class="sec-rot-date">{{ today|date:"d M Y" }} · Auto-rotation in 87 days</div></div></div>
+            <div class="sec-rot-item upcoming"><div class="sec-rot-dot upcoming"></div><div><div class="sec-rot-name">Scheduled Rotation</div><div class="sec-rot-date">+90 days · Zero-downtime key replacement</div></div></div>
+            <div class="sec-rot-item upcoming"><div class="sec-rot-dot upcoming"></div><div><div class="sec-rot-name">Annual Security Audit</div><div class="sec-rot-date">Annual · Full algorithm review · NIST update</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /pq -->
+
+    <!-- ══ BEHAVIORAL AI ══ -->
+    <div class="tab-pane" id="sp-behavioral">
+      <div class="sec-behavioral-layout">
+        <div class="sec-card sec-beh-overview">
+          <div class="sec-card-header"><span>🧠</span> Behavioral Intelligence Engine</div>
+          <div class="sec-beh-metrics-grid">
+            <div class="sec-beh-metric">
+              <div class="sec-beh-icon">⌨️</div>
+              <div class="sec-beh-val" id="beh-typing">—</div>
+              <div class="sec-beh-lbl">Avg Typing Speed</div>
+            </div>
+            <div class="sec-beh-metric">
+              <div class="sec-beh-icon">🖱️</div>
+              <div class="sec-beh-val" id="beh-mouse">—</div>
+              <div class="sec-beh-lbl">Mouse Velocity</div>
+            </div>
+            <div class="sec-beh-metric">
+              <div class="sec-beh-icon">⏱️</div>
+              <div class="sec-beh-val" id="beh-session">—</div>
+              <div class="sec-beh-lbl">Session Duration</div>
+            </div>
+            <div class="sec-beh-metric">
+              <div class="sec-beh-icon">🌐</div>
+              <div class="sec-beh-val" id="beh-ips">—</div>
+              <div class="sec-beh-lbl">Known IPs</div>
+            </div>
+            <div class="sec-beh-metric">
+              <div class="sec-beh-icon">📊</div>
+              <div class="sec-beh-val" id="beh-anomaly" style="color:var(--alert-green)">0.05</div>
+              <div class="sec-beh-lbl">Anomaly Score</div>
+            </div>
+            <div class="sec-beh-metric">
+              <div class="sec-beh-icon">🕐</div>
+              <div class="sec-beh-val" id="beh-login-hours">—</div>
+              <div class="sec-beh-lbl">Typical Login Hours</div>
+            </div>
+          </div>
+
+          <div class="sec-beh-features">
+            <div class="sec-beh-feature active">
+              <span>✅</span>
+              <div><div class="sec-beh-f-name">Mouse Dynamics Analysis</div><div class="sec-beh-f-desc">Velocity, pressure patterns, click intervals</div></div>
+            </div>
+            <div class="sec-beh-feature active">
+              <span>✅</span>
+              <div><div class="sec-beh-f-name">Keystroke Dynamics</div><div class="sec-beh-f-desc">Dwell time, flight time, typing rhythm</div></div>
+            </div>
+            <div class="sec-beh-feature active">
+              <span>✅</span>
+              <div><div class="sec-beh-f-name">Session Pattern Analysis</div><div class="sec-beh-f-desc">Typical hours, duration, module access patterns</div></div>
+            </div>
+            <div class="sec-beh-feature active">
+              <span>✅</span>
+              <div><div class="sec-beh-f-name">Location & IP Intelligence</div><div class="sec-beh-f-desc">Geofencing, unusual IP detection, VPN alerts</div></div>
+            </div>
+            <div class="sec-beh-feature active">
+              <span>✅</span>
+              <div><div class="sec-beh-f-name">Data Access Anomaly</div><div class="sec-beh-f-desc">Unusual record access volume or patterns</div></div>
+            </div>
+            <div class="sec-beh-feature active">
+              <span>✅</span>
+              <div><div class="sec-beh-f-name">Risk Score (0.0–1.0)</div><div class="sec-beh-f-desc">Real-time per-session risk quantification</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="sec-card sec-beh-anomalies">
+          <div class="sec-card-header"><span>🔍</span> Recent Anomalies</div>
+          <div class="sec-anomaly-list" id="anomaly-list">
+            <div class="sec-anomaly-item low">
+              <div class="sec-anom-sev low">LOW</div>
+              <div class="sec-anom-info">
+                <div class="sec-anom-msg">Login from new IP address detected</div>
+                <div class="sec-anom-meta">User: Demo Staff · Score: 0.12 · {{ today|date:"d M Y" }}</div>
+              </div>
+            </div>
+            <div class="sec-anomaly-item info">
+              <div class="sec-anom-sev info">INFO</div>
+              <div class="sec-anom-info">
+                <div class="sec-anom-msg">Behavioral baseline established for 5 users</div>
+                <div class="sec-anom-meta">System · Automatic · Samples: 30+</div>
+              </div>
+            </div>
+            <div class="sec-anomaly-item info">
+              <div class="sec-anom-sev info">INFO</div>
+              <div class="sec-anom-info">
+                <div class="sec-anom-msg">All current sessions within normal parameters</div>
+                <div class="sec-anom-meta">Continuous monitoring active · {{ today|date:"d M Y" }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /behavioral -->
+
+    <!-- ══ AUDIT LOG ══ -->
+    <div class="tab-pane" id="sp-audit">
+      <div class="sec-audit-header">
+        <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap">
+          <select class="fi sec-fi" id="audit-severity-filter" style="width:auto">
+            <option value="">All severities</option>
+            <option value="low">🟢 Low</option>
+            <option value="medium">🟡 Medium</option>
+            <option value="high">🟠 High</option>
+            <option value="critical">🔴 Critical</option>
+          </select>
+          <select class="fi sec-fi" id="audit-type-filter" style="width:auto">
+            <option value="">All events</option>
+            <option value="login">Login</option>
+            <option value="login_failed">Login Failed</option>
+            <option value="biometric_auth">Biometric Auth</option>
+            <option value="permission_denied">Permission Denied</option>
+            <option value="data_access">Data Access</option>
+          </select>
+          <button class="btn sec-export-btn" id="audit-export-btn"><span>📤</span> Export</button>
+        </div>
+        <span class="sec-audit-count" id="audit-count">— events</span>
+      </div>
+      <div class="sec-audit-list" id="audit-list">
+        <!-- Populated by JS -->
+        {% for ev in "123456789012" %}
+        <div class="sec-audit-item {% cycle 'sev-low' 'sev-low' 'sev-medium' 'sev-low' 'sev-high' 'sev-low' 'sev-low' 'sev-medium' 'sev-low' 'sev-critical' 'sev-low' 'sev-low' %}">
+          <div class="sec-audit-sev-dot"></div>
+          <div class="sec-audit-event-type">{% cycle "✅ Login" "✅ Login" "⚠️ Permission Denied" "🔐 Biometric Auth" "❌ Login Failed" "📤 Data Export" "✅ Login" "⚠️ Config Change" "✅ Logout" "🚨 Brute Force" "🔑 PQ Key Rotation" "📋 Data Access" %}</div>
+          <div class="sec-audit-desc">{% cycle "User authenticated successfully" "Lab manager logged in" "Access to billing denied — insufficient role" "Fingerprint verified — confidence 97.2%" "3 failed login attempts — account temporarily locked" "Lab results exported to PDF — 12 records" "IT admin logged in" "Shift configuration updated by lab manager" "User session ended — inactivity timeout" "5 failed attempts in 2 minutes from IP 192.168.x.x" "CRYSTALS-Kyber keys rotated successfully" "Patient records accessed — 24 records viewed" %}</div>
+          <div class="sec-audit-user">{% cycle "Dr. Nkurunziza" "Lab Manager" "Nurse Habimana" "Lab Tech Mutoni" "Unknown" "Pathologist" "IT Admin" "Lab Manager" "Lab Tech" "Unknown" "System" "Receptionist" %}</div>
+          <div class="sec-audit-time">{% cycle "09:42" "09:38" "09:15" "08:54" "08:30" "08:15" "07:55" "07:30" "07:00" "06:45" "06:00" "05:30" %}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div><!-- /audit -->
+
+    <!-- ══ THREAT INTELLIGENCE ══ -->
+    <div class="tab-pane" id="sp-threats">
+      <div class="sec-threat-layout">
+        <div class="sec-card sec-threat-feed">
+          <div class="sec-card-header">
+            <span>🚨</span> Active Threat Intelligence
+            <div class="tat-live-dot" style="margin-left:8px"></div>
+          </div>
+          <div class="sec-threat-list" id="threat-list">
+            <div class="sec-threat-item low">
+              <div class="sec-threat-icon">👁️</div>
+              <div class="sec-threat-info">
+                <div class="sec-threat-name">Anomalous Access Pattern</div>
+                <div class="sec-threat-desc">User accessed lab results outside typical hours (02:14 AM). Risk score: 0.42.</div>
+                <div class="sec-threat-meta">{{ today|date:"d M Y" }} · Low risk · Auto-logged</div>
+              </div>
+              <span class="badge badge-yellow">👁️ Monitoring</span>
+            </div>
+            <div class="sec-threat-item info">
+              <div class="sec-threat-icon">🔐</div>
+              <div class="sec-threat-info">
+                <div class="sec-threat-name">All Systems Secure</div>
+                <div class="sec-threat-desc">No active high-severity threats detected. Post-quantum encryption active on all connections.</div>
+                <div class="sec-threat-meta">{{ today|date:"d M Y" }} · Continuous monitoring</div>
+              </div>
+              <span class="badge badge-green">✅ Secure</span>
+            </div>
+          </div>
+        </div>
+        <div class="sec-card sec-threat-stats">
+          <div class="sec-card-header"><span>📊</span> Threat Statistics</div>
+          <div style="display:flex;flex-direction:column;gap:var(--space-md);padding:var(--space-md)">
+            <div class="sec-ts-row"><span>🔨 Brute Force Attempts</span><span class="sec-ts-val">0</span></div>
+            <div class="sec-ts-row"><span>🎣 Credential Stuffing</span><span class="sec-ts-val">0</span></div>
+            <div class="sec-ts-row"><span>👁️ Anomalous Access</span><span class="sec-ts-val">1</span></div>
+            <div class="sec-ts-row"><span>⬆️ Privilege Escalation</span><span class="sec-ts-val">0</span></div>
+            <div class="sec-ts-row"><span>📤 Data Exfiltration</span><span class="sec-ts-val">0</span></div>
+            <div class="sec-ts-row"><span>⚛️ Quantum Threat Signals</span><span class="sec-ts-val" style="color:#00FF41">0 — Protected</span></div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /threats -->
+
+  </div><!-- /sec-body -->
+</div><!-- /sec-main -->
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/security/js/security.js' %}" defer></script>
+{% endblock %}

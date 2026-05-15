@@ -1,0 +1,465 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}Patient Hub — NEXUS ALIS-X{% endblock %}
+{% block module_id %}patients{% endblock %}
+{% block nav_active_patients %}active{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/patients/css/patient_hub.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="hub-main">
+
+  <!-- ── Header ── -->
+  <header class="hub-header">
+    <div class="header-left">
+      <div class="module-icon-wrap"><i class="fas fa-user-injured"></i></div>
+      <div>
+        <h1 class="module-title">🧬 Patient Hub</h1>
+        <span class="module-sub">JORINOVA NEXUS ALIS-X</span>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div class="global-search-wrap" id="global-search-wrap">
+        <i class="fas fa-magnifying-glass search-icon"></i>
+        <input type="text" id="global-search" class="global-search-input"
+               placeholder="Search name, PID, Lab ID, National ID, Phone…"
+               autocomplete="off" spellcheck="false"
+               aria-label="Search patients" aria-autocomplete="list" aria-controls="search-dropdown">
+        <button class="voice-btn" id="voice-btn" type="button" title="Voice Search" aria-label="Voice search">
+          <i class="fas fa-microphone"></i>
+        </button>
+        <div class="search-dropdown" id="search-dropdown" role="listbox" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <button class="btn-new-patient" id="btn-new-patient" type="button">
+        <i class="fas fa-user-plus"></i>
+        <span>Register Patient</span>
+      </button>
+      <div class="user-chip" title="{{ request.user.get_full_name }}">
+        <div class="user-avatar">{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}</div>
+        <span class="user-name">{{ request.user.get_full_name }}</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Content ── -->
+  <div class="hub-content">
+
+    <!-- Search / Results Panel (left) -->
+    <aside class="search-panel" aria-label="Patient results">
+      <div class="sp-header">
+        <span class="sp-label">Results</span>
+        <span class="sp-count" id="sp-count"></span>
+      </div>
+
+      <div class="sp-body" id="sp-body">
+        <div class="sp-hint" id="sp-hint">
+          <i class="fas fa-magnifying-glass"></i>
+          <p>Search above or register<br>a new patient</p>
+        </div>
+        <div class="sp-list" id="sp-list" style="display:none" role="listbox"></div>
+      </div>
+
+      <div class="sp-footer">
+        <div class="sp-label">Recent</div>
+        <div class="sp-recent" id="sp-recent"></div>
+      </div>
+    </aside>
+
+    <!-- Detail Panel (right) -->
+    <section class="detail-panel" id="detail-panel">
+
+      <!-- STATE: Empty -->
+      <div class="state-empty" id="state-empty">
+        <div class="empty-glyph"><i class="fas fa-hospital-user"></i></div>
+        <h2>Patient Hub</h2>
+        <p>Search for a patient to view their complete profile, or register a new patient.</p>
+        <button class="btn btn-primary" id="btn-register-empty" type="button">
+          <i class="fas fa-user-plus"></i> Register New Patient
+        </button>
+      </div>
+
+      <!-- STATE: Profile -->
+      <div class="state-profile" id="state-profile" style="display:none">
+
+        <!-- Profile hero -->
+        <div class="profile-hero">
+          <div class="photo-wrap">
+            <img id="ph-photo" src="" alt="Patient photo" style="display:none">
+            <div class="photo-placeholder" id="ph-photo-placeholder"><i class="fas fa-user"></i></div>
+            <span class="status-dot" id="ph-status-dot"></span>
+          </div>
+          <div class="hero-info">
+            <div class="hero-name" id="ph-name">—</div>
+            <div class="hero-meta">
+              <span id="ph-gender" class="badge"></span>
+              <span id="ph-age"    class="badge badge-grey"></span>
+              <span id="ph-blood"  class="badge badge-red" style="display:none"></span>
+            </div>
+            <div class="hero-ids">
+              <span class="id-chip"><i class="fas fa-id-card"></i> <b id="ph-pid">—</b></span>
+              <span class="id-chip"><i class="fas fa-barcode"></i> <b id="ph-lab-id">—</b></span>
+            </div>
+          </div>
+          <div class="hero-actions">
+            <button class="icon-btn" id="btn-edit-profile"  type="button" title="Edit Profile"><i class="fas fa-pen-to-square"></i></button>
+            <button class="icon-btn" id="btn-print-label"   type="button" title="Print Label"><i class="fas fa-print"></i></button>
+            <button class="icon-btn icon-btn-primary" id="btn-new-request" type="button" title="New Lab Request">
+              <i class="fas fa-flask"></i> Request
+            </button>
+          </div>
+        </div>
+
+        <!-- Profile tabs -->
+        <div class="profile-tabs tab-nav" role="tablist">
+          <button class="tab-btn active" data-tab="overview" role="tab" aria-selected="true"><i class="fas fa-id-card-clip"></i> Overview</button>
+          <button class="tab-btn"        data-tab="labs"     role="tab"><i class="fas fa-flask"></i> Lab History</button>
+          <button class="tab-btn"        data-tab="guardian" role="tab"><i class="fas fa-people-roof"></i> Guardian</button>
+          <button class="tab-btn"        data-tab="insurance"role="tab"><i class="fas fa-shield-halved"></i> Insurance</button>
+        </div>
+
+        <!-- Tab content -->
+        <div class="profile-tab-content">
+
+          <!-- Overview -->
+          <div class="tab-pane active" id="tab-overview">
+            <div class="info-grid">
+              <div class="info-card">
+                <div class="info-card-title"><i class="fas fa-user"></i> Personal</div>
+                <div class="info-rows" id="info-personal"></div>
+              </div>
+              <div class="info-card">
+                <div class="info-card-title"><i class="fas fa-heart-pulse"></i> Medical</div>
+                <div class="info-rows" id="info-medical"></div>
+              </div>
+              <div class="info-card" id="inpatient-card" style="display:none">
+                <div class="info-card-title"><i class="fas fa-bed-pulse"></i> Admission</div>
+                <div class="info-rows" id="info-inpatient"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lab History -->
+          <div class="tab-pane" id="tab-labs" style="display:none">
+            <div class="lab-header">
+              <span class="lab-total" id="lab-total"></span>
+              <a href="#" class="link-all" id="link-all-labs">View all <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div id="lab-list"></div>
+          </div>
+
+          <!-- Guardian -->
+          <div class="tab-pane" id="tab-guardian" style="display:none">
+            <div class="sub-header">
+              <button class="btn-add" id="btn-add-guardian" type="button">
+                <i class="fas fa-plus"></i> Add Guardian
+              </button>
+            </div>
+            <div id="guardian-list"></div>
+          </div>
+
+          <!-- Insurance -->
+          <div class="tab-pane" id="tab-insurance" style="display:none">
+            <div class="sub-header">
+              <button class="btn-add" id="btn-add-insurance" type="button">
+                <i class="fas fa-plus"></i> Add Insurance
+              </button>
+            </div>
+            <div id="insurance-list"></div>
+          </div>
+
+        </div><!-- /profile-tab-content -->
+      </div><!-- /state-profile -->
+
+      <!-- STATE: Registration -->
+      <div class="state-register" id="state-register" style="display:none">
+
+        <div class="reg-header">
+          <button class="btn-back" id="btn-back" type="button" aria-label="Back">
+            <i class="fas fa-arrow-left"></i>
+          </button>
+          <div>
+            <h2 class="reg-title">New Patient Registration</h2>
+            <span class="reg-sub">Fill all required fields marked <span class="req-mark">*</span></span>
+          </div>
+        </div>
+
+        <!-- Step bar -->
+        <div class="reg-steps">
+          <div class="step-bar">
+            <div class="step-item active" data-step="1">
+              <div class="step-num">1</div><span>Personal</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-item" data-step="2">
+              <div class="step-num">2</div><span>Medical</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-item" data-step="3">
+              <div class="step-num">3</div><span>Guardian</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-item" data-step="4">
+              <div class="step-num">4</div><span>Insurance</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form body -->
+        <div class="reg-form-wrap">
+          <form id="reg-form" novalidate enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Step 1 : Personal -->
+            <div class="form-step active" id="step-1">
+              <div class="form-grid">
+                <div class="fg">
+                  <label class="fl required">Family Name</label>
+                  <input type="text" name="family_name" class="fi" placeholder="e.g. Uwimana" required>
+                </div>
+                <div class="fg">
+                  <label class="fl required">Other Names</label>
+                  <input type="text" name="other_names" class="fi" placeholder="e.g. Jean Pierre" required>
+                </div>
+                <div class="fg">
+                  <label class="fl required">Date of Birth</label>
+                  <input type="date" name="date_of_birth" class="fi" required>
+                </div>
+                <div class="fg">
+                  <label class="fl required">Gender</label>
+                  <select name="gender" class="fi" required>
+                    <option value="">Select…</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div class="fg">
+                  <label class="fl">National ID / Passport</label>
+                  <input type="text" name="person_id" class="fi" placeholder="1 19XX X XXXXXXX X XX">
+                </div>
+                <div class="fg">
+                  <label class="fl">Phone Number</label>
+                  <input type="tel" name="phone" class="fi" placeholder="+250 7XX XXX XXX">
+                </div>
+                <div class="fg">
+                  <label class="fl">Email</label>
+                  <input type="email" name="email" class="fi" placeholder="patient@email.com">
+                </div>
+                <div class="fg">
+                  <label class="fl">Nationality</label>
+                  <input type="text" name="nationality" class="fi" value="Rwandan">
+                </div>
+                <div class="fg fg-full">
+                  <label class="fl">District</label>
+                  <select name="district" class="fi">
+                    <option value="">Select district…</option>
+                    {% for code, label in districts %}
+                    <option value="{{ code }}">{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="fg fg-full">
+                  <label class="fl">Address</label>
+                  <textarea name="address" class="fi fi-ta" placeholder="Sector, Cell, Village…"></textarea>
+                </div>
+                {% if hospitals %}
+                <div class="fg fg-full">
+                  <label class="fl required">Hospital</label>
+                  <select name="hospital" class="fi" required>
+                    <option value="">Select hospital…</option>
+                    {% for h in hospitals %}
+                    <option value="{{ h.id }}">{{ h.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                {% else %}
+                <input type="hidden" name="hospital" value="{{ hospital.id }}">
+                {% endif %}
+                <div class="fg fg-full">
+                  <label class="fl">Patient Photo</label>
+                  <div class="photo-upload" id="photo-upload" role="button" tabindex="0" aria-label="Upload patient photo">
+                    <input type="file" name="photo" id="photo-file" accept="image/*" style="display:none">
+                    <img id="photo-preview" src="" alt="Preview" style="display:none">
+                    <div class="photo-upload-inner" id="photo-upload-inner">
+                      <i class="fas fa-camera"></i>
+                      <span>Click to upload photo</span>
+                      <small>JPG, PNG — max 5 MB</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2 : Medical -->
+            <div class="form-step" id="step-2" style="display:none">
+              <div class="form-grid">
+                <div class="fg">
+                  <label class="fl">Blood Group</label>
+                  <select name="blood_group" class="fi">
+                    <option value="unknown">Unknown</option>
+                    <option value="A+">A+</option><option value="A-">A-</option>
+                    <option value="B+">B+</option><option value="B-">B-</option>
+                    <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                    <option value="O+">O+</option><option value="O-">O-</option>
+                  </select>
+                </div>
+                <div class="fg">
+                  <label class="fl">HIV Status</label>
+                  <select name="hiv_status" class="fi">
+                    <option value="not_disclosed">Not Disclosed</option>
+                    <option value="negative">Negative</option>
+                    <option value="positive">Positive</option>
+                    <option value="unknown">Unknown</option>
+                  </select>
+                </div>
+                <div class="fg">
+                  <label class="fl">Hospital Record No.</label>
+                  <input type="text" name="record_number" class="fi" placeholder="Internal record number">
+                </div>
+                <div class="fg">
+                  <label class="fl">Archive Code</label>
+                  <input type="text" name="archive_code" class="fi" placeholder="Archive reference">
+                </div>
+                <div class="fg fg-full">
+                  <label class="fl">Known Allergies</label>
+                  <textarea name="allergies" class="fi fi-ta" placeholder="Penicillin, Latex, Peanuts…"></textarea>
+                </div>
+                <div class="fg fg-full">
+                  <label class="fl">Chronic Conditions</label>
+                  <textarea name="chronic_conditions" class="fi fi-ta" placeholder="Diabetes, Hypertension, Asthma…"></textarea>
+                </div>
+                <div class="fg fg-full">
+                  <label class="toggle-row">
+                    <input type="checkbox" name="is_inpatient" id="inpatient-toggle">
+                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                    <span>Patient is currently admitted (Inpatient)</span>
+                  </label>
+                </div>
+                <div class="fg inpatient-extra">
+                  <label class="fl">Ward</label>
+                  <input type="text" name="ward" class="fi" placeholder="Medical Ward A">
+                </div>
+                <div class="fg inpatient-extra">
+                  <label class="fl">Bed Number</label>
+                  <input type="text" name="bed_number" class="fi" placeholder="Bed 12B">
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 3 : Guardian -->
+            <div class="form-step" id="step-3" style="display:none">
+              <div class="step-note"><i class="fas fa-circle-info"></i> Optional — recommended for minors and unconscious patients</div>
+              <div class="form-grid">
+                <div class="fg fg-full">
+                  <label class="fl">Guardian Full Name</label>
+                  <input type="text" name="guardian_name" class="fi" placeholder="e.g. Uwimana Marie">
+                </div>
+                <div class="fg">
+                  <label class="fl">Relationship</label>
+                  <select name="guardian_relationship" class="fi">
+                    <option value="">Select…</option>
+                    <option value="parent">Parent</option>
+                    <option value="spouse">Spouse</option>
+                    <option value="sibling">Sibling</option>
+                    <option value="child">Child</option>
+                    <option value="caretaker">Caretaker</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div class="fg">
+                  <label class="fl">Guardian Phone</label>
+                  <input type="tel" name="guardian_phone" class="fi" placeholder="+250 7XX XXX XXX">
+                </div>
+                <div class="fg">
+                  <label class="fl">Guardian National ID</label>
+                  <input type="text" name="guardian_national_id" class="fi">
+                </div>
+                <div class="fg">
+                  <label class="fl">Guardian District</label>
+                  <select name="guardian_district" class="fi">
+                    <option value="">Select district…</option>
+                    {% for code, label in districts %}
+                    <option value="{{ code }}">{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 4 : Insurance -->
+            <div class="form-step" id="step-4" style="display:none">
+              <div class="step-note"><i class="fas fa-circle-info"></i> Optional — insurance can be added or updated at any time</div>
+              <div class="form-grid">
+                <div class="fg fg-full">
+                  <label class="fl">Payment Type</label>
+                  <select name="ins_payment_type" class="fi" id="ins-type-select">
+                    <option value="">None / Skip</option>
+                    <option value="private">Private (Self-pay)</option>
+                    <option value="insurance">Insurance</option>
+                    <option value="cg">Community-Based (Mutuelle de Santé)</option>
+                    <option value="free">Free / Subsidized</option>
+                  </select>
+                </div>
+                <div class="fg ins-detail">
+                  <label class="fl">Provider Name</label>
+                  <input type="text" name="insurance_name" class="fi" placeholder="RSSB, Radiant, MMI…">
+                </div>
+                <div class="fg ins-detail">
+                  <label class="fl">Member / Insurance ID</label>
+                  <input type="text" name="insurance_id" class="fi">
+                </div>
+                <div class="fg ins-detail">
+                  <label class="fl">Policy Number</label>
+                  <input type="text" name="policy_number" class="fi">
+                </div>
+                <div class="fg ins-detail">
+                  <label class="fl">Coverage %</label>
+                  <input type="number" name="coverage_percentage" class="fi" min="0" max="100" value="100">
+                </div>
+                <div class="fg ins-detail">
+                  <label class="fl">Valid From</label>
+                  <input type="date" name="valid_from" class="fi">
+                </div>
+                <div class="fg ins-detail">
+                  <label class="fl">Valid To</label>
+                  <input type="date" name="valid_to" class="fi">
+                </div>
+              </div>
+            </div>
+
+          </form>
+        </div><!-- /reg-form-wrap -->
+
+        <!-- Form footer nav -->
+        <div class="form-footer">
+          <button class="btn btn-secondary" id="btn-prev" type="button" style="visibility:hidden">
+            <i class="fas fa-arrow-left"></i> Back
+          </button>
+          <div class="step-dots" role="tablist">
+            <span class="dot active" data-step="1"></span>
+            <span class="dot" data-step="2"></span>
+            <span class="dot" data-step="3"></span>
+            <span class="dot" data-step="4"></span>
+          </div>
+          <button class="btn btn-primary" id="btn-next" type="button">
+            Next <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+
+      </div><!-- /state-register -->
+
+    </section><!-- /detail-panel -->
+  </div><!-- /hub-content -->
+</div><!-- /hub-main -->
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/patients/js/patient_hub.js' %}" defer></script>
+{% endblock %}

@@ -1,0 +1,276 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}Reception — NEXUS ALIS-X{% endblock %}
+{% block module_id %}reception{% endblock %}
+{% block nav_active_reception %}active{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/reception/css/reception.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="reception-main">
+
+  <!-- ── Header ── -->
+  <header class="reception-header">
+    <div class="reception-header-left">
+      <div class="page-icon-wrap"><i class="fas fa-door-open"></i></div>
+      <div>
+        <h1 class="reception-title">📡 Reception</h1>
+        <div class="reception-subtitle">{{ today|date:"l, d F Y" }} · NEXUS ALIS-X</div>
+      </div>
+    </div>
+    <div class="reception-header-right">
+      <a href="/reception/phlebotomy/" class="btn btn-secondary btn-sm">
+        <span>🩸</span> Phlebotomy
+      </a>
+      <div class="user-chip" title="{{ request.user.get_full_name }}">
+        <div class="user-avatar">{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}</div>
+        <span class="user-name">{{ request.user.get_full_name }}</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Tab bar ── -->
+  <div class="reception-tabs" role="tablist">
+    <button class="reception-tab active" data-pane="new-request-pane" role="tab">
+      <i class="fas fa-plus-circle"></i> New Request
+    </button>
+    <button class="reception-tab" data-pane="queue-pane" role="tab">
+      <i class="fas fa-list-check"></i> Today's Queue
+      <span class="badge badge-blue" id="queue-count-badge" style="margin-left:4px"></span>
+    </button>
+  </div>
+
+  <!-- ════════ TAB: NEW REQUEST ════════ -->
+  <div class="rec-pane active" id="new-request-pane">
+    <div class="new-request-layout">
+
+      <!-- LEFT: Patient + Clinical -->
+      <div class="req-left">
+
+        <!-- Patient search -->
+        <div class="patient-search-section">
+          <div class="section-label">Select Patient</div>
+          <div class="patient-search-wrap" id="patient-search-wrap">
+            <i class="fas fa-magnifying-glass search-icon"></i>
+            <input type="text" id="patient-search-input" class="patient-search-input"
+                   placeholder="Search name, PID, phone…"
+                   autocomplete="off" spellcheck="false" autofocus>
+            <div class="patient-dropdown" id="patient-dropdown" role="listbox"></div>
+          </div>
+        </div>
+
+        <!-- No patient hint -->
+        <div class="no-patient-hint" id="no-patient-hint">
+          <i class="fas fa-user-circle"></i>
+          <span>Search and select a patient above</span>
+        </div>
+
+        <!-- Selected patient card -->
+        <div class="selected-patient-card" id="selected-patient-card">
+          <div class="spc-header">
+            <span class="spc-name" id="spc-name">—</span>
+            <button class="spc-change" id="spc-change-btn" type="button">Change</button>
+          </div>
+          <div class="spc-meta">
+            <span class="badge badge-grey" id="spc-pid"></span>
+            <span class="badge badge-grey" id="spc-age"></span>
+            <span class="badge badge-blue" id="spc-gender"></span>
+            <span class="badge badge-red"  id="spc-blood" style="display:none"></span>
+          </div>
+        </div>
+
+        <!-- Clinical info -->
+        <div class="clinical-section">
+          <div class="clinical-form">
+
+            <div class="section-label" style="margin-top:var(--space-sm)">Clinical Information</div>
+
+            <div class="fg">
+              <label class="fl">Requesting Doctor</label>
+              <input type="text" id="doctor-name" class="fi" placeholder="Dr. Firstname Lastname">
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-sm)">
+              <div class="fg">
+                <label class="fl">Ward</label>
+                <input type="text" id="ward-input" class="fi" placeholder="Ward / Unit">
+              </div>
+              <div class="fg">
+                <label class="fl">Bed</label>
+                <input type="text" id="bed-input" class="fi" placeholder="Bed no.">
+              </div>
+            </div>
+
+            <div class="fg">
+              <label class="fl">Clinical Info / Symptoms</label>
+              <textarea id="clinical-info" class="fi fi-ta" placeholder="Brief clinical notes…" rows="2"></textarea>
+            </div>
+
+            <div class="fg">
+              <label class="fl">Provisional Diagnosis</label>
+              <input type="text" id="diagnosis" class="fi" placeholder="e.g. Type 2 Diabetes, Malaria…">
+            </div>
+
+            <!-- Priority -->
+            <div class="fg">
+              <label class="fl">Priority</label>
+              <div class="priority-pills">
+                <label class="priority-pill selected" data-level="routine">
+                  <input type="radio" name="priority" value="routine" checked>
+                  <i class="fas fa-circle-dot"></i> Routine
+                </label>
+                <label class="priority-pill urgent" data-level="urgent">
+                  <input type="radio" name="priority" value="urgent">
+                  <i class="fas fa-exclamation-circle"></i> Urgent
+                </label>
+                <label class="priority-pill emerg" data-level="emergency">
+                  <input type="radio" name="priority" value="emergency">
+                  <i class="fas fa-bolt"></i> STAT
+                </label>
+              </div>
+            </div>
+
+            <!-- High-risk -->
+            <div class="high-risk-row" id="high-risk-row">
+              <div class="high-risk-label">
+                <i class="fas fa-biohazard"></i>
+                <div>
+                  <div>High-Risk Specimen</div>
+                  <div style="font-size:10px;color:var(--text-muted);font-weight:400">HIV+, Hepatitis, TB, etc.</div>
+                </div>
+              </div>
+              <label class="toggle-row">
+                <input type="checkbox" id="high-risk-toggle">
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              </label>
+            </div>
+
+            <div class="fg" id="biosafety-warning-row" style="display:none">
+              <label class="fl">Biosafety Warning</label>
+              <input type="text" id="biosafety-warning" class="fi" placeholder="e.g. HIV+, HBV, Active TB">
+            </div>
+
+          </div>
+        </div>
+
+      </div><!-- /req-left -->
+
+      <!-- RIGHT: Test catalog + summary -->
+      <div class="req-right">
+
+        <!-- Catalog toolbar -->
+        <div class="catalog-header">
+          <div class="catalog-search-wrap">
+            <i class="fas fa-magnifying-glass"></i>
+            <input type="text" id="catalog-search" class="catalog-search" placeholder="Search tests…">
+          </div>
+          <span class="selected-count" id="selected-count"></span>
+        </div>
+
+        <div class="catalog-body">
+          <!-- Tests list -->
+          <div class="catalog-tests" id="catalog-tests">
+            <div style="display:flex;align-items:center;gap:1rem;padding:2rem;color:var(--text-muted)">
+              <i class="fas fa-spinner" style="animation:spin 1s linear infinite"></i>
+              Loading test catalog…
+            </div>
+          </div>
+
+          <!-- Summary panel -->
+          <div class="summary-panel">
+            <div class="summary-header">
+              <div class="summary-title">Selected Tests</div>
+            </div>
+            <div class="summary-tests" id="summary-tests">
+              <div class="no-tests-msg">No tests selected yet</div>
+            </div>
+            <div class="tubes-section" id="tubes-section" style="display:none">
+              <div class="tubes-title">Tubes Required</div>
+              <div id="tubes-list"></div>
+            </div>
+            <div class="submit-footer">
+              <button class="btn-submit-request" id="btn-submit-request" type="button" disabled>
+                <i class="fas fa-paper-plane"></i>
+                <span>Submit Request</span>
+              </button>
+            </div>
+          </div>
+
+        </div><!-- /catalog-body -->
+      </div><!-- /req-right -->
+    </div><!-- /new-request-layout -->
+  </div><!-- /#new-request-pane -->
+
+  <!-- ════════ TAB: TODAY'S QUEUE ════════ -->
+  <div class="rec-pane queue-pane" id="queue-pane">
+
+    <div class="queue-toolbar">
+      <div class="queue-toolbar-left">
+        <div class="worklist-search-wrap" style="width:220px;position:relative">
+          <i class="fas fa-magnifying-glass" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:12px;pointer-events:none"></i>
+          <input type="text" id="queue-search-input" class="worklist-search" placeholder="Search queue…" style="padding-left:30px">
+        </div>
+        <select id="queue-status-filter" class="filter-select">
+          <option value="">All statuses</option>
+          <option value="submitted">Submitted</option>
+          <option value="received">Received</option>
+          <option value="processing">Processing</option>
+          <option value="validated">Validated</option>
+        </select>
+      </div>
+      <div class="queue-toolbar-right">
+        <span class="result-count" id="queue-total"></span>
+        <button class="btn btn-ghost btn-sm" id="refresh-queue-btn" type="button">
+          <i class="fas fa-arrows-rotate"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="queue-area">
+      <table class="queue-table" aria-label="Today's request queue">
+        <thead>
+          <tr>
+            <th>Lab ID</th>
+            <th>Patient</th>
+            <th>Tests</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Time</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="queue-tbody">
+          <tr><td colspan="7">
+            <div style="padding:2rem;text-align:center;color:var(--text-muted)">
+              <i class="fas fa-list-check" style="font-size:20px;margin-bottom:8px;display:block;opacity:0.3"></i>
+              Switch to this tab to load today's queue
+            </div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div><!-- /#queue-pane -->
+
+</div><!-- /reception-main -->
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/reception/js/reception.js' %}" defer></script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('refresh-queue-btn')?.addEventListener('click', () => {
+  /* Trigger queue reload */
+  document.querySelector('[data-pane="queue-pane"]')?.click();
+});
+document.getElementById('high-risk-toggle')?.addEventListener('change', function () {
+  const row = document.getElementById('biosafety-warning-row');
+  if (row) row.style.display = this.checked ? 'flex' : 'none';
+});
+</script>
+{% endblock %}

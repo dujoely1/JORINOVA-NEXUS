@@ -1,0 +1,398 @@
+{% extends "shared/html/base.html" %}
+{% load static %}
+
+{% block title %}🤖 AI Nexus — NEXUS ALIS-X{% endblock %}
+{% block module_id %}ai-training{% endblock %}
+
+{% block module_css %}
+<link rel="stylesheet" href="{% static 'modules/ai_nexus/css/ai_nexus.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="ai-main">
+
+  <header class="page-header ai-header">
+    <div class="page-header-left">
+      <div class="page-icon-wrap" style="background:rgba(0,255,65,0.07);border-color:rgba(0,255,65,0.18);color:#00FF41">
+        <span style="font-size:20px">🤖</span>
+      </div>
+      <div>
+        <h1 class="page-title" style="color:#C8FFD8">AI Nexus Intelligence</h1>
+        <div class="page-subtitle" style="color:#2A5A35">{{ today|date:"l, d F Y" }} · NEXUS AI Engine · Clinical Decision Support · Voice Interface</div>
+      </div>
+    </div>
+    <div class="page-header-right">
+      <div class="ai-status-badge">
+        <div class="ai-pulse-dot"></div>
+        <span>🤖 NexusAI v2.1 Online</span>
+      </div>
+      <button class="btn ai-voice-trigger-btn" id="ai-voice-main-btn">
+        <span>🎙️</span> Hello Jorinova
+      </button>
+    </div>
+  </header>
+
+  <!-- AI KPI strip -->
+  <div class="ai-kpi-strip">
+    <div class="ai-kpi"><span class="ai-kpi-emoji">🧠</span><div class="ai-kpi-val" style="color:#00FF41">99.2%</div><div class="ai-kpi-lbl">Model Uptime</div></div>
+    <div class="ai-kpi"><span class="ai-kpi-emoji">🔬</span><div class="ai-kpi-val">1,284</div><div class="ai-kpi-lbl">Analyses Today</div></div>
+    <div class="ai-kpi"><span class="ai-kpi-emoji">⚡</span><div class="ai-kpi-val">124ms</div><div class="ai-kpi-lbl">Avg Response</div></div>
+    <div class="ai-kpi"><span class="ai-kpi-emoji">🎯</span><div class="ai-kpi-val" style="color:#00FF41">94.8%</div><div class="ai-kpi-lbl">Accuracy</div></div>
+    <div class="ai-kpi"><span class="ai-kpi-emoji">🎙️</span><div class="ai-kpi-val" id="ai-voice-sessions">0</div><div class="ai-kpi-lbl">Voice Sessions</div></div>
+    <div class="ai-kpi"><span class="ai-kpi-emoji">🚨</span><div class="ai-kpi-val" style="color:#00E676">12</div><div class="ai-kpi-lbl">Critical Flags</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-nav ai-tabs" style="background:rgba(3,8,5,0.95);border-bottom:1px solid rgba(0,255,65,0.1);padding:0 var(--space-xl)">
+    <button class="tab-btn active ai-tab" data-pane="ai-assistant">🤖 AI Assistant</button>
+    <button class="tab-btn ai-tab" data-pane="ai-diagnostics">🔬 Clinical AI</button>
+    <button class="tab-btn ai-tab" data-pane="ai-voice">🎙️ Voice Command</button>
+    <button class="tab-btn ai-tab" data-pane="ai-models">📊 Model Dashboard</button>
+    <button class="tab-btn ai-tab" data-pane="ai-audit">📋 AI Audit Log</button>
+  </div>
+
+  <div class="ai-body">
+
+    <!-- ── AI ASSISTANT ── -->
+    <div class="tab-pane active" id="ai-assistant">
+      <div class="ai-chat-layout">
+        <div class="ai-chat-panel">
+          <div class="ai-chat-header">
+            <div class="ai-chat-title"><span>🤖</span> NexusAI Assistant</div>
+            <div class="ai-chat-meta">Powered by NEXUS LLM · Lab-trained · HIPAA-aware</div>
+          </div>
+          <div class="ai-chat-messages" id="ai-chat-messages">
+            <div class="ai-msg ai-msg-bot">
+              <div class="ai-msg-avatar">🤖</div>
+              <div class="ai-msg-bubble">
+                <div class="ai-msg-text">Hello! I'm NexusAI, your laboratory intelligence assistant. I can help you with:</div>
+                <ul class="ai-cap-list">
+                  <li>🔬 Interpreting lab results and flagging abnormal values</li>
+                  <li>🦠 Epidemiological pattern analysis and outbreak signals</li>
+                  <li>🧬 Genomic variant classification and clinical significance</li>
+                  <li>⏱️ TAT optimization and workflow recommendations</li>
+                  <li>📊 Quality control analysis and QC failure diagnosis</li>
+                  <li>🎙️ Voice-controlled lab operations (say "Hello Jorinova")</li>
+                </ul>
+                <div class="ai-msg-time">NexusAI · Ready</div>
+              </div>
+            </div>
+            <div class="ai-msg ai-msg-user">
+              <div class="ai-msg-bubble user-bubble">
+                <div class="ai-msg-text">What does a hemoglobin of 4.2 g/dL mean for an adult patient?</div>
+                <div class="ai-msg-time">Lab Tech Mutoni · just now</div>
+              </div>
+              <div class="ai-msg-avatar user-avatar">MT</div>
+            </div>
+            <div class="ai-msg ai-msg-bot">
+              <div class="ai-msg-avatar">🤖</div>
+              <div class="ai-msg-bubble">
+                <div class="ai-msg-text">
+                  <strong style="color:#00FF41">⚠️ CRITICAL VALUE DETECTED</strong><br><br>
+                  Hemoglobin <strong>4.2 g/dL</strong> represents <strong>severe anemia</strong> (reference range: M 13.5–17.5 g/dL, F 12.0–15.5 g/dL).<br><br>
+                  <strong style="color:#00FFCC">Clinical Significance:</strong>
+                  <ul style="margin:8px 0 8px 16px;color:#A0C8B0">
+                    <li>Immediately life-threatening — requires urgent intervention</li>
+                    <li>Likely causes: acute hemorrhage, hemolytic crisis, aplastic anemia</li>
+                    <li>Immediate blood transfusion typically required</li>
+                    <li>Consider reticulocyte count, peripheral blood smear, iron studies</li>
+                  </ul>
+                  <strong style="color:#FF6B8A">Action Required:</strong> Notify clinician STAT. Document in NEXUS alert system. Prepare for potential transfusion request.
+                </div>
+                <div class="ai-msg-time">NexusAI · Clinical Decision Support · Confidence: 98.2%</div>
+              </div>
+            </div>
+          </div>
+          <div class="ai-chat-input-row">
+            <div class="ai-chat-input-wrap">
+              <input type="text" class="ai-chat-input" id="ai-chat-input" placeholder="Ask NexusAI anything about lab results, procedures, guidelines…" autocomplete="off">
+              <button class="ai-voice-input-btn" id="ai-mic-btn" title="Voice input">🎙️</button>
+            </div>
+            <button class="ai-send-btn" id="ai-send-btn">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Sidebar: Quick queries -->
+        <div class="ai-quick-panel glass-panel">
+          <div class="ai-quick-title">⚡ Quick Queries</div>
+          <div class="ai-quick-list">
+            <button class="ai-quick-btn" onclick="document.getElementById('ai-chat-input').value=this.textContent.slice(2)">🔬 Interpret critical CBC values</button>
+            <button class="ai-quick-btn" onclick="document.getElementById('ai-chat-input').value=this.textContent.slice(2)">🦠 Malaria smear interpretation</button>
+            <button class="ai-quick-btn" onclick="document.getElementById('ai-chat-input').value=this.textContent.slice(2)">🧪 QC Westgard rules explained</button>
+            <button class="ai-quick-btn" onclick="document.getElementById('ai-chat-input').value=this.textContent.slice(2)">💊 Drug-lab interactions</button>
+            <button class="ai-quick-btn" onclick="document.getElementById('ai-chat-input').value=this.textContent.slice(2)">🌍 Current outbreak risks Rwanda</button>
+            <button class="ai-quick-btn" onclick="document.getElementById('ai-chat-input').value=this.textContent.slice(2)">📊 Troponin in myocardial infarction</button>
+            <button class="ai-quick-btn" onclick="document.getElementById('ai-chat-input').value=this.textContent.slice(2)">🧬 BRCA1 variant interpretation</button>
+            <button class="ai-quick-btn" onclick="document.getElementById('ai-chat-input').value=this.textContent.slice(2)">⏱️ TAT optimization strategies</button>
+          </div>
+          <div class="ai-quick-title" style="margin-top:var(--space-md)">📚 Knowledge Base</div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div class="ai-kb-item"><span>🔬</span> WHO Lab Manuals (2024)</div>
+            <div class="ai-kb-item"><span>🌍</span> Rwanda Clinical Guidelines</div>
+            <div class="ai-kb-item"><span>🧬</span> ACMG Variant Classification</div>
+            <div class="ai-kb-item"><span>🦠</span> IDSR Disease Protocols</div>
+            <div class="ai-kb-item"><span>💊</span> Rwanda Essential Medicines</div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /ai-assistant -->
+
+    <!-- ── CLINICAL AI ── -->
+    <div class="tab-pane" id="ai-diagnostics">
+      <div class="ai-diag-grid">
+        <div class="ai-diag-card glass-panel">
+          <div class="ai-diag-icon">🩸</div>
+          <div class="ai-diag-title">CBC Interpreter</div>
+          <div class="ai-diag-desc">Auto-flagging of abnormal CBC values with delta checks and reflex testing suggestions</div>
+          <div class="ai-diag-stat"><span class="badge badge-green">✅ Active</span> <span style="font-family:var(--font-mono);font-size:11px;color:#4A9A5A">1,284 analyses today</span></div>
+          <button class="btn ai-diag-btn">🔬 Launch</button>
+        </div>
+        <div class="ai-diag-card glass-panel">
+          <div class="ai-diag-icon">🦠</div>
+          <div class="ai-diag-title">Outbreak Sentinel</div>
+          <div class="ai-diag-desc">Machine learning–based anomaly detection for disease clusters from lab data streams</div>
+          <div class="ai-diag-stat"><span class="badge badge-green">✅ Active</span> <span style="font-family:var(--font-mono);font-size:11px;color:#4A9A5A">Real-time monitoring</span></div>
+          <button class="btn ai-diag-btn">📡 View</button>
+        </div>
+        <div class="ai-diag-card glass-panel">
+          <div class="ai-diag-icon">🧬</div>
+          <div class="ai-diag-title">Variant Classifier</div>
+          <div class="ai-diag-desc">ACMG/AMP 2015 criteria–based automated variant classification for genomic variants</div>
+          <div class="ai-diag-stat"><span class="badge badge-green">✅ Active</span> <span style="font-family:var(--font-mono);font-size:11px;color:#4A9A5A">172 classifications/day</span></div>
+          <button class="btn ai-diag-btn">🧬 Classify</button>
+        </div>
+        <div class="ai-diag-card glass-panel">
+          <div class="ai-diag-icon">⏱️</div>
+          <div class="ai-diag-title">TAT Optimizer</div>
+          <div class="ai-diag-desc">Predictive TAT modelling — identifies bottlenecks before they cause SLA breaches</div>
+          <div class="ai-diag-stat"><span class="badge badge-green">✅ Active</span> <span style="font-family:var(--font-mono);font-size:11px;color:#4A9A5A">Avg saved: 18 min</span></div>
+          <button class="btn ai-diag-btn">⏱️ Analyze</button>
+        </div>
+        <div class="ai-diag-card glass-panel">
+          <div class="ai-diag-icon">📊</div>
+          <div class="ai-diag-title">QC Advisor</div>
+          <div class="ai-diag-desc">Westgard rule monitoring with root-cause analysis for QC failures and instrument drift</div>
+          <div class="ai-diag-stat"><span class="badge badge-green">✅ Active</span> <span style="font-family:var(--font-mono);font-size:11px;color:#4A9A5A">0 failures today</span></div>
+          <button class="btn ai-diag-btn">📊 Monitor</button>
+        </div>
+        <div class="ai-diag-card glass-panel">
+          <div class="ai-diag-icon">💊</div>
+          <div class="ai-diag-title">Drug Interaction Check</div>
+          <div class="ai-diag-desc">Flags medication–lab test interference from the patient's active prescriptions automatically</div>
+          <div class="ai-diag-stat"><span class="badge badge-yellow">⚠️ 2 flags today</span></div>
+          <button class="btn ai-diag-btn">💊 Check</button>
+        </div>
+      </div>
+    </div><!-- /diagnostics -->
+
+    <!-- ── VOICE COMMAND ── -->
+    <div class="tab-pane" id="ai-voice">
+      <div class="ai-voice-layout">
+        <div class="ai-voice-main glass-panel">
+          <div class="ai-voice-hero">
+            <div class="ai-voice-orb" id="voice-orb">
+              <div class="ai-voice-orb-inner">🎙️</div>
+              <div class="ai-orb-ring r1"></div>
+              <div class="ai-orb-ring r2"></div>
+              <div class="ai-orb-ring r3"></div>
+            </div>
+            <h2 class="ai-voice-headline">JORINOVA Voice Interface</h2>
+            <p class="ai-voice-sub">Say <strong style="color:#00FF41">"Hello Jorinova"</strong> to activate</p>
+            <button class="btn ai-voice-trigger-btn ai-voice-lg" id="voice-activate-btn">
+              🎙️ Activate Voice
+            </button>
+          </div>
+
+          <!-- Voice auth flow display -->
+          <div class="ai-voice-flow" id="voice-flow" style="display:none">
+            <div class="ai-flow-step active" id="vf-step1">
+              <div class="ai-flow-dot">1</div>
+              <div class="ai-flow-label">Wake word detected</div>
+            </div>
+            <div class="ai-flow-connector"></div>
+            <div class="ai-flow-step" id="vf-step2">
+              <div class="ai-flow-dot">2</div>
+              <div class="ai-flow-label">Serial code spoken</div>
+            </div>
+            <div class="ai-flow-connector"></div>
+            <div class="ai-flow-step" id="vf-step3">
+              <div class="ai-flow-dot">3</div>
+              <div class="ai-flow-label">Voice biometric match</div>
+            </div>
+            <div class="ai-flow-connector"></div>
+            <div class="ai-flow-step" id="vf-step4">
+              <div class="ai-flow-dot">4</div>
+              <div class="ai-flow-label">Identity confirmed</div>
+            </div>
+          </div>
+
+          <!-- Voice transcript -->
+          <div class="ai-voice-transcript" id="voice-transcript">
+            <div class="ai-transcript-line system">
+              <span class="ai-tl-speaker">🤖 Jorinova:</span>
+              <span class="ai-tl-text">Voice interface ready. Say "Hello Jorinova" to begin, or click Activate Voice above.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Voice command reference -->
+        <div class="ai-voice-ref glass-panel">
+          <div class="ai-quick-title">🎙️ Voice Commands</div>
+          <div class="ai-cmd-category">
+            <div class="ai-cmd-cat-title">🔬 Lab Operations</div>
+            <div class="ai-cmd-item"><span class="ai-cmd-phrase">"Show pending tests"</span></div>
+            <div class="ai-cmd-item"><span class="ai-cmd-phrase">"Open lab worklist"</span></div>
+            <div class="ai-cmd-item"><span class="ai-cmd-phrase">"Critical results now"</span></div>
+            <div class="ai-cmd-item"><span class="ai-cmd-phrase">"TAT monitor"</span></div>
+          </div>
+          <div class="ai-cmd-category">
+            <div class="ai-cmd-cat-title">🧬 Patient</div>
+            <div class="ai-cmd-item"><span class="ai-cmd-phrase">"Search patient [name]"</span></div>
+            <div class="ai-cmd-item"><span class="ai-cmd-phrase">"Open patient hub"</span></div>
+            <div class="ai-cmd-item"><span class="ai-cmd-phrase">"Register new patient"</span></div>
+          </div>
+          <div class="ai-cmd-category">
+            <div class="ai-cmd-cat-title">📊 Reports</div>
+            <div class="ai-cmd-item"><span class="ai-cmd-phrase">"Open dashboard"</span></div>
+            <div class="ai-cmd-item"><span class="ai-cmd-phrase">"Show today's stats"</span></div>
+            <div class="ai-cmd-item"><span class="ai-cmd-phrase">"Generate shift report"</span></div>
+          </div>
+          <div class="ai-cmd-category">
+            <div class="ai-cmd-cat-title">🔒 Security</div>
+            <div class="ai-cmd-item"><span class="ai-cmd-phrase">"Lock screen"</span></div>
+            <div class="ai-cmd-item"><span class="ai-cmd-phrase">"Sign out Jorinova"</span></div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /voice -->
+
+    <!-- ── MODEL DASHBOARD ── -->
+    <div class="tab-pane" id="ai-models">
+      <div class="ai-model-grid">
+        {% for m in "123456" %}
+        <div class="ai-model-card glass-panel">
+          <div class="ai-model-header">
+            <div class="ai-model-name">{% cycle "NexusAI Diagnostic v2.1" "EpiSentinel v1.4" "GenomeClassifier v3.0" "TATPredictor v1.8" "QCAdvisor v2.0" "VoiceAuth v1.0" %}</div>
+            <span class="badge badge-green">✅ Live</span>
+          </div>
+          <div class="ai-model-type">{% cycle "Clinical Decision Support" "Epidemiological AI" "Genomic Classification" "Workflow Optimization" "Quality Control" "Biometric Authentication" %}</div>
+          <div class="ai-model-metrics">
+            <div class="ai-mm-row"><span>Accuracy</span><span class="ai-mm-val" style="color:#00FF41">{% cycle "94.8%" "91.2%" "96.4%" "88.7%" "99.1%" "98.5%" %}</span></div>
+            <div class="ai-mm-row"><span>Requests / day</span><span class="ai-mm-val">{% cycle "1,284" "24" "172" "847" "2,341" "43" %}</span></div>
+            <div class="ai-mm-row"><span>Avg latency</span><span class="ai-mm-val">{% cycle "124ms" "2.1s" "3.4s" "89ms" "12ms" "0.6s" %}</span></div>
+            <div class="ai-mm-row"><span>Last trained</span><span class="ai-mm-val" style="font-size:11px">{{ today|date:"d M Y" }}</span></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ── AUDIT LOG ── -->
+    <div class="tab-pane" id="ai-audit">
+      <div class="glass-panel" style="overflow:hidden">
+        <div class="chart-header">
+          <div class="chart-title"><span>📋</span> AI Decision Audit Log</div>
+          <div style="margin-left:auto"><button class="btn btn-ghost btn-sm">📤 Export</button></div>
+        </div>
+        <table class="nx-table">
+          <thead><tr><th>🕐 Time</th><th>🤖 Model</th><th>👤 User</th><th>🔬 Query</th><th>🎯 Confidence</th><th>⚡ Decision</th><th>✅ Outcome</th></tr></thead>
+          <tbody>
+            {% for a in "12345" %}
+            <tr>
+              <td style="font-family:var(--font-mono);font-size:11px">{% cycle "09:42:11" "09:38:55" "09:15:22" "08:54:01" "08:30:17" %}</td>
+              <td><span class="badge badge-green">{% cycle "Diagnostic v2.1" "EpiSentinel" "Diagnostic v2.1" "GenomeClassifier" "VoiceAuth" %}</span></td>
+              <td>{% cycle "Lab Tech Mutoni" "Dr. Nkurunziza" "Nurse Habimana" "Dr. Nkurunziza" "Lab Tech Kayitesi" %}</td>
+              <td style="font-size:var(--text-xs)">{% cycle "Hgb 4.2 g/dL — critical flag" "Malaria trend analysis Kigali" "Potassium 6.8 mEq/L interpretation" "BRCA1 c.5266dupC significance" "Voice auth: KY02" %}</td>
+              <td style="font-family:var(--font-mono);color:#00FF41">{% cycle "98.2%" "85.1%" "99.4%" "96.8%" "98.5%" %}</td>
+              <td style="font-size:var(--text-xs)">{% cycle "Critical — notify STAT" "Elevated signal — watch" "Critical — notify STAT" "Pathogenic — report" "Identity confirmed" %}</td>
+              <td><span class="badge badge-green">{% cycle "✅ Accepted" "✅ Accepted" "✅ Accepted" "✅ Accepted" "✅ Confirmed" %}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /ai-body -->
+</div><!-- /ai-main -->
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  /* Tab switching */
+  document.querySelectorAll('.ai-tabs .tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.ai-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.ai-body .tab-pane').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.pane)?.classList.add('active');
+    });
+  });
+
+  /* Voice tab button trigger */
+  document.getElementById('ai-voice-main-btn')?.addEventListener('click', function() {
+    /* Trigger global voice engine */
+    if (window.JorinovaVoice) window.JorinovaVoice.activate();
+    else {
+      /* Switch to voice tab */
+      document.querySelector('.ai-tabs [data-pane="ai-voice"]')?.click();
+      document.getElementById('voice-activate-btn')?.click();
+    }
+  });
+
+  /* Activate voice from this page */
+  document.getElementById('voice-activate-btn')?.addEventListener('click', function() {
+    if (window.JorinovaVoice) window.JorinovaVoice.activate();
+  });
+
+  /* AI Chat send */
+  var sendBtn = document.getElementById('ai-send-btn');
+  var chatInput = document.getElementById('ai-chat-input');
+  var msgs = document.getElementById('ai-chat-messages');
+
+  function sendMsg() {
+    var txt = chatInput.value.trim();
+    if (!txt) return;
+    var userDiv = document.createElement('div');
+    userDiv.className = 'ai-msg ai-msg-user';
+    userDiv.innerHTML = '<div class="ai-msg-bubble user-bubble"><div class="ai-msg-text">'+escHtml(txt)+'</div><div class="ai-msg-time">You · just now</div></div><div class="ai-msg-avatar user-avatar">'+escHtml(window.NEXUS?.userInitials||'U')+'</div>';
+    msgs.appendChild(userDiv);
+    chatInput.value = '';
+    msgs.scrollTop = msgs.scrollHeight;
+    /* Thinking indicator */
+    var thinking = document.createElement('div');
+    thinking.className = 'ai-msg ai-msg-bot';
+    thinking.innerHTML = '<div class="ai-msg-avatar">🤖</div><div class="ai-msg-bubble"><div class="ai-thinking"><span></span><span></span><span></span></div></div>';
+    msgs.appendChild(thinking);
+    msgs.scrollTop = msgs.scrollHeight;
+    setTimeout(function() {
+      thinking.remove();
+      var botDiv = document.createElement('div');
+      botDiv.className = 'ai-msg ai-msg-bot';
+      botDiv.innerHTML = '<div class="ai-msg-avatar">🤖</div><div class="ai-msg-bubble"><div class="ai-msg-text">I\'m processing your query about: <em>"'+escHtml(txt)+'"</em>. In production, this connects to the NEXUS AI microservice at <code style="color:#00FF41;font-family:var(--font-mono)">/api/v1/ai/analyze/</code> for real clinical decision support.</div><div class="ai-msg-time">NexusAI · Demo mode</div></div>';
+      msgs.appendChild(botDiv);
+      msgs.scrollTop = msgs.scrollHeight;
+    }, 1200);
+  }
+
+  sendBtn?.addEventListener('click', sendMsg);
+  chatInput?.addEventListener('keydown', function(e) { if (e.key === 'Enter') sendMsg(); });
+
+  function escHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  /* Mic button → voice engine */
+  document.getElementById('ai-mic-btn')?.addEventListener('click', function() {
+    if (window.JorinovaVoice) window.JorinovaVoice.activate();
+  });
+});
+</script>
+{% endblock %}
+
+{% block module_scripts %}
+<script src="{% static 'modules/ai_nexus/js/ai_nexus.js' %}" defer></script>
+{% endblock %}

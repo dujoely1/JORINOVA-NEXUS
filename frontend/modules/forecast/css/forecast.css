@@ -1,0 +1,143 @@
+/* JORINOVA NEXUS ALIS-X — Forecast Intelligence Dashboard */
+.fc-main   { display:flex; flex-direction:column; flex:1; overflow:hidden; }
+.fc-tab-nav{ padding:0 var(--space-xl); background:var(--bg-deep); border-bottom:1px solid var(--border-dim); flex-shrink:0; }
+.fc-body   { flex:1; overflow-y:auto; }
+.fc-header { background:linear-gradient(90deg, var(--bg-deep), rgba(168,85,247,.03)); }
+
+.fc-ai-badge {
+  padding:4px 12px; border-radius:var(--radius-full);
+  background:rgba(168,85,247,.10); border:1px solid rgba(168,85,247,.25);
+  font-size:11px; font-weight:700; color:#A855F7; letter-spacing:.05em;
+  animation:fc-ai-pulse 3s ease-in-out infinite;
+}
+@keyframes fc-ai-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(168,85,247,0)} 50%{box-shadow:0 0 8px 2px rgba(168,85,247,.25)} }
+
+/* ─── Alert strip ──────────────────────────────────────────────── */
+.fc-alert-strip {
+  padding:var(--space-sm) var(--space-xl); background:rgba(255,23,68,.06);
+  border-bottom:1px solid rgba(255,23,68,.20); flex-shrink:0;
+}
+.fc-alert-item {
+  display:inline-flex; align-items:center; gap:8px;
+  margin-right:var(--space-md); font-size:11px; font-weight:700;
+  padding:4px 12px; border-radius:var(--radius-full); border:1px solid;
+}
+.fc-alert-emergency { color:var(--alert-red);   border-color:var(--alert-red);   background:rgba(255,23,68,.12); animation:fc-pulse .8s infinite; }
+.fc-alert-critical  { color:var(--alert-orange); border-color:var(--alert-orange);background:rgba(255,109,0,.10); }
+.fc-alert-warning   { color:var(--alert-yellow); border-color:var(--alert-yellow);background:rgba(255,214,0,.08); }
+@keyframes fc-pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+
+/* ─── Domain tile grid ─────────────────────────────────────────── */
+.fc-domain-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:var(--space-md);
+}
+.fc-domain-tile {
+  background:var(--bg-surface); border:1px solid var(--border-dim);
+  border-radius:var(--radius-lg); padding:var(--space-lg);
+  cursor:pointer; transition:all var(--duration-fast);
+  position:relative; overflow:hidden;
+}
+.fc-domain-tile:hover { border-color:var(--border-bright); box-shadow:var(--shadow-card); transform:translateY(-1px); }
+.fc-domain-tile.alert-emergency { border-left:3px solid var(--alert-red); }
+.fc-domain-tile.alert-critical  { border-left:3px solid var(--alert-orange); }
+.fc-domain-tile.alert-warning   { border-left:3px solid var(--alert-yellow); }
+.fc-domain-tile.alert-info      { border-left:3px solid var(--blue-glow); }
+
+.fc-tile-label   { font-size:11px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; }
+.fc-tile-trend   { font-family:var(--font-display); font-size:22px; font-weight:700; line-height:1; }
+.fc-tile-pct     { font-size:12px; font-weight:700; margin-top:3px; }
+.fc-tile-pct.up  { color:var(--alert-red); }
+.fc-tile-pct.down{ color:var(--alert-green); }
+.fc-tile-pct.stable { color:var(--text-muted); }
+
+.fc-tile-sparkline { height:40px; margin-top:var(--space-sm); }
+.fc-tile-meta { display:flex; align-items:center; justify-content:space-between; margin-top:var(--space-sm); }
+.fc-tile-confidence { font-size:10px; color:var(--text-muted); font-family:var(--font-mono); }
+.fc-tile-alert-badge {
+  padding:2px 6px; border-radius:var(--radius-full); font-size:10px; font-weight:700; border:1px solid;
+}
+.badge-emergency { color:var(--alert-red);   border-color:var(--alert-red);   background:rgba(255,23,68,.08); }
+.badge-critical  { color:var(--alert-orange); border-color:var(--alert-orange);background:rgba(255,109,0,.08); }
+.badge-warning   { color:var(--alert-yellow); border-color:var(--alert-yellow);background:rgba(255,214,0,.08); }
+.badge-info      { color:var(--blue-glow);    border-color:rgba(0,153,255,.3); background:rgba(0,153,255,.06); }
+
+/* ─── Chart header ─────────────────────────────────────────────── */
+.fc-chart-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:var(--space-md);
+}
+.fc-confidence-badge {
+  padding:3px 10px; border-radius:var(--radius-full);
+  background:rgba(168,85,247,.10); border:1px solid rgba(168,85,247,.20);
+  font-size:10px; font-weight:700; color:#A855F7; font-family:var(--font-mono);
+}
+
+/* ─── Insight cards ────────────────────────────────────────────── */
+.fc-insight-card {
+  background:var(--bg-surface); border:1px solid var(--border-dim);
+  border-radius:var(--radius-lg); padding:var(--space-lg);
+}
+.fc-insight-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); margin-bottom:var(--space-sm); }
+.fc-insight-body  { font-size:var(--text-xs); color:var(--text-secondary); line-height:1.6; }
+.fc-factor-item   { display:flex; align-items:center; gap:var(--space-sm); padding:4px 0; border-bottom:1px solid var(--border-dim); font-size:11px; }
+.fc-factor-bar    { height:4px; border-radius:var(--radius-full); flex:1; background:var(--bg-glass); overflow:hidden; }
+.fc-factor-fill   { height:100%; background:var(--blue-glow); border-radius:var(--radius-full); }
+
+/* ─── Blood risk grid ──────────────────────────────────────────── */
+.fc-blood-risk-grid { display:flex; flex-direction:column; gap:var(--space-sm); }
+.fc-blood-risk-row  {
+  display:flex; align-items:center; gap:var(--space-sm); padding:8px var(--space-md);
+  background:var(--bg-glass); border-radius:var(--radius-md);
+}
+.fc-blood-group { font-family:var(--font-display); font-size:15px; font-weight:700; width:36px; }
+.fc-blood-bar   { flex:1; height:6px; border-radius:var(--radius-full); background:var(--bg-deep); overflow:hidden; }
+.fc-blood-fill  { height:100%; border-radius:var(--radius-full); transition:width .6s; }
+.fc-blood-risk-label { font-size:10px; font-weight:700; width:60px; text-align:right; }
+
+/* ─── District heatmap ─────────────────────────────────────────── */
+.fc-district-heatmap {
+  display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:var(--space-sm);
+  background:var(--bg-surface); border:1px solid var(--border-dim); border-radius:var(--radius-lg);
+}
+.fc-district-cell {
+  padding:6px 8px; border-radius:var(--radius-sm); font-size:10px; font-weight:700;
+  text-align:center; cursor:pointer; transition:opacity .15s;
+}
+.fc-district-cell:hover { opacity:.8; }
+.risk-critical { background:rgba(255,23,68,.25);  color:var(--alert-red);   border:1px solid rgba(255,23,68,.30); }
+.risk-high     { background:rgba(255,109,0,.20); color:var(--alert-orange);border:1px solid rgba(255,109,0,.25); }
+.risk-medium   { background:rgba(255,214,0,.15); color:var(--alert-yellow);border:1px solid rgba(255,214,0,.20); }
+.risk-low      { background:rgba(0,230,118,.10); color:var(--alert-green); border:1px solid rgba(0,230,118,.15); }
+
+/* ─── Maintenance schedule ─────────────────────────────────────── */
+.fc-maint-item {
+  display:flex; align-items:center; gap:var(--space-md); padding:var(--space-sm) 0;
+  border-bottom:1px solid var(--border-dim); font-size:var(--text-xs);
+}
+.fc-maint-days {
+  min-width:36px; height:36px; border-radius:var(--radius-md);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-display); font-size:15px; font-weight:700; flex-shrink:0;
+}
+.days-soon    { background:rgba(255,23,68,.15);   color:var(--alert-red); }
+.days-medium  { background:rgba(255,109,0,.12); color:var(--alert-orange); }
+.days-ok      { background:rgba(0,230,118,.08); color:var(--alert-green); }
+
+/* ─── Loading state ────────────────────────────────────────────── */
+.fc-loading-state {
+  display:flex; flex-direction:column; align-items:center; gap:var(--space-md);
+  padding:var(--space-2xl); color:var(--text-muted); font-size:var(--text-sm);
+  grid-column:1/-1;
+}
+.fc-spinner {
+  width:32px; height:32px; border:3px solid var(--border-mid);
+  border-top-color:#A855F7; border-radius:50%;
+  animation:fc-spin .8s linear infinite;
+}
+@keyframes fc-spin { to { transform:rotate(360deg); } }
+
+@media (max-width:900px) {
+  .fc-domain-grid { grid-template-columns:1fr 1fr; }
+}

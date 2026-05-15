@@ -1,0 +1,854 @@
+/* ═══════════════════════════════════════════════════════════════
+   JORINOVA NEXUS ALIS-X — Serology Module CSS
+   Rapid Tests · ELISA · Titration · Positivity Analytics
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Layout ─────────────────────────────────────────────────── */
+.serology-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sero-tab-nav {
+  padding: 0 var(--space-xl);
+  background: var(--bg-deep);
+  border-bottom: 1px solid var(--border-dim);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.sero-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+/* ─── Header Chips ───────────────────────────────────────────── */
+.sero-stat-chips {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.sero-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.sero-chip-blue   { background: rgba(0,153,255,0.10); border-color: rgba(0,153,255,0.25); color: var(--blue-glow); }
+.sero-chip-orange { background: rgba(255,109,0,0.10); border-color: rgba(255,109,0,0.25); color: var(--alert-orange); }
+.sero-chip-green  { background: rgba(0,230,118,0.10); border-color: rgba(0,230,118,0.25); color: var(--alert-green); }
+
+/* ─── Worklist Toolbar ───────────────────────────────────────── */
+.sero-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.sero-toolbar-left  {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  flex: 1;
+}
+.sero-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.sero-filter {
+  width: auto !important;
+  font-size: var(--text-xs) !important;
+  padding: 6px 10px !important;
+}
+
+.sero-result-count {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+/* ─── Worklist Table ─────────────────────────────────────────── */
+.sero-worklist-table { min-width: 800px; }
+
+.sero-lab-id {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--blue-glow);
+}
+
+.sero-test-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.sero-test-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pill-hiv      { background: rgba(255,23,68,0.10);  color: var(--alert-red);    border: 1px solid rgba(255,23,68,0.25);   }
+.pill-hbsag    { background: rgba(255,109,0,0.10); color: var(--alert-orange); border: 1px solid rgba(255,109,0,0.22);  }
+.pill-hcv      { background: rgba(213,0,249,0.09); color: #D500F9;             border: 1px solid rgba(213,0,249,0.22);  }
+.pill-syphilis { background: rgba(255,214,0,0.10); color: var(--gold);          border: 1px solid rgba(255,214,0,0.22);  }
+.pill-brucella { background: rgba(0,255,221,0.08); color: var(--cyan);          border: 1px solid rgba(0,255,221,0.18);  }
+.pill-widal    { background: rgba(0,153,255,0.10); color: var(--blue-glow);    border: 1px solid rgba(0,153,255,0.22);  }
+.pill-aso      { background: rgba(139,92,246,0.09);color: #A78BFA;             border: 1px solid rgba(139,92,246,0.22); }
+.pill-rf       { background: rgba(0,230,118,0.09); color: var(--alert-green);  border: 1px solid rgba(0,230,118,0.20);  }
+.pill-crp      { background: rgba(255,109,0,0.10); color: var(--alert-orange); border: 1px solid rgba(255,109,0,0.22);  }
+.pill-ana      { background: rgba(0,255,221,0.08); color: var(--cyan);          border: 1px solid rgba(0,255,221,0.18);  }
+.pill-malaria  { background: rgba(255,23,68,0.10);  color: var(--alert-red);    border: 1px solid rgba(255,23,68,0.25);  }
+.pill-dengue   { background: rgba(255,215,0,0.10); color: var(--gold);          border: 1px solid rgba(255,215,0,0.22);  }
+.pill-other    { background: var(--bg-surface);    color: var(--text-secondary);border: 1px solid var(--border-dim);    }
+
+/* TAT bar in worklist */
+.sero-tat-wrap { display: flex; align-items: center; gap: 4px; }
+.sero-tat-bar  { width: 60px; height: 4px; background: var(--bg-surface); border-radius: 2px; overflow: hidden; flex-shrink: 0; }
+.sero-tat-fill { height: 100%; border-radius: 2px; }
+
+/* Priority badge */
+.priority-stat   { color: var(--alert-red);    background: rgba(255,23,68,0.10);  border: 1px solid rgba(255,23,68,0.25);   }
+.priority-urgent { color: var(--alert-orange); background: rgba(255,109,0,0.10); border: 1px solid rgba(255,109,0,0.22);  }
+.priority-routine{ color: var(--text-muted);   background: var(--bg-surface);    border: 1px solid var(--border-dim);     }
+
+/* Worklist action buttons */
+.sero-action-btn {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+  border: 1px solid;
+  white-space: nowrap;
+}
+.sero-enter-btn {
+  background: rgba(0,153,255,0.10);
+  border-color: rgba(0,153,255,0.3);
+  color: var(--blue-glow);
+}
+.sero-enter-btn:hover {
+  background: rgba(0,153,255,0.20);
+  box-shadow: 0 0 8px rgba(0,153,255,0.25);
+}
+.sero-view-btn {
+  background: var(--bg-elevated);
+  border-color: var(--border-dim);
+  color: var(--text-secondary);
+}
+.sero-view-btn:hover { background: var(--bg-surface); color: var(--text-primary); }
+
+/* ─── Result Entry Layout ────────────────────────────────────── */
+.sero-result-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+.sero-req-panel { overflow: hidden; }
+
+.sero-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--border-dim);
+  gap: var(--space-sm);
+}
+
+.sero-req-search-wrap {
+  position: relative;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--border-dim);
+}
+.sero-req-search-wrap .fas {
+  position: absolute;
+  left: calc(var(--space-lg) + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 12px;
+  pointer-events: none;
+}
+.sero-req-search-wrap .fi { padding-left: 32px; }
+
+.sero-req-list {
+  overflow-y: auto;
+  max-height: 600px;
+}
+
+.sero-req-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: var(--space-sm) var(--space-lg);
+  border-bottom: 1px solid var(--border-dim);
+  cursor: pointer;
+  transition: background var(--duration-fast);
+}
+.sero-req-item:last-child { border-bottom: none; }
+.sero-req-item:hover { background: rgba(0,153,255,0.04); }
+.sero-req-item.active {
+  background: rgba(0,153,255,0.08);
+  border-left: 3px solid var(--blue-glow);
+}
+
+.sro-patient-name { font-size: var(--text-xs); font-weight: 700; color: var(--text-primary); }
+.sro-lab-id       { font-family: var(--font-mono); font-size: 10px; color: var(--blue-glow); }
+.sro-tests-mini   { font-size: 10px; color: var(--text-muted); }
+
+/* ─── Result Form ────────────────────────────────────────────── */
+.sero-result-form { overflow: hidden; }
+
+.sero-patient-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.sero-patient-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue-deep), var(--cyan-dim));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(0,153,255,0.35);
+}
+
+.sero-patient-info { flex: 1; min-width: 0; }
+.sero-patient-name { font-size: var(--text-sm); font-weight: 700; color: var(--text-primary); }
+.sero-patient-meta { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); margin-top: 1px; }
+
+.sero-tests-area {
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  overflow-y: auto;
+  max-height: 500px;
+}
+
+.sero-result-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-top: 1px solid var(--border-dim);
+  background: var(--bg-surface);
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+/* ─── Individual Test Entry ──────────────────────────────────── */
+.sero-test-entry {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color var(--duration-fast);
+}
+.sero-test-entry:hover { border-color: var(--border-mid); }
+
+.sero-test-entry-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.sero-test-name {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.sero-test-entry-body { padding: var(--space-md); }
+
+/* ─── Rapid Test Display (Cassette Visual) ───────────────────── */
+.rapid-test-display {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.rtd-cassette {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-lg);
+  padding: var(--space-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-md);
+}
+
+.cassette-visual {
+  flex-shrink: 0;
+  width: 90px;
+}
+
+.cassette-body {
+  background: #e8e8e8;
+  border-radius: 8px;
+  padding: 10px 8px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.25), inset 0 1px 3px rgba(255,255,255,0.5);
+  border: 1px solid #ccc;
+  min-width: 80px;
+}
+
+.cassette-label {
+  font-size: 8px;
+  font-weight: 700;
+  color: #334;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.cassette-window {
+  background: #fff;
+  border-radius: 4px;
+  padding: 6px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border: 1px solid #bbb;
+  min-height: 60px;
+  position: relative;
+}
+
+.test-line {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tl-label {
+  font-size: 8px;
+  font-weight: 700;
+  color: #556;
+  width: 12px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.tl-bar {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: transparent;
+  transition: background 0.4s ease, box-shadow 0.4s ease;
+}
+
+/* Control line — always shows (if test is valid) */
+.tl-bar.control-line-active {
+  background: #0066CC;
+  box-shadow: 0 0 4px rgba(0,102,204,0.5);
+}
+
+/* Test line — shows when reactive */
+.tl-bar.test-line-reactive {
+  background: #CC2222;
+  box-shadow: 0 0 4px rgba(204,34,34,0.5);
+}
+
+.tl-bar.test-line-negative {
+  background: #ddd;
+}
+
+/* Sample well */
+.cassette-well {
+  background: #ddeeff;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  margin: 6px auto 0;
+  border: 1px solid #aac;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  color: #556;
+  font-weight: 700;
+}
+
+/* Rapid test radio buttons */
+.rtd-controls { flex: 1; }
+
+.rtd-result-btns {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.rtd-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border-dim);
+  background: var(--bg-elevated);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+  flex: 1;
+  min-width: 80px;
+  text-align: center;
+}
+
+.rtd-btn:hover { border-color: var(--border-mid); background: var(--bg-surface); }
+
+.rtd-btn.rtd-positive.selected {
+  background: rgba(255,23,68,0.10);
+  border-color: var(--alert-red);
+  box-shadow: 0 0 12px rgba(255,23,68,0.2);
+}
+.rtd-btn.rtd-negative.selected {
+  background: rgba(0,230,118,0.09);
+  border-color: var(--alert-green);
+  box-shadow: 0 0 10px rgba(0,230,118,0.2);
+}
+.rtd-btn.rtd-invalid.selected {
+  background: rgba(255,215,0,0.09);
+  border-color: var(--alert-yellow);
+}
+
+.rtd-btn-icon { font-size: 20px; }
+.rtd-btn-label {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+}
+.rtd-positive .rtd-btn-label { color: var(--alert-red); }
+.rtd-negative .rtd-btn-label { color: var(--alert-green); }
+.rtd-invalid  .rtd-btn-label { color: var(--alert-yellow); }
+.rtd-btn-sub { font-size: 10px; color: var(--text-muted); }
+
+/* Reflex recommendation */
+.sero-reflex-rec {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: rgba(255,109,0,0.07);
+  border: 1px solid rgba(255,109,0,0.22);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  color: var(--alert-orange);
+  display: none;
+}
+.sero-reflex-rec.visible { display: flex; }
+
+/* ─── Titration Test ─────────────────────────────────────────── */
+.titre-selector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.titre-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.titre-btn {
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-dim);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+.titre-btn:hover { border-color: var(--border-mid); color: var(--text-primary); }
+.titre-btn.selected {
+  background: rgba(0,153,255,0.12);
+  border-color: var(--blue-glow);
+  color: var(--blue-glow);
+  font-weight: 700;
+  box-shadow: 0 0 8px rgba(0,153,255,0.2);
+}
+
+.titre-display {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--blue-glow);
+  text-align: center;
+  padding: 4px;
+}
+
+/* ─── ELISA Result Display ───────────────────────────────────── */
+.elisa-ratio-display {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-md);
+  margin: var(--space-sm) 0;
+}
+
+.elisa-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.elisa-field-lbl {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+.elisa-field-val {
+  font-family: var(--font-mono);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.elisa-interpretation {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  margin-top: var(--space-sm);
+}
+.elisa-reactive   { background: rgba(255,23,68,0.08);  border: 1px solid rgba(255,23,68,0.22);  color: var(--alert-red); }
+.elisa-borderline { background: rgba(255,215,0,0.08);  border: 1px solid rgba(255,215,0,0.22);  color: var(--gold); }
+.elisa-negative   { background: rgba(0,230,118,0.07);  border: 1px solid rgba(0,230,118,0.20);  color: var(--alert-green); }
+
+/* ─── AI Interpretation Suggestion ──────────────────────────── */
+.sero-ai-suggestion {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: rgba(213,0,249,0.05);
+  border: 1px solid rgba(213,0,249,0.18);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  color: #D500F9;
+  line-height: 1.5;
+}
+.sero-ai-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+/* ─── Positive / Negative Result Styling ────────────────────── */
+.positive-result {
+  color: var(--alert-red);
+  font-weight: 700;
+  text-shadow: 0 0 8px rgba(255,23,68,0.3);
+}
+.negative-result {
+  color: var(--alert-green);
+  font-weight: 600;
+}
+.reactive-result {
+  color: var(--alert-orange);
+  font-weight: 700;
+}
+
+/* ─── Dashboard Stats ────────────────────────────────────────── */
+.sero-dash-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-md);
+}
+
+.sero-dash-stat {
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-dim);
+  text-align: center;
+  transition: border-color var(--duration-fast);
+}
+.sero-dash-stat:hover { border-color: var(--border-mid); }
+
+.sero-ds-icon { font-size: 28px; line-height: 1; margin-bottom: 8px; }
+
+.sero-ds-val {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+}
+.sero-ds-lbl {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.sero-ds-blue   { background: rgba(0,153,255,0.06); }
+.sero-ds-blue   .sero-ds-val { color: var(--blue-glow); }
+.sero-ds-red    { background: rgba(255,23,68,0.06); }
+.sero-ds-red    .sero-ds-val { color: var(--alert-red); }
+.sero-ds-orange { background: rgba(255,109,0,0.06); }
+.sero-ds-orange .sero-ds-val { color: var(--alert-orange); }
+.sero-ds-green  { background: rgba(0,230,118,0.06); }
+.sero-ds-green  .sero-ds-val { color: var(--alert-green); }
+
+/* ─── Dashboard Charts ───────────────────────────────────────── */
+.sero-dash-charts {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-lg);
+}
+
+/* ─── Positivity Grid ────────────────────────────────────────── */
+.sero-positivity-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  padding: var(--space-md) var(--space-lg);
+}
+
+.sero-pos-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--border-dim);
+  border-right: 1px solid var(--border-dim);
+  padding-right: var(--space-lg);
+}
+.sero-pos-item:nth-child(3n) { border-right: none; }
+.sero-pos-item:nth-last-child(-n+3) { border-bottom: none; }
+
+.sero-pos-name {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.positivity-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--bg-surface);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.positivity-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.8s var(--ease-out);
+}
+
+.pos-pct {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  min-width: 40px;
+  text-align: right;
+}
+
+.pos-count {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+  min-width: 60px;
+  text-align: right;
+}
+
+/* ─── Reactive + Critical Row ────────────────────────────────── */
+.sero-dash-row {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: var(--space-lg);
+}
+
+.sero-critical-panel { overflow: hidden; }
+
+.sero-critical-list {
+  overflow-y: auto;
+  max-height: 300px;
+}
+
+.sero-critical-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--border-dim);
+  transition: background var(--duration-fast);
+}
+.sero-critical-item:last-child { border-bottom: none; }
+.sero-critical-item:hover { background: rgba(255,23,68,0.04); }
+
+.sero-ci-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--alert-red);
+  box-shadow: 0 0 6px rgba(255,23,68,0.6);
+  flex-shrink: 0;
+  margin-top: 4px;
+  animation: pulse-critical 1.4s infinite;
+}
+
+.sero-ci-body { flex: 1; min-width: 0; }
+.sero-ci-name { font-size: var(--text-xs); font-weight: 700; color: var(--text-primary); }
+.sero-ci-test { font-size: 10px; color: var(--alert-red); font-weight: 600; }
+.sero-ci-time { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); margin-top: 1px; }
+
+/* ─── BSL Alert Panel ────────────────────────────────────────── */
+.sero-bsl-panel { overflow: hidden; }
+
+.sero-bsl-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+}
+
+.bsl-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  cursor: default;
+  transition: box-shadow var(--duration-fast);
+}
+
+.bsl-2 {
+  background: rgba(255,109,0,0.10);
+  border: 1px solid rgba(255,109,0,0.30);
+  color: var(--alert-orange);
+}
+.bsl-2:hover { box-shadow: 0 0 10px rgba(255,109,0,0.3); }
+
+.bsl-3 {
+  background: rgba(255,23,68,0.10);
+  border: 1px solid rgba(255,23,68,0.30);
+  color: var(--alert-red);
+}
+.bsl-3:hover { box-shadow: 0 0 10px rgba(255,23,68,0.3); }
+
+.bsl-badge-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 5px var(--space-md);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+}
+.bsl-badge-pid { font-family: var(--font-mono); color: var(--blue-glow); }
+
+/* ─── Confirmatory Stats ─────────────────────────────────────── */
+.sero-conf-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+}
+
+.sero-conf-stat {
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  text-align: center;
+}
+
+.sero-cs-icon { font-size: 26px; line-height: 1; }
+.sero-cs-val  { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--text-primary); }
+.sero-cs-lbl  { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* Pulsing animations */
+@keyframes pulse-critical {
+  0%,100% { box-shadow: 0 0 4px rgba(255,23,68,0.5); }
+  50%      { box-shadow: 0 0 10px rgba(255,23,68,0.9); }
+}
+
+@keyframes pulse-urgent {
+  0%,100% { box-shadow: 0 0 4px rgba(255,109,0,0.5); }
+  50%      { box-shadow: 0 0 8px rgba(255,109,0,0.8); }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 1300px) {
+  .sero-dash-stats     { grid-template-columns: repeat(2, 1fr); }
+  .sero-positivity-grid{ grid-template-columns: repeat(2, 1fr); }
+  .sero-conf-stats     { grid-template-columns: 1fr 1fr; }
+  .sero-dash-row       { grid-template-columns: 1fr; }
+}
+@media (max-width: 1100px) {
+  .sero-result-layout  { grid-template-columns: 1fr; }
+  .sero-dash-charts    { grid-template-columns: 1fr; }
+  .sero-conf-stats     { grid-template-columns: 1fr; }
+}
+@media (max-width: 800px) {
+  .sero-dash-stats     { grid-template-columns: 1fr 1fr; }
+  .sero-positivity-grid{ grid-template-columns: 1fr; }
+  .elisa-ratio-display { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .sero-dash-stats { grid-template-columns: 1fr; }
+  .rtd-result-btns { flex-direction: column; }
+}

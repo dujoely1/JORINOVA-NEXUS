@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Recurse \"d:\\\\JORINOVA NEXUS\\\\backend\\\\apps\\\\laboratory\" -File | ForEach-Object { \"$\\($_.Length.ToString\\(\\).PadLeft\\(6\\)\\)B  $\\($_.Name\\)\" })",
+      "PowerShell(Get-ChildItem -Recurse \"d:\\\\JORINOVA NEXUS\\\\backend\\\\apps\\\\core_config\" -File | ForEach-Object { $_.Name })",
+      "Bash(python manage.py check --deploy)",
+      "Bash(python -c ' *)",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"D:\\\\JORINOVA NEXUS\\\\frontend\\\\modules\\\\micro_ai\\\\html\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"D:\\\\JORINOVA NEXUS\\\\frontend\\\\modules\\\\micro_ai\\\\css\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"D:\\\\JORINOVA NEXUS\\\\frontend\\\\modules\\\\micro_ai\\\\js\")",
+      "Bash(dir \"d:\\\\JORINOVA NEXUS\\\\backend\\\\apps\" /B)",
+      "Bash(ls \"d:\\\\JORINOVA NEXUS\\\\\")",
+      "Read(//d//**)",
+      "PowerShell(Head -60)",
+      "PowerShell(Get-ChildItem \"d:\\\\JORINOVA NEXUS\\\\frontend\\\\modules\\\\\" | Where-Object {$_.Name -eq 'serology'} | Select-Object Name)",
+      "PowerShell(New-Item -ItemType Directory -Path \"d:\\\\JORINOVA NEXUS\\\\frontend\\\\modules\\\\serology\\\\html\" -Force)",
+      "PowerShell(New-Item -ItemType Directory -Path \"d:\\\\JORINOVA NEXUS\\\\frontend\\\\modules\\\\serology\\\\css\" -Force)",
+      "PowerShell(New-Item -ItemType Directory -Path \"d:\\\\JORINOVA NEXUS\\\\frontend\\\\modules\\\\serology\\\\js\" -Force)",
+      "PowerShell(Get-ChildItem \"d:\\\\JORINOVA NEXUS\\\\frontend\\\\modules\\\\blood_bank\" -Recurse | Where-Object { !$_.PSIsContainer } | Select-Object FullName, Length, LastWriteTime)",
+      "PowerShell(ls \"d:\\\\JORINOVA NEXUS\\\\frontend\\\\\" -ErrorAction SilentlyContinue)",
+      "PowerShell(ls \"d:\\\\JORINOVA NEXUS\\\\\" -ErrorAction SilentlyContinue)",
+      "PowerShell(Head -30)",
+      "PowerShell(Get-ChildItem \"d:\\\\JORINOVA NEXUS\\\\frontend\" -Recurse -Directory | Select-Object -First 50 | ForEach-Object { $_.FullName })",
+      "PowerShell(Get-ChildItem \"d:\\\\JORINOVA NEXUS\\\\frontend\\\\modules\\\\hematology\" -Recurse | ForEach-Object { $_.FullName })",
+      "PowerShell(Get-ChildItem \"d:\\\\JORINOVA NEXUS\\\\frontend\\\\modules\\\\biochemistry\" -Recurse | ForEach-Object { $_.FullName })"
+    ]
+  }
+}
