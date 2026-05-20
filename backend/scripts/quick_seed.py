@@ -1,7 +1,11 @@
 """Quick seed — hospital, users, test catalog, IQC demo data."""
-import sys, os, random
+import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from datetime import date, timedelta
+
+# Deterministic seeding — centralised, respects GLOBAL_SEED env var
+from core.determinism import initialize_determinism
+initialize_determinism()
 
 import models.user, models.patient, models.laboratory, models.core_config
 import models.hematology, models.biochemistry, models.blood_bank
@@ -185,7 +189,6 @@ print(f'Specimen types: {seeded} seeded')
 
 # IQC demo data (30 days per analyte for Levey-Jennings)
 if db.query(IQCResult).count() == 0:
-    random.seed(42)
     iqc_count = 0
     for dept, code, name, level, mean, sd, unit in [
         ('biochemistry','GLUCOSE','Glucose','L1',3.2,0.15,'mmol/L'),

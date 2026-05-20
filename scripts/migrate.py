@@ -19,6 +19,20 @@ import argparse
 # Make sure backend is on path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'backend'))
 
+# Centralized deterministic bootstrap (must run before DB/seed/random generation)
+try:
+    from core.bootstrap import initialize_application
+    initialize_application()
+except Exception as _e:
+    # Fallback: keep old behavior; bootstrapping will still try to seed/migrate
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s [%(levelname)s] %(name)s — %(message)s',
+    )
+    log = logging.getLogger('migrate')
+    log.warning('Determinism/ORM bootstrap failed, continuing: %s', str(_e)[:160])
+
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(name)s — %(message)s',
@@ -26,14 +40,21 @@ logging.basicConfig(
 log = logging.getLogger('migrate')
 
 
+
 def run_migration(check_only: bool = False, seed_only: bool = False):
     from core.database import engine, create_all_tables, SessionLocal
     from core.config import get_settings
     from sqlalchemy import text, inspect
+    from sqlalchemy.orm import configure_mappers
 
     settings = get_settings()
     log.info('Database URL: %s', settings.database_url[:50] + '…')
     log.info('Mode: %s', 'check' if check_only else ('seed-only' if seed_only else 'full migration'))
+
+    # Ensure ALL ORM models are imported before mapper configuration
+    # (fixes relationship string targets like 'Patient' not being resolvable).
+    import models  # noqa: F401
+    configure_mappers()
 
     if check_only:
         # Just verify connectivity
@@ -129,26 +150,87 @@ def _add_production_constraints():
                 log.warning('Constraint skipped (may not apply to SQLite): %s', str(e)[:60])
 
 
+# ── Local seed helpers (mirror main.py so migrate.py is self-contained) ─────────
+
+def _seed_inventory(db, hospital):
+    """Seed essential lab inventory items — identical to main.py."""
+    from models.inventory import InventoryItem
+    from datetime import date
+    items = [
+        InventoryItem(item_code='EDTA-4ML',   name='EDTA 4mL Lavender Tubes',          category='consumable', unit='box/100', quantity=12, min_stock=5,  unit_cost=8500,  lot_number='L2026A', expiry_date=date(2027,3,1),  location='Store A',   hospital_id=hospital.id),
+        InventoryItem(item_code='SST-5ML',    name='SST Gold Top 5mL Tubes',           category='consumable', unit='box/100', quantity=8,  min_stock=10, unit_cost=12000, lot_number='L2026B', expiry_date=date(2027,6,1),  location='Store A',   hospital_id=hospital.id),
+        InventoryItem(item_code='CITRATE-3ML',name='Citrate 3mL Blue Tubes',           category='consumable', unit='box/100', quantity=6,  min_stock=5,  unit_cost=9000,  lot_number='L2026C', expiry_date=date(2027,4,1),  location='Store A',   hospital_id=hospital.id),
+        InventoryItem(item_code='FLUOR-2ML',  name='Fluoride/Oxalate 2mL Grey Tubes',  category='consumable', unit='box/100', quantity=10, min_stock=5,  unit_cost=7500,  expiry_date=date(2027,6,1),  location='Store A',   hospital_id=hospital.id),
+        InventoryItem(item_code='CHEM-GLUC',  name='Glucose Reagent (Cobas)',          category='reagent',    unit='cassette',quantity=4,  min_stock=3,  unit_cost=45000, lot_number='RG2026',  expiry_date=date(2026,8,15), location='Cold Room', hospital_id=hospital.id),
+        InventoryItem(item_code='CHEM-CREAT', name='Creatinine Reagent',               category='reagent',    unit='cartridge',quantity=6, min_stock=3,  unit_cost=38000, expiry_date=date(2026,9,1),  location='Cold Room', hospital_id=hospital.id),
+        InventoryItem(item_code='CHEM-LFT',   name='Liver Function Test Pack',         category='reagent',    unit='pack',    quantity=3,  min_stock=2,  unit_cost=95000, expiry_date=date(2026,10,1), location='Cold Room', hospital_id=hospital.id),
+        InventoryItem(item_code='MAL-RDT',    name='Malaria RDT (HRP2/pLDH)',          category='reagent',    unit='box/25',  quantity=15, min_stock=5,  unit_cost=18000, lot_number='MAL2026', expiry_date=date(2026,12,1), location='Store B',   hospital_id=hospital.id),
+        InventoryItem(item_code='HIV-COMBO',  name='HIV Ag/Ab Combo 4th Gen',          category='reagent',    unit='box/25',  quantity=22, min_stock=10, unit_cost=25000, expiry_date=date(2027,1,1),  location='Cold Room', hospital_id=hospital.id),
+        InventoryItem(item_code='HBSAG-RDT',  name='HBsAg Rapid Test',                category='reagent',    unit='box/25',  quantity=18, min_stock=8,  unit_cost=15000, expiry_date=date(2026,11,1), location='Store B',   hospital_id=hospital.id),
+        InventoryItem(item_code='BACTEC-AER', name='BACTEC Aerobic Blood Culture Bottles', category='reagent',unit='bottle', quantity=30, min_stock=20, unit_cost=4500,  expiry_date=date(2026,10,1), location='Cold Room', hospital_id=hospital.id),
+        InventoryItem(item_code='GX-CRTG',    name='GeneXpert MTB/RIF Ultra Cartridges',category='reagent',  unit='cartridge',quantity=2, min_stock=5,  unit_cost=25000, expiry_date=date(2026,9,1),  location='Molecular', hospital_id=hospital.id),
+        InventoryItem(item_code='GLOVES-M',   name='Latex Gloves Medium',             category='ppe',        unit='box/100', quantity=25, min_stock=10, unit_cost=3500,  location='PPE Store',         hospital_id=hospital.id),
+        InventoryItem(item_code='GLOVES-L',   name='Latex Gloves Large',              category='ppe',        unit='box/100', quantity=18, min_stock=10, unit_cost=3500,  location='PPE Store',         hospital_id=hospital.id),
+        InventoryItem(item_code='MASK-N95',   name='N95 Respirator Masks',            category='ppe',        unit='box/20',  quantity=8,  min_stock=5,  unit_cost=12000, expiry_date=date(2028,1,1),  location='PPE Store',         hospital_id=hospital.id),
+        InventoryItem(item_code='SLIDE-PLAIN',name='Plain Glass Slides',              category='consumable', unit='box/72',  quantity=20, min_stock=5,  unit_cost=4500,  location='Store A',           hospital_id=hospital.id),
+        InventoryItem(item_code='IMMERSION',  name='Immersion Oil (Type A)',          category='reagent',    unit='bottle',  quantity=5,  min_stock=2,  unit_cost=8000,  expiry_date=date(2028,6,1),  location='Microscopy', hospital_id=hospital.id),
+        InventoryItem(item_code='LANCETS',    name='Safety Lancets 21G',              category='consumable', unit='box/200', quantity=12, min_stock=5,  unit_cost=6000,  expiry_date=date(2028,1,1),  location='Store A',   hospital_id=hospital.id),
+    ]
+    for it in items:
+        db.add(it)
+    db.commit()
+    log.info('Inventory seeded: %d items', len(items))
+
+
+_STAFF_SEED = [
+    ('admin',        'admin123',  'super_admin',   'System',  'Administrator','admin@nexus.rw'),
+    ('labmanager',   'nexus2026', 'lab_manager',   'Jean',    'Mutabazi',    'jm@nexus.rw'),
+    ('scientist',    'nexus2026', 'scientist',     'Marie',   'Uwimana',     'mu@nexus.rw'),
+    ('hematologist', 'nexus2026', 'scientist',     'Patrick', 'Nkurunziza',  'pn@nexus.rw'),
+    ('biochemist',   'nexus2026', 'scientist',     'Alice',   'Mukamana',    'am@nexus.rw'),
+    ('receptionist', 'nexus2026', 'receptionist',  'Grace',   'Ingabire',    'gi@nexus.rw'),
+    ('pathologist',  'nexus2026', 'pathologist',   'Paul',    'Habimana',    'ph@nexus.rw'),
+]
+
+
+def _seed_staff(db, hospital, hash_fn):
+    """Seed the standard 7-user staff roster."""
+    from models.user import User
+    added = 0
+    for username, password, role, fn, ln, email in _STAFF_SEED:
+        # Always skip admin — created by caller
+        if username == 'admin':
+            continue
+        if db.query(User).filter(User.username == username).first():
+            continue
+        user = User(username=username, hashed_password=hash_fn(password),
+                    role=role, first_name=fn, last_name=ln, email=email,
+                    is_active=True, hospital_id=hospital.id)
+        db.add(user)
+        added += 1
+    db.commit()
+    log.info('Staff seeded: %d additional users', added)
+
+
 def _seed(settings):
-    """Seed default hospital, admin user, and test catalog."""
+    """Seed default hospital, admin user, test catalog, specimen types,
+    and inventory — aligned with FastAPI startup seed for consistency."""
     from core.database import SessionLocal
     from core.security import hash_password
+    from services.worklist_service import seed_specimen_types
 
     db = SessionLocal()
     try:
-        from models.core_config import Hospital, LaboratoryDepartment
+        from models.core_config import Hospital
         from models.user import User
 
-        # Default hospital
+        # Default hospital (consistent name across migrate.py and FastAPI startup)
         hospital = db.query(Hospital).first()
         if not hospital:
             hospital = Hospital(
-                name=os.environ.get('HOSPITAL_NAME', 'JORINOVA NEXUS Hospital'),
-                address='Rwanda',
-                district='Kigali',
-                phone='+250000000000',
-                hospital_type='public',
-                has_lab=True,
+                name='JORINOVA NEXUS Default Hospital',
+                address='Rwanda', district='Kigali', phone='+250000000000',
+                hospital_type='public', has_lab=True,
             )
             db.add(hospital)
             db.flush()
@@ -160,14 +242,10 @@ def _seed(settings):
         admin = db.query(User).filter(User.username == 'admin').first()
         if not admin:
             admin = User(
-                username='admin',
-                email='admin@alis-x.rw',
-                first_name='ALIS-X',
-                last_name='Admin',
+                username='admin', email='admin@alis-x.rw',
+                first_name='ALIS-X', last_name='Admin',
                 hashed_password=hash_password('Admin@2026'),
-                role='super_admin',
-                is_superuser=True,
-                is_active=True,
+                role='super_admin', is_superuser=True, is_active=True,
                 hospital_id=hospital.id,
             )
             db.add(admin)
@@ -177,16 +255,31 @@ def _seed(settings):
 
         db.commit()
 
+        # Specimen types (worklist)
+        seeded = seed_specimen_types(db)
+        if seeded:
+            log.info('Specimen types seeded: %d', seeded)
+
         # Test catalog
         from models.core_config import TestCatalog
         if db.query(TestCatalog).count() == 0:
             log.info('Loading test catalog…')
             import asyncio
-            from main import _load_test_rules
-            asyncio.run(_load_test_rules(db, hospital))
+            from services.test_rules_loader import load_test_rules
+            asyncio.run(load_test_rules(db, hospital))
             log.info('Test catalog loaded.')
         else:
             log.info('Test catalog: %d tests already loaded', db.query(TestCatalog).count())
+
+        # Inventory (essential lab supplies)
+        from models.inventory import InventoryItem
+        if db.query(InventoryItem).count() == 0:
+            _seed_inventory(db, hospital)
+
+        # Seed a minimal staff roster if empty beyond admin
+        from models.user import User
+        if db.query(User).count() == 1:
+            _seed_staff(db, hospital, hash_password)
 
     except Exception as e:
         db.rollback()

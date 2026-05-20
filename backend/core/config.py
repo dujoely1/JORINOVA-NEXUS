@@ -1,7 +1,9 @@
 """ALIS-X FastAPI — Settings (loaded from .env)"""
 import os
 from functools import lru_cache
+from typing import Any
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
 
 
 class Settings(BaseSettings):
@@ -17,6 +19,20 @@ class Settings(BaseSettings):
     debug:       bool = True
     secret_key:  str = 'alis-x-change-this-secret-key-in-production'
     allowed_hosts: str = 'localhost,127.0.0.1'
+
+    @field_validator('debug', mode='before')
+    @classmethod
+    def _parse_debug(cls, v: Any) -> bool:
+        """Accept various truthy/falsy representations, including 'release'."""
+        if isinstance(v, bool):
+            return v
+        if isinstance(v, str):
+            normalized = v.strip().lower()
+            if normalized in ('false', '0', 'no', 'off', 'release', 'production', 'prod'):
+                return False
+            if normalized in ('true', '1', 'yes', 'on', 'debug'):
+                return True
+        return bool(v) if v is not None else True
 
     # Database
     db_engine:   str = 'sqlite'       # sqlite | postgresql

@@ -410,21 +410,17 @@ def route_request_to_worklist(
 def _get_ordered_tests(db: Session, lab_request_id: int) -> list[dict]:
     """
     Return list of ordered tests for a LabRequest.
-    Tries TestCatalog join; falls back gracefully if not fully configured.
+    Uses ORM Ordered_Test model with TestCatalog relationship.
     """
     try:
-        from sqlalchemy import text
-        rows = db.execute(text("""
-            SELECT tc.id, tc.name, tc.department, tc.specimen_acronym
-            FROM ordered_tests ot
-            JOIN test_catalog tc ON tc.id = ot.test_id
-            WHERE ot.lab_request_id = :rid
-        """), {'rid': lab_request_id}).fetchall()
+        from models.laboratory import OrderedTest
+        
+        items = db.query(OrderedTest).filter(OrderedTest.lab_request_id == lab_request_id).all()
 
-        if rows:
-            return [{'id': r[0], 'name': r[1],
-                     'department': r[2], 'specimen_acronym': r[3]}
-                    for r in rows]
+        if items:
+            return [{'id': i.test.id, 'name': i.test.name,
+                     'department': i.test.department, 'specimen_acronym': i.test.specimen_acronym}
+                    for i in items if i.test]
     except Exception:
         pass
 

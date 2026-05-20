@@ -175,7 +175,7 @@ services:
     <<: *api-common
     container_name: alis_worker
     command: >
-      celery -A services.celery_app worker
+      celery -A celery_app worker
         --loglevel=info
         --queues=default,ai_local,reports,notifications,surveillance
         --concurrency=2
@@ -189,7 +189,7 @@ services:
     <<: *api-common
     container_name: alis_beat
     command: >
-      celery -A services.celery_app beat
+      celery -A celery_app beat
         --loglevel=info
         --schedule=/app/logs/celerybeat-schedule
     depends_on:
@@ -284,7 +284,7 @@ services:
     <<: *api-common
     container_name: alis_flower
     command: >
-      celery -A services.celery_app flower
+      celery -A celery_app flower
         --port=5555
         --url_prefix=flower
         --basic_auth=${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-CHANGE_FLOWER_PASSWORD}

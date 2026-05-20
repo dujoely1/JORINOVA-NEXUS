@@ -24,8 +24,17 @@ from core.config import get_settings
 from core.database import create_all_tables
 from core.security import hash_password
 
+# Centralized deterministic bootstrap (must run before any demo/seed/random generation)
+try:
+    from core.bootstrap import initialize_application
+
+    initialize_application()
+except Exception as _e:
+    logging.getLogger('alis_x').warning('Determinism/ORM bootstrap failed, continuing: %s', str(_e)[:160])
+
 logging.basicConfig(
     level=logging.INFO,
+
     format='%(asctime)s [%(levelname)s] %(name)s — %(message)s',
 )
 logger   = logging.getLogger('alis_x')
@@ -272,10 +281,17 @@ async def _seed_default_data():
         if db.query(InventoryItem).count() == 0:
             _seed_inventory(db, hospital)
 
+        # Seed specimen types if empty
+        from services.worklist_service import seed_specimen_types
+        if db.query(SpecimenTypeConfig).count() == 0:
+            seeded = seed_specimen_types(db)
+            logger.info('Specimen types seeded: %d', seeded)
+
         # Load test rules if empty
         if db.query(TestCatalog).count() == 0:
             logger.info('Loading test catalog and rules…')
-            await _load_test_rules(db, hospital)
+            from services.test_rules_loader import load_test_rules
+            await load_test_rules(db, hospital)
             logger.info('Test rules loaded.')
 
     except Exception as e:

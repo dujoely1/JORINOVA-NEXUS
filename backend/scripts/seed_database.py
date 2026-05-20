@@ -30,7 +30,7 @@ args = parser.parse_args()
 from core.database import engine, Base, SessionLocal
 from core.security import hash_password
 
-# ── Import ALL models so Base.metadata knows all tables ──────────────────────
+# Import ALL models so Base.metadata knows all tables ──────────────────────
 import models.user, models.patient, models.laboratory, models.core_config
 import models.hematology, models.biochemistry, models.blood_bank
 import models.quality, models.worklist, models.billing, models.notifications
@@ -40,6 +40,10 @@ try:
     import models.serology, models.urinalysis, models.surveillance
 except Exception as e:
     print(f'  [skip optional models] {e}')
+
+# Deterministic seeding (centralised — respects GLOBAL_SEED env)
+from core.determinism import initialize_determinism
+initialize_determinism()
 
 if args.reset:
     print('Dropping all tables...')
@@ -330,7 +334,6 @@ def add_iqc_run(dept, code, name, level, mean, sd, run_dt, drift=0.0):
     db.add(r)
 
 if db.query(IQCResult).count() == 0:
-    random.seed(42)  # reproducible demo data
     for dept, code, name, level, mean, sd in [
         ('biochemistry','GLUCOSE','Glucose', 'L1', 3.2, 0.15),
         ('biochemistry','GLUCOSE','Glucose', 'L2', 5.5, 0.20),
