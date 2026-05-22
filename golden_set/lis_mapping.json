@@ -13,7 +13,7 @@
     }
   },
   {
-    "raw_text": "Patient: HABIMANA Eric\nNID: 1199580012345678\nSex: M\nDoctor: Dr Uwase\nWard: Surgery\nDiagnosis: Pre-op screen\nTests requested: HGB, PLT, PT/INR, APTT",
+    "raw_text": "Patient: HABIMANA Eric\nNID: 1199580012345678\nSex: M\nDoctor: Dr Uwase\nWard: Surgery\nDiagnosis: Pre-op screen\nTests requested: HGB, PLT, PT, INR, APTT",
     "expected": {
       "family_name": "HABIMANA",
       "national_id": "1199580012345678",
@@ -22,7 +22,8 @@
       "tests": [
         "hgb",
         "plt",
-        "pt/inr",
+        "pt",
+        "inr",
         "aptt"
       ]
     }
@@ -52,6 +53,7 @@
       "tests": [
         "cbc",
         "crp",
+        "lactate",
         "electrolytes"
       ]
     }
@@ -63,7 +65,7 @@
       "gender": null,
       "priority": "routine",
       "tests": [
-        "lipid",
+        "lipid profile",
         "rft"
       ]
     }
@@ -76,7 +78,9 @@
       "gender": "M",
       "priority": "stat",
       "tests": [
-        "cbc"
+        "malaria smear",
+        "cbc",
+        "blood culture"
       ]
     }
   },
@@ -88,6 +92,10 @@
       "gender": "F",
       "priority": "routine",
       "tests": [
+        "hiv",
+        "hbsag",
+        "syphilis",
+        "blood group",
         "hgb"
       ]
     }
@@ -114,7 +122,10 @@
       "family_name": "MUSABYIMANA",
       "gender": "M",
       "priority": "routine",
-      "tests": []
+      "tests": [
+        "glucose",
+        "cholesterol"
+      ]
     }
   },
   {
@@ -124,6 +135,8 @@
       "gender": "F",
       "priority": "stat",
       "tests": [
+        "troponin",
+        "ck-mb",
         "electrolytes",
         "cbc"
       ]

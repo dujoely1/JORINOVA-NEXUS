@@ -282,26 +282,81 @@ def _extract_patient_fields(text: str) -> PatientMatch:
     )
 
 
+_NON_TEST_LABELS = (
+    'patient', 'name', 'nom', 'dr', 'doctor', 'physician', 'ward', 'service',
+    'diagnosis', 'dx', 'clinical', 'pid', 'lid', 'nid', 'national',
+    'sex', 'gender', 'genre', 'dob', 'date', 'birth', 'age',
+    'phone', 'tel', 'address', 'sample', 'specimen', 'tube',
+    'priority', 'stat', 'urgent', 'routine', 'emergency',
+    'requested', 'received', 'time', 'site', 'ref', 'reference',
+    'insurance', 'mutuelle', 'rssb', 'momo',
+)
+
+# Common analyte codes the catalog uses. Anything that already looks like
+# a test code is accepted even if it doesn't pass the other filters.
+_KNOWN_CODE_HINTS = re.compile(
+    r'^(cbc|fbc|hgb|hb|wbc|rbc|plt|hct|mcv|mch|mchc|rdw|retics|esr|crp|'
+    r'pt|inr|aptt|ddimer|d-?dimer|fibrin|'
+    r'urea|creat|egfr|na|k|cl|hco3|ca|mg|p|'
+    r'glucose|fbs|fbg|rbs|hba1c|insulin|'
+    r'alt|ast|alp|ggt|tbili|dbili|alb|tp|lft|'
+    r'lipid|chol|tg|hdl|ldl|trig|'
+    r'hiv|hbsag|hcv|syphilis|rpr|vdrl|rdt|'
+    r'tsh|t3|t4|psa|cea|afp|bhcg|hcg|'
+    r'malaria|smear|pbs|culture|urinalysis|urine|'
+    r'pcr|genexpert|mtb|rif|cd4|viral|load|'
+    r'troponin|ck|ckmb|bnp|nt-?probnp|'
+    r'electrolyte[s]?|rft|kft|hbelectro|g6pd|bm)$',
+    re.I,
+)
+
+
+def _looks_like_label(tok: str) -> bool:
+    """Drop tokens that read like a non-test field label or its value."""
+    t = tok.strip().lower()
+    if not t:
+        return True
+    # Anything containing a colon is a key:value, not a test
+    if ':' in t:
+        return True
+    # Drop if it starts with any non-test label word
+    first = t.split()[0].rstrip('.,:;')
+    if first in _NON_TEST_LABELS:
+        return True
+    # Sex/gender-only tokens ("M", "F", "Male", "Female", "Sex M")
+    if t in ('m', 'f', 'male', 'female', 'masculin', 'féminin', 'feminine'):
+        return True
+    # All-digits or starts with digit (DOB fragments, ID numbers)
+    if t[0].isdigit():
+        return True
+    # Single letter
+    if len(t) == 1:
+        return True
+    return False
+
+
 def _extract_test_candidates(text: str) -> list[str]:
     """
     Return the list of strings that look like test orders.
-    Strategy:
-      1. Pull from explicit list lines after a 'Tests:' / 'Investigations:' label
-      2. Pull all-caps tokens that are 2–10 chars and not in stoplist
-      3. Pull '- something' or '* something' bulleted items
+
+    Strategy
+    1. Find the 'Tests requested:' / 'Investigations:' / 'Order:' label.
+       Take what follows on the same line plus indented continuation lines.
+    2. If no such label, fall back to the whole document (worse signal).
+    3. Split on the common separators a clinician would write between tests
+       (',' ';' '/' ' and ' '&' '+').
+    4. Drop tokens that read like labels, values, single letters, or numbers.
+       Always keep tokens that look like a known analyte code, even if
+       they would otherwise be dropped.
     """
     candidates: list[str] = []
 
-    # Two patterns: label on its own line ("Tests:\nCBC\nESR") OR inline
-    # ("Tests requested: CBC, ESR"). Both forms are common on real forms.
     block = text
     label = re.compile(
         r'(?im)^\s*(?:tests?\s*(?:requested)?|investigations?|requested|order(?:s|ed)?)\s*:\s*(.*)$',
     )
     inline_match = label.search(text)
     if inline_match and inline_match.group(1).strip():
-        # Inline: take what follows the colon on the same line + any indented
-        # continuation lines underneath.
         start = inline_match.end()
         rest_lines = []
         for line in text[start:].splitlines():
@@ -323,16 +378,24 @@ def _extract_test_candidates(text: str) -> list[str]:
         line = line.strip(' \t-•*·.')
         if not line:
             continue
-        # Bullet/list item
         for tok in re.split(r'[,;/]| and |&|\+', line):
             tok = tok.strip(' \t-•*·.()[]')
-            if 2 <= len(tok) <= 60 and not tok.lower().startswith(('patient', 'name', 'dr', 'doctor', 'ward', 'diagnosis')):
+            if not (1 <= len(tok) <= 60):
+                continue
+            # Keep recognisable codes unconditionally — including single-letter
+            # electrolyte codes like K (potassium) or Cl (chloride).
+            if _KNOWN_CODE_HINTS.search(tok):
+                candidates.append(tok)
+                continue
+            if len(tok) < 2:
+                continue
+            if not _looks_like_label(tok):
                 candidates.append(tok)
 
     # Drop duplicates preserving order
     seen, uniq = set(), []
     for c in candidates:
-        k = c.lower()
+        k = c.lower().strip('.')
         if k not in seen:
             seen.add(k)
             uniq.append(c)
