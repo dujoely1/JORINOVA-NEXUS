@@ -36,19 +36,25 @@ VALID_INTENTS = {
 _WAKE_RE     = re.compile(r'\b(jorinova|nexus|alis[ -]?x|hey nexus|hi nexus|ok jorinova)\b', re.I)
 _GREET_RE    = re.compile(r'\b(hello|hi|hey|good (morning|afternoon|evening)|mwaramutse|mwiriwe|muraho|bonjour|bonsoir)\b', re.I)
 _HELP_RE     = re.compile(r'\b(help|what can you do|how (do|to) i|what (are|do) (you|the) commands?|ubufasha|aide)\b', re.I)
-_THANKS_RE   = re.compile(r'\b(thank(s| you)?|murakoze|merci)\b', re.I)
+_THANKS_RE   = re.compile(r'\b(thank(s| you)?|murakoze|urakoze|merci)\b', re.I)
 
+# Resume comes BEFORE start so 'tangira nanone' wins over 'tangira' alone.
+# Also: start's 'tangira' uses a negative lookahead for 'nanone'.
 _INTENT_REGEX: list[tuple[re.Pattern, str]] = [
-    (re.compile(r'\b(start|begin|launch|let\'?s go|go ahead|tangira|d[eé]marrer|commencer)\b', re.I), 'start'),
-    (re.compile(r'\b(next|next step|continue|move on|skip|forward|komeza|suivant)\b',          re.I), 'next'),
-    (re.compile(r'\b(pause|wait|hold on|hold up|hagarara|attends|attendez)\b',                  re.I), 'pause'),
-    (re.compile(r'\b(resume|continue now|go on|tangira nanone|reprendre|reprends)\b',           re.I), 'resume'),
+    (re.compile(r'\b(resume|continue now|go on|keep going|tangira nanone|reprendre|reprends)\b',  re.I), 'resume'),
+    (re.compile(r'\b(start|begin|launch|let\'?s go|go ahead|on commence|tangira(?!\s+nanone)|d[eé]marrer|commencer)\b', re.I), 'start'),
+    (re.compile(r'\b(next|next step|continue|move on|skip|forward|komeza|suivante?|[eé]tape suivante)\b', re.I), 'next'),
+    (re.compile(r'\b(pause|wait|hold on|hold up|hagarara|attends|attendez)\b',                    re.I), 'pause'),
     (re.compile(r'\b(restart|replay|again|from the start|from the beginning|subira|ongera|recommencer)\b', re.I), 'restart'),
-    (re.compile(r'\b(stop|halt|cancel|reka|hagarika|arr[eê]te|arr[eê]ter)\b',                    re.I), 'stop'),
+    (re.compile(r'\b(stop|halt|cancel|reka|hagarika|arr[eê]te|arr[eê]ter)\b',                      re.I), 'stop'),
 ]
 
 
 def _regex_match(text: str) -> Optional[str]:
+    # Commands always win — "jorinova next step" should be 'next', not 'wake'.
+    for pattern, intent in _INTENT_REGEX:
+        if pattern.search(text):
+            return intent
     if _WAKE_RE.search(text):
         if _GREET_RE.search(text):
             return 'greet'
@@ -59,9 +65,6 @@ def _regex_match(text: str) -> Optional[str]:
         return 'help'
     if _THANKS_RE.search(text):
         return 'thanks'
-    for pattern, intent in _INTENT_REGEX:
-        if pattern.search(text):
-            return intent
     return None
 
 
