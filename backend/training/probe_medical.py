@@ -49,71 +49,71 @@ from core.config import get_settings                                           #
 PROBES = [
     # ── Common abbreviations (LLMs should crush these) ───────────────────
     ('abbrev', 'What does CBC stand for in laboratory medicine?',
-        must=['complete blood count']),
+        ['complete blood count']),
     ('abbrev', 'What does TAT mean in lab workflow?',
-        must=['turnaround', 'time']),
+        ['turnaround', 'time']),
     ('abbrev', 'What does GE refer to in Rwandan / French laboratory practice?',
-        must=['goutte', 'thick']),
+        ['goutte', 'thick']),
     ('abbrev', 'What does PTME stand for? (Rwandan/French medical context)',
-        must=['prevention', 'mother', 'child', 'transmission']),
+        ['prevention', 'mother', 'child', 'transmission']),
 
     # ── Staining methods (where LLMs hallucinate) ────────────────────────
     ('stain', 'What are the four reagents used in a Gram stain in order?',
-        must=['crystal violet', 'iodine', 'alcohol', 'safranin']),
+        ['crystal violet', 'iodine', 'alcohol', 'safranin']),
     ('stain', 'In a positive Ziehl-Neelsen (ZN) acid-fast stain, what colour are the bacilli and on what background?',
-        must=['red', 'blue']),
+        ['red', 'blue']),
     ('stain', 'Which stain is the gold standard for malaria parasite identification and quantification?',
-        must=['giemsa']),
+        ['giemsa']),
     ('stain', 'On CHROMagar, what colour does Candida albicans appear?',
-        must=['green']),
+        ['green']),
     ('stain', 'India ink is used to visualise the capsule of which yeast pathogen?',
-        must=['cryptococcus']),
+        ['cryptococcus']),
 
     # ── Parasitology / mycology ──────────────────────────────────────────
     ('parasit', 'Which Plasmodium species causes the most severe form of malaria?',
-        must=['falciparum']),
+        ['falciparum']),
     ('parasit', 'In a Giemsa-stained blood smear, what intracellular form is diagnostic of Leishmania?',
-        must=['amastigote']),
+        ['amastigote']),
     ('mycol', 'For Cryptococcus neoformans, what specimen + stain combination is the rapid bedside diagnostic?',
-        must=['csf', 'india ink']),
+        ['csf', 'india ink']),
 
     # ── Critical / panic values (LLMs invent numbers) ────────────────────
     ('critical', 'What is the adult critical low haemoglobin (Hgb) value below which the lab must notify the clinician immediately?',
-        must=['7', 'g/dl']),
+        ['7', 'g/dl']),
     ('critical', 'What potassium value (in mmol/L) is considered an adult critical high requiring immediate notification?',
-        must=['6']),
+        ['6']),
     ('critical', 'What random blood glucose value (in mmol/L) is the critical high threshold?',
-        must=['22']),
+        ['22']),
 
     # ── Reference ranges ─────────────────────────────────────────────────
     ('ref', 'What is the adult male reference range for haemoglobin in g/dL?',
-        must=['13', '17']),
+        ['13', '17']),
     ('ref', 'What is the adult reference range for fasting blood glucose in mmol/L?',
-        must=['3.9', '6.1']),
+        ['3.9', '6.1']),
     ('ref', 'For an adult non-pregnant patient, what is the normal TSH reference range in mIU/L?',
-        must=['0.27', '4.2']),
+        ['0.27', '4.2']),
 
     # ── Specimen / tube colour (lab-bench essentials) ───────────────────
     ('tube', 'Which tube colour (additive) is required for a CBC?',
-        must=['edta', 'lavender']),
+        ['edta', 'lavender']),
     ('tube', 'Which tube colour is required for a fasting glucose?',
-        must=['fluoride', 'grey']),
+        ['fluoride', 'grey']),
     ('tube', 'Which tube colour is required for prothrombin time (PT) / coagulation?',
-        must=['citrate', 'blue']),
+        ['citrate', 'blue']),
 
     # ── Immunology / serology ────────────────────────────────────────────
     ('immuno', 'In hepatitis B serology, what does a positive HBsAg with negative anti-HBs indicate?',
-        must=['active', 'infection']),
+        ['active', 'infection']),
     ('immuno', 'A 4th-generation HIV test detects which two markers?',
-        must=['p24', 'antibod']),
+        ['p24', 'antibod']),
 
     # ── Histotechnology ──────────────────────────────────────────────────
     ('histo', 'Which stain is used routinely on paraffin-embedded tissue sections to show basic histological architecture?',
-        must=['haematoxylin', 'eosin']),
+        ['haematoxylin', 'eosin']),
     ('histo', 'What stain is used to demonstrate connective tissue (collagen) in a tissue section?',
-        must=['masson', 'trichrome']),
+        ['masson', 'trichrome']),
     ('histo', 'Which stain demonstrates Pneumocystis jirovecii cysts in lung tissue?',
-        must=['silver']),
+        ['silver']),
 ]
 
 
