@@ -125,11 +125,17 @@ function PatientsInner() {
             </h1>
             <p className="text-sm text-zinc-500">{patients.length} active patients on file</p>
           </div>
-          <Link href="/modules/lis_mapping"
-                className="px-4 py-2 rounded-lg text-white text-sm font-semibold shadow-sm"
-                style={{ background: NEXUS_BLUE }}>
-            + Register from lab form
-          </Link>
+          <div className="flex gap-2">
+            <Link href="/modules/patients/new"
+                  className="px-4 py-2 rounded-lg border border-zinc-300 text-zinc-700 text-sm font-medium hover:bg-zinc-50">
+              + Walk-in patient
+            </Link>
+            <Link href="/modules/lis_mapping"
+                  className="px-4 py-2 rounded-lg text-white text-sm font-semibold shadow-sm"
+                  style={{ background: NEXUS_BLUE }}>
+              + Register from lab form
+            </Link>
+          </div>
         </div>
       </header>
 

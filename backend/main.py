@@ -292,6 +292,7 @@ async def _seed_default_data():
 
         # Seed specimen types if empty
         from services.worklist_service import seed_specimen_types
+        from models.worklist import SpecimenTypeConfig
         if db.query(SpecimenTypeConfig).count() == 0:
             seeded = seed_specimen_types(db)
             logger.info('Specimen types seeded: %d', seeded)
@@ -555,6 +556,7 @@ class _SilentUndefined(Undefined):
 _ROUTERS = [
     # Core
     ('routers.sync',            'router'),   # first: ping has no auth
+    ('routers.setup',           'router'),   # public — first-run init wizard
     ('routers.auth',            'router'),
     ('routers.patients',        'router'),
     ('routers.laboratory',      'router'),

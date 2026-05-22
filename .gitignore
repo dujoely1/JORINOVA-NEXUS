@@ -27,6 +27,9 @@ venv.bak/
 .env
 .env.production
 .env.staging
+# Example templates are tracked — they contain no secrets
+!.env.example
+!.env.*.example
 *.secret
 secrets.json
 local_settings.py
