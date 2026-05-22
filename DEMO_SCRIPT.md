@@ -73,7 +73,7 @@ YouTube → Upload → set visibility to **Unlisted** → copy the share link. T
 **Why this comes first:** vendor-neutral integration is the rarest claim in
 this space. Showing it up-front establishes credibility for everything after.
 
-**Navigate:** `/modules/training/iot_analyzer_intake_demo`
+**Navigate:** `/modules/training/iot_analyzer_intake_demo?demo=1`
 
 **You:** `Jorinova start`
 
@@ -97,7 +97,7 @@ this space. Showing it up-front establishes credibility for everything after.
 
 ## 3. Scene 2 — OCR auto-scan + LIS auto-mapping (1:05 – 1:50)
 
-**Navigate:** `/modules/training/lis_mapping_walkthrough`
+**Navigate:** `/modules/training/lis_mapping_walkthrough?demo=1`
 
 **You:** `Jorinova start`
 
@@ -115,7 +115,7 @@ this space. Showing it up-front establishes credibility for everything after.
 
 ## 4. Scene 3 — STAT specimen intake + workflow (1:50 – 2:25)
 
-**Navigate:** `/modules/training/specimen_intake_stat`
+**Navigate:** `/modules/training/specimen_intake_stat?demo=1`
 
 **You:** `Jorinova start`
 
@@ -134,7 +134,7 @@ this space. Showing it up-front establishes credibility for everything after.
 
 ## 5. Scene 4 — Critical CBC: validation + auto-save in records book (2:25 – 3:00)
 
-**Navigate:** `/modules/training/critical_value_validation`
+**Navigate:** `/modules/training/critical_value_validation?demo=1`
 
 **You:** `Jorinova start`
 
@@ -166,7 +166,7 @@ click "Interpret" — uses the cloud cascade we've already wired.
 
 ## 7. Scene 6 — Genomic / MedGenome: TB GeneXpert (3:35 – 4:15)
 
-**Navigate:** `/modules/training/medgenome_pcr_demo`
+**Navigate:** `/modules/training/medgenome_pcr_demo?demo=1`
 
 **You:** `Jorinova start`
 
@@ -184,7 +184,7 @@ click "Interpret" — uses the cloud cascade we've already wired.
 
 ## 8. Scene 7 — Blood bank: chamber/slot crossmatch (4:15 – 4:50)
 
-**Navigate:** `/modules/training/blood_bank_crossmatch_demo`
+**Navigate:** `/modules/training/blood_bank_crossmatch_demo?demo=1`
 
 **You:** `Jorinova start`
 
@@ -202,7 +202,7 @@ click "Interpret" — uses the cloud cascade we've already wired.
 
 ## 9. Scene 8 — MoMo payment + release (4:50 – 5:15)
 
-**Navigate:** `/modules/training/momo_billing_demo`
+**Navigate:** `/modules/training/momo_billing_demo?demo=1`
 
 **You:** `Jorinova start`
 
