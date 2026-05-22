@@ -170,7 +170,7 @@ export default function ForgotPasswordPage() {
               style={{ background: `linear-gradient(90deg, ${NEXUS_BLUE} 0%, #1E88E5 100%)` }}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-2 flex items-center gap-3">
           <Link href="/login" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-            <Logo size={56} className="ring-1 ring-white/40 -my-1" />
+            <Logo size={40} className="ring-1 ring-white/40" />
             <div className="leading-tight">
               <div className="font-bold tracking-wide text-sm sm:text-base">JORINOVA NEXUS</div>
               <div className="text-[10px] sm:text-xs text-blue-100 -mt-0.5">ALIS-X · Password recovery</div>

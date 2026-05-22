@@ -156,7 +156,7 @@ export default function LoginPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-2 flex items-center justify-between gap-3 flex-wrap">
           {/* Logo (left — sized to fill the header edge-to-edge) */}
           <div className="flex items-center gap-3">
-            <Logo size={56} className="ring-1 ring-white/40 -my-1" />
+            <Logo size={40} className="ring-1 ring-white/40" />
             <div className="leading-tight">
               <div className="font-bold tracking-wide text-sm sm:text-base">JORINOVA NEXUS</div>
               <div className="text-[10px] sm:text-xs text-blue-100 -mt-0.5">ALIS-X · Laboratory Intelligence</div>
