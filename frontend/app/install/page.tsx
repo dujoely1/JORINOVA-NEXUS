@@ -20,7 +20,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Logo from '../components/Logo'
 
-const API           = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API           = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 const NEXUS_BLUE    = '#0066CC'
 const NEXUS_BLUE_LT = '#E6F0FA'
 const MIL_GREEN     = '#4B5320'
@@ -43,8 +43,15 @@ const COPY: Record<Lang, {
   username: string; firstName: string; lastName: string; adminEmail: string; password: string;
   done: string; doneSub: string; signIn: string;
   next: string; back: string; finish: string; saving: string;
+  installSub: string; hero: string; tagline: string; loading: string; setupFailed: string; powered: string;
 }> = {
   en: {
+    installSub: 'First-run installation',
+    hero: 'WELCOME — LET’S SET UP YOUR LAB',
+    tagline: 'Smart data. Safer health.',
+    loading: 'Loading…',
+    setupFailed: 'Setup failed',
+    powered: 'Powered by JORINOVA NEXUS ALIS-X',
     pickLanguage: 'Choose system language',
     pickLangSub:  'The language you pick becomes the default for everyone signing in. Each user can override their own.',
     hospital:     'Hospital details',
@@ -59,6 +66,12 @@ const COPY: Record<Lang, {
     next: 'Continue', back: 'Back', finish: 'Create system', saving: 'Saving…',
   },
   fr: {
+    installSub: 'Installation initiale',
+    hero: 'BIENVENUE — CONFIGURONS VOTRE LABORATOIRE',
+    tagline: 'Données intelligentes. Santé plus sûre.',
+    loading: 'Chargement…',
+    setupFailed: 'Échec de l’installation',
+    powered: 'Propulsé par JORINOVA NEXUS ALIS-X',
     pickLanguage: 'Choisissez la langue du système',
     pickLangSub:  "Cette langue devient celle par défaut à la connexion. Chaque utilisateur peut la modifier.",
     hospital:     "Informations de l'hôpital",
@@ -73,6 +86,12 @@ const COPY: Record<Lang, {
     next: 'Continuer', back: 'Retour', finish: 'Créer le système', saving: 'Enregistrement…',
   },
   rw: {
+    installSub: 'Iyinjiza rya mbere',
+    hero: 'MURAKAZA NEZA — REKA DUTEGURE LABO YAWE',
+    tagline: 'Amakuru y’ubwenge. Ubuzima burinzwe.',
+    loading: 'Birapakira…',
+    setupFailed: 'Iyinjiza ryanze',
+    powered: 'Yashyizweho na JORINOVA NEXUS ALIS-X',
     pickLanguage: 'Hitamo ururimi rwa sisitemu',
     pickLangSub:  'Ururimi uhise ni rwo ruzakoreshwa na buri ukoresha sisitemu.',
     hospital:     'Amakuru y’ibitaro',
@@ -150,14 +169,14 @@ export default function InstallPage() {
       }
       setStep('done')
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Setup failed')
+      setError(e instanceof Error ? e.message : t.setupFailed)
     } finally {
       setSubmitting(false)
     }
   }
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center text-zinc-500">Loading…</div>
+    return <div className="min-h-screen flex items-center justify-center text-zinc-500">{t.loading}</div>
   }
 
   return (
@@ -174,7 +193,7 @@ export default function InstallPage() {
           <Logo size={48} className="ring-1 ring-white/40" />
           <div className="leading-tight">
             <div className="font-bold tracking-wide text-base">JORINOVA NEXUS</div>
-            <div className="text-xs text-blue-100 -mt-0.5">ALIS-X · First-run installation</div>
+            <div className="text-xs text-blue-100 -mt-0.5">ALIS-X · {t.installSub}</div>
           </div>
         </div>
       </header>
@@ -183,10 +202,10 @@ export default function InstallPage() {
       <section className="border-b" style={{ borderColor: `${NEXUS_BLUE}30`, background: 'rgba(255,255,255,0.55)' }}>
         <div className="mx-auto max-w-3xl px-4 py-6 text-center space-y-1">
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-wide" style={{ color: MIL_GREEN }}>
-            WELCOME — LET’S SET UP YOUR LAB
+            {t.hero}
           </h1>
           <p className="text-sm italic font-bold" style={{ color: GOLD_DK }}>
-            Smart data. Safer health.
+            {t.tagline}
           </p>
           <ProgressDots step={step} />
         </div>
@@ -324,7 +343,7 @@ export default function InstallPage() {
       <footer className="text-white" style={{ background: `linear-gradient(90deg, ${NEXUS_BLUE} 0%, #1565C0 100%)` }}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 flex items-center justify-between text-xs">
           <a href="mailto:jorinovanexus@gmail.com" className="font-medium">jorinovanexus@gmail.com</a>
-          <span className="text-blue-100">Powered by JORINOVA NEXUS ALIS-X</span>
+          <span className="text-blue-100">{t.powered}</span>
         </div>
       </footer>
     </div>

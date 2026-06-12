@@ -312,7 +312,8 @@ def _trigger_low_stock_alert(item, user, db):
             asyncio.create_task(notify_low_stock(
                 manager_phone=mgr_phone, item_name=item.name,
                 remaining=item.quantity, unit=item.unit,
-                reorder_level=item.min_stock, hospital_name=hospital.name, db=db,
+                reorder_level=item.min_stock, hospital_name=hospital.name,
+                language=getattr(user, 'preferred_language', 'en') or 'en', db=db,
             ))
     except Exception as e:
         log.warning('Low stock SMS failed: %s', e)

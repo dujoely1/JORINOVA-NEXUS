@@ -19,38 +19,55 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { roleCan } from '../lib/role-routes'
+import { useT } from '../contexts/I18nProvider'
+import type { TKey } from '../lib/i18n'
 
 type NavItem = {
-  href:    string
-  icon:    string
-  label:   string
-  roles:   readonly string[]      // ['*'] = everyone
-  group?:  string                  // optional section header
+  href:      string
+  icon:      string
+  labelKey:  TKey
+  roles:     readonly string[]      // ['*'] = everyone
+  groupKey:  TKey                   // group header translation key
 }
 
 const NAV: readonly NavItem[] = [
   // ── Main ────────────────────────────────────────────────────────────────
-  { href: '/dashboard',             icon: '🏠', label: 'Dashboard',     roles: ['*'], group: 'Main' },
-  { href: '/modules/patients',      icon: '👤', label: 'Patients',      roles: ['*'], group: 'Main' },
-  { href: '/modules/laboratory',    icon: '🧪', label: 'Laboratory',    roles: ['lab_manager', 'scientist', 'lab_technician', 'pathologist', 'super_admin'], group: 'Main' },
+  { href: '/dashboard',             icon: '🏠', labelKey: 'nav.dashboard',  roles: ['*'], groupKey: 'nav.group.main' },
+  { href: '/modules/patients',      icon: '👤', labelKey: 'nav.patients',   roles: ['*'], groupKey: 'nav.group.main' },
+  { href: '/modules/laboratory',    icon: '🧪', labelKey: 'nav.laboratory', roles: ['lab_manager', 'scientist', 'lab_technician', 'pathologist', 'super_admin'], groupKey: 'nav.group.main' },
 
   // ── Clinical ────────────────────────────────────────────────────────────
-  { href: '/modules/lis_mapping',   icon: '📄', label: 'OCR + LIS',     roles: ['*'], group: 'Clinical' },
-  { href: '/modules/blood_bank',    icon: '🩸', label: 'Blood Bank',    roles: ['lab_manager', 'scientist', 'super_admin'], group: 'Clinical' },
-  { href: '/modules/billing',       icon: '💳', label: 'Billing & MoMo',roles: ['receptionist', 'lab_manager', 'super_admin'], group: 'Clinical' },
-  { href: '/modules/inventory',     icon: '📦', label: 'Inventory',     roles: ['lab_manager', 'super_admin'], group: 'Clinical' },
+  { href: '/modules/lis_mapping',   icon: '📄', labelKey: 'nav.lis_mapping',roles: ['*'], groupKey: 'nav.group.clinical' },
+  { href: '/modules/register',      icon: '📚', labelKey: 'nav.register',   roles: ['*'], groupKey: 'nav.group.clinical' },
+  { href: '/modules/biochemistry',  icon: '🧫', labelKey: 'nav.biochem',    roles: ['lab_manager', 'scientist', 'super_admin'], groupKey: 'nav.group.clinical' },
+  { href: '/modules/microbiology',  icon: '🦠', labelKey: 'nav.micro',      roles: ['lab_manager', 'scientist', 'super_admin'], groupKey: 'nav.group.clinical' },
+  { href: '/modules/serology',      icon: '🩸', labelKey: 'nav.serology',   roles: ['lab_manager', 'scientist', 'super_admin'], groupKey: 'nav.group.clinical' },
+  { href: '/modules/blood_bank',    icon: '🩸', labelKey: 'nav.blood_bank', roles: ['lab_manager', 'scientist', 'super_admin'], groupKey: 'nav.group.clinical' },
+  { href: '/modules/anapath',       icon: '🔭', labelKey: 'nav.anapath',    roles: ['pathologist', 'lab_manager', 'super_admin'], groupKey: 'nav.group.clinical' },
+  { href: '/modules/toxicology',    icon: '☠️', labelKey: 'nav.toxicology', roles: ['lab_manager', 'scientist', 'pathologist', 'super_admin'], groupKey: 'nav.group.clinical' },
+  { href: '/modules/molecular_advanced', icon: '🧬', labelKey: 'nav.molecular', roles: ['lab_manager', 'scientist', 'pathologist', 'super_admin'], groupKey: 'nav.group.clinical' },
+
+  // ── Operations ─────────────────────────────────────────────────────────
+  { href: '/modules/quality',       icon: '📐', labelKey: 'nav.quality',      roles: ['lab_manager', 'scientist', 'super_admin'], groupKey: 'nav.group.ops' },
+  { href: '/modules/surveillance',  icon: '🔭', labelKey: 'nav.surveillance', roles: ['lab_manager', 'super_admin', 'rbc_admin'], groupKey: 'nav.group.ops' },
+  { href: '/modules/inventory',     icon: '📦', labelKey: 'nav.inventory',    roles: ['lab_manager', 'super_admin'], groupKey: 'nav.group.ops' },
+  { href: '/modules/billing',       icon: '💳', labelKey: 'nav.billing',      roles: ['receptionist', 'lab_manager', 'super_admin'], groupKey: 'nav.group.ops' },
+  { href: '/modules/staffhub',      icon: '🧑‍⚕️', labelKey: 'nav.staffhub',     roles: ['lab_manager', 'super_admin'], groupKey: 'nav.group.ops' },
+  { href: '/modules/connectivity',  icon: '🌐', labelKey: 'nav.connectivity', roles: ['lab_manager', 'it_admin', 'super_admin'], groupKey: 'nav.group.ops' },
 
   // ── Portals ─────────────────────────────────────────────────────────────
-  { href: '/portal/doctor',         icon: '🩺', label: 'Doctor portal', roles: ['doctor', 'lab_manager', 'super_admin'], group: 'Portals' },
-  { href: '/portal/rbc',            icon: '🏛️', label: 'RBC surveillance', roles: ['rbc_admin', 'super_admin'], group: 'Portals' },
+  { href: '/portal/doctor',         icon: '🩺', labelKey: 'nav.doctor', roles: ['doctor', 'lab_manager', 'super_admin'], groupKey: 'nav.group.portals' },
+  { href: '/portal/rbc',            icon: '🏛️', labelKey: 'nav.rbc',    roles: ['rbc_admin', 'super_admin'],            groupKey: 'nav.group.portals' },
 
   // ── Support ─────────────────────────────────────────────────────────────
-  { href: '/modules/help-support',  icon: '🎓', label: 'Help & Support',roles: ['*'], group: 'Support' },
-  { href: '/modules/notifications', icon: '🔔', label: 'Notifications', roles: ['*'], group: 'Support' },
+  { href: '/modules/help-support',  icon: '🎓', labelKey: 'nav.help',          roles: ['*'], groupKey: 'nav.group.support' },
+  { href: '/modules/notifications', icon: '🔔', labelKey: 'nav.notifications', roles: ['*'], groupKey: 'nav.group.support' },
+  { href: '/modules/settings',      icon: '⚙️', labelKey: 'nav.settings',      roles: ['*'], groupKey: 'nav.group.support' },
 
   // ── Admin ───────────────────────────────────────────────────────────────
-  { href: '/modules/audit',         icon: '📋', label: 'Audit',         roles: ['lab_manager', 'super_admin'], group: 'Admin' },
-  { href: '/modules/ai_nexus',      icon: '🤖', label: 'AI Nexus',      roles: ['lab_manager', 'super_admin'], group: 'Admin' },
+  { href: '/admin',                 icon: '🛡️', labelKey: 'nav.admin',    roles: ['lab_manager', 'it_admin', 'super_admin'], groupKey: 'nav.group.admin' },
+  { href: '/modules/audit',         icon: '📋', labelKey: 'nav.audit',    roles: ['lab_manager', 'super_admin'], groupKey: 'nav.group.admin' },
+  { href: '/modules/ai_nexus',      icon: '🤖', labelKey: 'nav.ai_nexus', roles: ['lab_manager', 'super_admin'], groupKey: 'nav.group.admin' },
 ] as const
 
 const NEXUS_BLUE = '#0066CC'
@@ -67,9 +84,10 @@ export default function Sidebar({
   theme?:        'light' | 'dark'
 }) {
   const pathname = usePathname()
+  const t = useT()
 
   const visible = NAV.filter(item => roleCan(role, item.roles))
-  const groups: string[] = Array.from(new Set(visible.map(i => i.group ?? 'Other')))
+  const groups: TKey[] = Array.from(new Set(visible.map(i => i.groupKey)))
 
   const dark = theme === 'dark'
 
@@ -91,11 +109,11 @@ export default function Sidebar({
     >
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
         {groups.map(g => {
-          const items = visible.filter(i => (i.group ?? 'Other') === g)
+          const items = visible.filter(i => i.groupKey === g)
           return (
             <div key={g}>
               <div className={`px-2 mb-1.5 text-[10px] uppercase tracking-widest font-semibold ${dark ? 'text-slate-400' : 'text-zinc-500'}`}>
-                {g}
+                {t(g)}
               </div>
               <ul className="space-y-0.5">
                 {items.map(item => {
@@ -119,7 +137,7 @@ export default function Sidebar({
                         `}
                       >
                         <span className="text-base leading-none">{item.icon}</span>
-                        <span className="truncate">{item.label}</span>
+                        <span className="truncate">{t(item.labelKey)}</span>
                       </Link>
                     </li>
                   )

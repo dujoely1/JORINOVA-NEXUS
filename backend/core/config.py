@@ -44,7 +44,7 @@ class Settings(BaseSettings):
 
     # JWT
     jwt_algorithm:       str = 'HS256'
-    access_token_expire: int = 480   # minutes (8 hours)
+    access_token_expire: int = 10080  # minutes (7 days) — pilot: stay signed in across the day/shift
 
     # AI — Local (Ollama hybrid worker pool)
     # `ollama_model` is the default workhorse; the task router

@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import RequireAuth from '../../components/RequireAuth'
+import { useT, useI18n } from '../../contexts/I18nProvider'
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 
 type ScenarioSummary = {
   id: string
@@ -27,6 +28,10 @@ function getToken(): string | null {
 const ALL_ROLES = ['receptionist', 'lab_technician', 'lab_manager', 'pathologist', 'super_admin']
 
 export default function TrainingHubPage() {
+  return <Suspense fallback={null}><TrainingHubGate /></Suspense>
+}
+
+function TrainingHubGate() {
   const sp = useSearchParams()
   const isPublic = sp?.get('demo') === '1'
   const body = <TrainingHubInner isPublic={isPublic} />
@@ -43,6 +48,8 @@ type FeatureSummary = {
 }
 
 function TrainingHubInner({ isPublic }: { isPublic: boolean }) {
+  const t = useT()
+  const { lang } = useI18n()
   const [scenarios, setScenarios] = useState<ScenarioSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -59,7 +66,7 @@ function TrainingHubInner({ isPublic }: { isPublic: boolean }) {
           const tok = getToken()
           if (tok) headers.Authorization = `Bearer ${tok}`
         }
-        const url = `${API}/api/v1/training/${isPublic ? 'public/' : ''}scenarios`
+        const url = `${API}/api/v1/training/${isPublic ? 'public/' : ''}scenarios?lang=${lang}`
         const res = await fetch(url, { headers })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const data = await res.json()
@@ -82,7 +89,7 @@ function TrainingHubInner({ isPublic }: { isPublic: boolean }) {
     }
     load()
     return () => { cancelled = true }
-  }, [isPublic])
+  }, [isPublic, lang])
 
   const filtered = useMemo(() => {
     if (roleFilter === 'all') return scenarios
@@ -94,14 +101,14 @@ function TrainingHubInner({ isPublic }: { isPublic: boolean }) {
       <div className="mx-auto max-w-5xl space-y-6">
         <header className="flex items-end justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-2xl font-semibold">Training &amp; AI Demo</h1>
+            <h1 className="text-2xl font-semibold">{t('train.title')}</h1>
             <p className="text-sm text-zinc-400 max-w-2xl">
-              Guided walkthroughs of the system. Each scenario uses a virtual cursor and voice narration to demonstrate a real workflow — no mouse or keyboard required.
+              {t('train.subtitle')}
             </p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <div className="inline-flex rounded-lg border border-zinc-700 bg-zinc-900 p-1 text-xs gap-1">
-              <RoleChip current={roleFilter} value="all" set={setRoleFilter}>All roles</RoleChip>
+              <RoleChip current={roleFilter} value="all" set={setRoleFilter}>{t('train.all_roles')}</RoleChip>
               {ALL_ROLES.map(r => (
                 <RoleChip key={r} current={roleFilter} value={r} set={setRoleFilter}>{r.replace('_', ' ')}</RoleChip>
               ))}
@@ -112,7 +119,7 @@ function TrainingHubInner({ isPublic }: { isPublic: boolean }) {
                 onClick={() => setShowGenerate(true)}
                 className="rounded-md bg-indigo-500/80 px-3 py-1.5 text-xs font-medium hover:bg-indigo-500"
               >
-                ✨ Generate AI demo
+                {t('train.generate')}
               </button>
             )}
           </div>
@@ -132,11 +139,11 @@ function TrainingHubInner({ isPublic }: { isPublic: boolean }) {
         )}
 
         {loading && (
-          <div className="text-sm text-zinc-500">Loading scenarios…</div>
+          <div className="text-sm text-zinc-500">{t('train.loading')}</div>
         )}
 
         {!loading && filtered.length === 0 && (
-          <div className="text-sm text-zinc-500">No scenarios match this role.</div>
+          <div className="text-sm text-zinc-500">{t('train.no_role')}</div>
         )}
 
         <div className="grid gap-4 md:grid-cols-2">
@@ -169,6 +176,7 @@ function RoleChip({
 function GenerateDialog({
   features, onClose,
 }: { features: FeatureSummary[]; onClose: () => void }) {
+  const t = useT()
   const router = useRouter()
   const [featureId, setFeatureId] = useState(features[0]?.id ?? '')
   const [role, setRole]           = useState('lab_technician')
@@ -205,41 +213,41 @@ function GenerateDialog({
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
       <div className="w-full max-w-lg rounded-xl border border-zinc-700 bg-zinc-950 p-5 space-y-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-medium">Generate an AI demo</h3>
+          <h3 className="text-base font-medium">{t('train.gen_title')}</h3>
           <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300 text-lg">×</button>
         </div>
         <p className="text-xs text-zinc-400">
-          The AI generates a fresh scenario for the selected feature, anchored to a real (anonymised) pilot record when one is available. Falls back to a curated template if no LLM is reachable.
+          {t('train.gen_desc')}
         </p>
         {err && <div className="rounded border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">{err}</div>}
         <div className="grid grid-cols-2 gap-3 text-xs">
-          <DialogField label="Feature">
+          <DialogField label={t('train.f.feature')}>
             <select value={featureId} onChange={(e) => setFeatureId(e.target.value)}
               className="w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-1.5">
               {features.map(x => <option key={x.id} value={x.id}>{x.title}</option>)}
             </select>
           </DialogField>
-          <DialogField label="Role">
+          <DialogField label={t('train.f.role')}>
             <select value={role} onChange={(e) => setRole(e.target.value)}
               className="w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-1.5">
               {ALL_ROLES.map(r => <option key={r} value={r}>{r.replace('_', ' ')}</option>)}
             </select>
           </DialogField>
-          <DialogField label="Language">
+          <DialogField label={t('train.f.language')}>
             <select value={language} onChange={(e) => setLanguage(e.target.value as 'en' | 'fr' | 'rw')}
               className="w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-1.5">
-              <option value="en">English</option>
-              <option value="fr">French</option>
-              <option value="rw">Kinyarwanda</option>
+              <option value="en">{t('train.lang.en')}</option>
+              <option value="fr">{t('train.lang.fr')}</option>
+              <option value="rw">{t('train.lang.rw')}</option>
             </select>
           </DialogField>
-          <DialogField label="Provider">
+          <DialogField label={t('train.f.provider')}>
             <select value={provider} onChange={(e) => setProvider(e.target.value as 'auto' | 'cloud' | 'local' | 'stub')}
               className="w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-1.5">
-              <option value="auto">Auto (cloud → local → stub)</option>
-              <option value="cloud">Claude only</option>
-              <option value="local">Ollama (local) only</option>
-              <option value="stub">Stub (no LLM)</option>
+              <option value="auto">{t('train.prov.auto')}</option>
+              <option value="cloud">{t('train.prov.cloud')}</option>
+              <option value="local">{t('train.prov.local')}</option>
+              <option value="stub">{t('train.prov.stub')}</option>
             </select>
           </DialogField>
         </div>
@@ -248,16 +256,16 @@ function GenerateDialog({
             <div className="text-zinc-400">{f.description}</div>
             {f.innovations.length > 0 && (
               <div className="text-zinc-500">
-                <span className="text-zinc-400">Highlights:</span> {f.innovations.join(' · ')}
+                <span className="text-zinc-400">{t('train.highlights')}</span> {f.innovations.join(' · ')}
               </div>
             )}
           </div>
         )}
         <div className="flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs hover:bg-zinc-800">Cancel</button>
+          <button onClick={onClose} className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs hover:bg-zinc-800">{t('common.cancel')}</button>
           <button onClick={run} disabled={busy || !featureId}
             className="rounded-md bg-indigo-500/80 px-4 py-1.5 text-xs font-medium hover:bg-indigo-500 disabled:opacity-50">
-            {busy ? 'Generating…' : 'Generate & open'}
+            {busy ? t('train.generating') : t('train.gen_open')}
           </button>
         </div>
       </div>
@@ -275,6 +283,7 @@ function DialogField({ label, children }: { label: string; children: React.React
 }
 
 function ScenarioCard({ s, isPublic }: { s: ScenarioSummary; isPublic: boolean }) {
+  const t = useT()
   const href = `/modules/training/${s.id}${isPublic ? '?demo=1' : ''}`
   return (
     <Link
@@ -284,7 +293,7 @@ function ScenarioCard({ s, isPublic }: { s: ScenarioSummary; isPublic: boolean }
       <div className="flex items-start justify-between gap-3">
         <h2 className="text-base font-medium text-zinc-100">{s.title}</h2>
         <span className="text-[10px] px-2 py-0.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-200 whitespace-nowrap">
-          ~{s.duration_minutes} min
+          {t('train.min', { n: s.duration_minutes })}
         </span>
       </div>
       <p className="mt-2 text-sm text-zinc-400">{s.description}</p>
@@ -296,7 +305,7 @@ function ScenarioCard({ s, isPublic }: { s: ScenarioSummary; isPublic: boolean }
         ))}
       </div>
       <div className="mt-2 text-[11px] text-zinc-500">
-        {s.step_count} steps · modules: {s.modules.join(', ')}
+        {t('train.steps_modules', { n: s.step_count, mods: s.modules.join(', ') })}
       </div>
     </Link>
   )

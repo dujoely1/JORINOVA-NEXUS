@@ -16,8 +16,10 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import RequireAuth from '../../components/RequireAuth'
 import AppShell    from '../../components/AppShell'
+import { useT } from '../../contexts/I18nProvider'
+import type { TKey } from '../../lib/i18n'
 
-const API        = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API        = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 const NEXUS_BLUE = '#0066CC'
 const MIL_GREEN  = '#4B5320'
 
@@ -47,6 +49,7 @@ export default function LaboratoryPage() {
 }
 
 function LabInner() {
+  const t = useT()
   const [rows,     setRows]     = useState<Row[]>([])
   const [loading,  setLoading]  = useState(true)
   const [error,    setError]    = useState<string | null>(null)
@@ -91,16 +94,16 @@ function LabInner() {
       <header className="rounded-2xl border bg-white p-5" style={{ borderColor: `${NEXUS_BLUE}30` }}>
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <div className="text-xs uppercase tracking-wider font-semibold" style={{ color: NEXUS_BLUE }}>LABORATORY</div>
+            <div className="text-xs uppercase tracking-wider font-semibold" style={{ color: NEXUS_BLUE }}>{t('lab.crumb')}</div>
             <h1 className="text-2xl font-extrabold tracking-wide mt-1" style={{ color: MIL_GREEN }}>
-              WORKLIST
+              {t('lab.worklist')}
             </h1>
-            <p className="text-sm text-zinc-500">{rows.length} lab requests · {filtered.length} match current filter</p>
+            <p className="text-sm text-zinc-500">{t('lab.summary', { n: rows.length, m: filtered.length })}</p>
           </div>
           <Link href="/modules/lis_mapping"
                 className="px-4 py-2 rounded-lg text-white text-sm font-semibold shadow-sm"
                 style={{ background: NEXUS_BLUE }}>
-            + New from lab form
+            {t('lab.new_from_form')}
           </Link>
         </div>
       </header>
@@ -117,7 +120,7 @@ function LabInner() {
                 : 'bg-white text-zinc-700 border-zinc-300 hover:bg-zinc-50'
             }`}
           >
-            {s} <span className="opacity-70">({counts[s] ?? 0})</span>
+            {t(`lab.st.${s}` as TKey)} <span className="opacity-70">({counts[s] ?? 0})</span>
           </button>
         ))}
         <span className="text-zinc-300 px-1">|</span>
@@ -133,32 +136,32 @@ function LabInner() {
                 : 'bg-white text-zinc-700 border-zinc-300 hover:bg-zinc-50'
             }`}
           >
-            {l}
+            {t(`lab.lv.${l}` as TKey)}
           </button>
         ))}
         <input
           value={query} onChange={e => setQuery(e.target.value)}
-          placeholder="Search LR-... or PID"
+          placeholder={t('lab.search')}
           className="ml-auto rounded-md border border-zinc-300 px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
       {/* Worklist table */}
       <section className="rounded-2xl border bg-white shadow-sm overflow-hidden" style={{ borderColor: `${NEXUS_BLUE}30` }}>
-        {loading && <div className="p-6 text-center text-zinc-500 text-sm">Loading worklist…</div>}
-        {error && <div className="p-6 text-center text-rose-600 text-sm">Error: {error}</div>}
+        {loading && <div className="p-6 text-center text-zinc-500 text-sm">{t('lab.loading')}</div>}
+        {error && <div className="p-6 text-center text-rose-600 text-sm">{t('pat.error')} {error}</div>}
         {!loading && !error && filtered.length === 0 && (
-          <div className="p-12 text-center text-zinc-500 text-sm">No lab requests match the current filter.</div>
+          <div className="p-12 text-center text-zinc-500 text-sm">{t('lab.empty')}</div>
         )}
         {filtered.length > 0 && (
           <table className="w-full text-sm">
             <thead className="bg-zinc-50 text-[11px] uppercase tracking-wider text-zinc-500">
               <tr>
-                <th className="text-left px-4 py-2.5">Lab ID</th>
-                <th className="text-left px-4 py-2.5">Patient PID</th>
-                <th className="text-left px-4 py-2.5">Status</th>
-                <th className="text-left px-4 py-2.5">Priority</th>
-                <th className="text-left px-4 py-2.5">When</th>
+                <th className="text-left px-4 py-2.5">{t('lab.h.lab_id')}</th>
+                <th className="text-left px-4 py-2.5">{t('lab.h.patient_pid')}</th>
+                <th className="text-left px-4 py-2.5">{t('tbl.status')}</th>
+                <th className="text-left px-4 py-2.5">{t('tbl.priority')}</th>
+                <th className="text-left px-4 py-2.5">{t('lab.h.when')}</th>
                 <th className="text-right px-4 py-2.5"></th>
               </tr>
             </thead>
@@ -194,7 +197,7 @@ function LabInner() {
                     {r.pid && (
                       <Link href={`/modules/patients?pid=${r.pid}`}
                             className="text-xs font-medium hover:underline" style={{ color: NEXUS_BLUE }}>
-                        View →
+                        {t('lab.view')}
                       </Link>
                     )}
                   </td>

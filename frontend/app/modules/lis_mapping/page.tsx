@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import RequireAuth from '../../components/RequireAuth'
+import { useT } from '../../contexts/I18nProvider'
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 
 type TestMatch = {
   query:         string
@@ -83,6 +84,7 @@ export default function LisMappingPage() {
 }
 
 function LisMappingInner() {
+  const t = useT()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [file, setFile]       = useState<File | null>(null)
   const [mode, setMode]       = useState<'assisted' | 'auto'>('assisted')
@@ -183,9 +185,9 @@ function LisMappingInner() {
       <div className="mx-auto max-w-5xl space-y-6">
         <header className="flex items-end justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-2xl font-semibold">LIS Auto-Mapping</h1>
+            <h1 className="text-2xl font-semibold">{t('lis.title')}</h1>
             <p className="text-sm text-zinc-400">
-              Upload a lab request form. The system extracts patient, tests, priority, doctor — review before creating the worklist.
+              {t('lis.subtitle')}
             </p>
           </div>
           <div className="inline-flex rounded-lg border border-zinc-700 bg-zinc-900 p-1 text-xs">
@@ -194,14 +196,14 @@ function LisMappingInner() {
               onClick={() => setMode('assisted')}
               className={`px-3 py-1.5 rounded-md transition ${mode === 'assisted' ? 'bg-indigo-500/20 text-indigo-200' : 'text-zinc-400 hover:text-zinc-200'}`}
             >
-              Review &amp; Edit
+              {t('lis.review_edit')}
             </button>
             <button
               type="button"
               onClick={() => setMode('auto')}
               className={`px-3 py-1.5 rounded-md transition ${mode === 'auto' ? 'bg-indigo-500/20 text-indigo-200' : 'text-zinc-400 hover:text-zinc-200'}`}
             >
-              Auto-create
+              {t('lis.auto_create')}
             </button>
           </div>
         </header>
@@ -231,7 +233,7 @@ function LisMappingInner() {
                 <div className="text-xs text-zinc-500 mt-1">{(file.size / 1024).toFixed(1)} KB · {file.type || 'unknown'}</div>
               </>
             ) : (
-              <>Drop a request form here, or click below to choose a file.</>
+              <>{t('lis.dropzone')}</>
             )}
           </div>
           <div className="mt-4 flex justify-center gap-3">
@@ -240,7 +242,7 @@ function LisMappingInner() {
               onClick={() => fileInputRef.current?.click()}
               className="rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs hover:bg-zinc-700"
             >
-              Choose file
+              {t('lis.choose_file')}
             </button>
             <button
               type="button"
@@ -248,7 +250,7 @@ function LisMappingInner() {
               disabled={!file || loading}
               className="rounded-md bg-indigo-500/80 px-4 py-2 text-xs font-medium hover:bg-indigo-500 disabled:opacity-50"
             >
-              {loading ? 'Processing…' : mode === 'auto' ? 'Run auto-create' : 'Extract draft'}
+              {loading ? t('lis.processing') : mode === 'auto' ? t('lis.run_auto') : t('lis.extract')}
             </button>
           </div>
         </section>
@@ -280,6 +282,7 @@ function DraftPanel({
   loading: boolean
   modeIsAuto: boolean
 }) {
+  const tr = useT()
   const matchedCount = draft.tests.filter(t => t.status === 'matched').length
   const totalCost    = draft.tests.reduce((s, t) => s + (t.price || 0), 0)
 
@@ -287,51 +290,51 @@ function DraftPanel({
     <section className="grid gap-4 md:grid-cols-2">
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-4">
         <header className="flex items-center justify-between">
-          <h2 className="text-sm font-medium text-zinc-200">Patient</h2>
+          <h2 className="text-sm font-medium text-zinc-200">{tr('lis.patient')}</h2>
           <span className={`text-[10px] px-2 py-0.5 rounded-full border ${statusTone(draft.patient.status)}`}>
             {draft.patient.status}
           </span>
         </header>
         <div className="grid grid-cols-2 gap-3 text-xs">
-          <Field label="Family name"  value={draft.patient.family_name}  onChange={(v) => onUpdatePatient('family_name', v)} />
-          <Field label="Other names"  value={draft.patient.other_names}  onChange={(v) => onUpdatePatient('other_names', v)} />
-          <Field label="PID"          value={draft.patient.pid}          onChange={(v) => onUpdatePatient('pid', v)} />
-          <Field label="LID"          value={draft.patient.lid}          onChange={(v) => onUpdatePatient('lid', v)} />
-          <Field label="National ID"  value={draft.patient.national_id}  onChange={(v) => onUpdatePatient('national_id', v)} />
-          <Field label="DOB"          value={draft.patient.date_of_birth} onChange={(v) => onUpdatePatient('date_of_birth', v)} />
-          <Field label="Sex"          value={draft.patient.gender}       onChange={(v) => onUpdatePatient('gender', v)} />
-          <Field label="Phone"        value={draft.patient.phone}        onChange={(v) => onUpdatePatient('phone', v)} />
+          <Field label={tr('lis.f.family')}  value={draft.patient.family_name}  onChange={(v) => onUpdatePatient('family_name', v)} />
+          <Field label={tr('lis.f.other')}   value={draft.patient.other_names}  onChange={(v) => onUpdatePatient('other_names', v)} />
+          <Field label="PID"                  value={draft.patient.pid}          onChange={(v) => onUpdatePatient('pid', v)} />
+          <Field label="LID"                  value={draft.patient.lid}          onChange={(v) => onUpdatePatient('lid', v)} />
+          <Field label={tr('lis.f.nid')}      value={draft.patient.national_id}  onChange={(v) => onUpdatePatient('national_id', v)} />
+          <Field label={tr('lis.f.dob')}      value={draft.patient.date_of_birth} onChange={(v) => onUpdatePatient('date_of_birth', v)} />
+          <Field label={tr('lis.f.sex')}      value={draft.patient.gender}       onChange={(v) => onUpdatePatient('gender', v)} />
+          <Field label={tr('lis.f.phone')}    value={draft.patient.phone}        onChange={(v) => onUpdatePatient('phone', v)} />
         </div>
       </div>
 
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
         <header className="flex items-center justify-between">
-          <h2 className="text-sm font-medium text-zinc-200">Encounter</h2>
+          <h2 className="text-sm font-medium text-zinc-200">{tr('lis.encounter')}</h2>
           <span className={`text-[10px] px-2 py-0.5 rounded-full border ${confidenceTone(draft.overall_confidence)}`}>
-            conf {(draft.overall_confidence * 100).toFixed(0)}%
+            {tr('lis.conf', { n: (draft.overall_confidence * 100).toFixed(0) })}
           </span>
         </header>
         <div className="grid grid-cols-2 gap-3 text-xs">
-          <ReadField label="Priority"  value={draft.priority} accent={draft.priority === 'stat'} />
-          <ReadField label="Department" value={draft.department || '—'} />
-          <ReadField label="Specimen"  value={draft.specimen_type || '—'} />
-          <ReadField label="Source"    value={draft.source || '—'} />
-          <ReadField label="Doctor"    value={draft.doctor_name || '—'} wide />
-          <ReadField label="Ward"      value={draft.ward || '—'} wide />
-          <ReadField label="Diagnosis" value={draft.diagnosis || '—'} wide />
+          <ReadField label={tr('lis.f.priority')}  value={draft.priority} accent={draft.priority === 'stat'} />
+          <ReadField label={tr('lis.f.department')} value={draft.department || '—'} />
+          <ReadField label={tr('lis.f.specimen')}  value={draft.specimen_type || '—'} />
+          <ReadField label={tr('lis.f.source')}    value={draft.source || '—'} />
+          <ReadField label={tr('lis.f.doctor')}    value={draft.doctor_name || '—'} wide />
+          <ReadField label={tr('lis.f.ward')}      value={draft.ward || '—'} wide />
+          <ReadField label={tr('lis.f.diagnosis')} value={draft.diagnosis || '—'} wide />
         </div>
       </div>
 
       <div className="md:col-span-2 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">
         <header className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-medium text-zinc-200">Ordered tests</h2>
+          <h2 className="text-sm font-medium text-zinc-200">{tr('lis.ordered_tests')}</h2>
           <div className="text-xs text-zinc-400">
-            {matchedCount} matched of {draft.tests.length} · Total: {totalCost.toFixed(0)} RWF
+            {tr('lis.matched_of', { m: matchedCount, total: draft.tests.length, cost: totalCost.toFixed(0) })}
           </div>
         </header>
         <div className="divide-y divide-zinc-800 text-xs">
           {draft.tests.length === 0 && (
-            <div className="text-zinc-500 py-4">No tests extracted.</div>
+            <div className="text-zinc-500 py-4">{tr('lis.no_tests')}</div>
           )}
           {draft.tests.map((t, idx) => (
             <div key={`${t.test_id ?? 't'}-${idx}-${t.query}`} className="flex items-center justify-between gap-3 py-2">
@@ -350,7 +353,7 @@ function DraftPanel({
                   type="button"
                   onClick={() => onDropTest(idx)}
                   className="text-rose-300 hover:text-rose-200"
-                  aria-label="Remove test"
+                  aria-label={tr('lis.remove_test')}
                 >×</button>
               </div>
             </div>
@@ -370,7 +373,7 @@ function DraftPanel({
         </div>
         {confirmed ? (
           <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs text-emerald-200">
-            ✓ {modeIsAuto ? 'Auto-created' : 'Created'} LabRequest <span className="font-mono">{confirmed.lab_id}</span> (#{confirmed.lab_request_id}) · patient #{confirmed.patient_id}
+            ✓ {modeIsAuto ? tr('lis.auto_created') : tr('lis.created')} LabRequest <span className="font-mono">{confirmed.lab_id}</span> (#{confirmed.lab_request_id}) · patient #{confirmed.patient_id}
           </div>
         ) : (
           <button
@@ -379,7 +382,7 @@ function DraftPanel({
             disabled={loading || draft.tests.filter(t => t.test_id).length === 0}
             className="rounded-md bg-emerald-500/80 px-4 py-2 text-xs font-medium hover:bg-emerald-500 disabled:opacity-50"
           >
-            {loading ? 'Creating…' : 'Create LabRequest'}
+            {loading ? tr('lis.creating') : tr('lis.create_req')}
           </button>
         )}
       </div>

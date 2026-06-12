@@ -13,8 +13,9 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import RequireAuth from '../../components/RequireAuth'
 import AppShell    from '../../components/AppShell'
+import { useT } from '../../contexts/I18nProvider'
 
-const API        = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API        = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 const NEXUS_BLUE = '#0066CC'
 const MIL_GREEN  = '#4B5320'
 
@@ -64,6 +65,7 @@ export default function PatientsPage() {
 }
 
 function PatientsInner() {
+  const t = useT()
   const [patients, setPatients] = useState<Patient[]>([])
   const [loading,  setLoading]  = useState(true)
   const [error,    setError]    = useState<string | null>(null)
@@ -119,21 +121,21 @@ function PatientsInner() {
       <header className="rounded-2xl border bg-white p-5" style={{ borderColor: `${NEXUS_BLUE}30` }}>
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <div className="text-xs uppercase tracking-wider font-semibold" style={{ color: NEXUS_BLUE }}>PATIENT REGISTRY</div>
+            <div className="text-xs uppercase tracking-wider font-semibold" style={{ color: NEXUS_BLUE }}>{t('pat.registry')}</div>
             <h1 className="text-2xl font-extrabold tracking-wide mt-1" style={{ color: MIL_GREEN }}>
-              PATIENTS
+              {t('pat.title')}
             </h1>
-            <p className="text-sm text-zinc-500">{patients.length} active patients on file</p>
+            <p className="text-sm text-zinc-500">{t('pat.on_file', { n: patients.length })}</p>
           </div>
           <div className="flex gap-2">
             <Link href="/modules/patients/new"
                   className="px-4 py-2 rounded-lg border border-zinc-300 text-zinc-700 text-sm font-medium hover:bg-zinc-50">
-              + Walk-in patient
+              {t('pat.walkin')}
             </Link>
             <Link href="/modules/lis_mapping"
                   className="px-4 py-2 rounded-lg text-white text-sm font-semibold shadow-sm"
                   style={{ background: NEXUS_BLUE }}>
-              + Register from lab form
+              {t('pat.from_form')}
             </Link>
           </div>
         </div>
@@ -146,16 +148,16 @@ function PatientsInner() {
           <div className="p-4 border-b border-zinc-100 flex items-center gap-3">
             <input
               value={query} onChange={e => setQuery(e.target.value)}
-              placeholder="Search by PID, name, NID, or LID"
+              placeholder={t('pat.search')}
               className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <span className="text-xs text-zinc-500 shrink-0">{filtered.length} match</span>
+            <span className="text-xs text-zinc-500 shrink-0">{t('pat.match', { n: filtered.length })}</span>
           </div>
           <div className="max-h-[60vh] overflow-y-auto">
-            {loading && <div className="p-6 text-center text-zinc-500 text-sm">Loading…</div>}
-            {error && <div className="p-6 text-center text-rose-600 text-sm">Error: {error}</div>}
+            {loading && <div className="p-6 text-center text-zinc-500 text-sm">{t('common.loading')}</div>}
+            {error && <div className="p-6 text-center text-rose-600 text-sm">{t('pat.error')} {error}</div>}
             {!loading && !error && filtered.length === 0 && (
-              <div className="p-6 text-center text-zinc-500 text-sm">No patients match that search.</div>
+              <div className="p-6 text-center text-zinc-500 text-sm">{t('pat.empty')}</div>
             )}
             {filtered.map(p => (
               <button
@@ -183,24 +185,24 @@ function PatientsInner() {
         {/* Detail panel */}
         <section className="rounded-2xl border bg-white shadow-sm p-5" style={{ borderColor: `${NEXUS_BLUE}30` }}>
           {!picked ? (
-            <div className="text-center py-12 text-zinc-500 text-sm">Pick a patient to see details.</div>
+            <div className="text-center py-12 text-zinc-500 text-sm">{t('pat.pick')}</div>
           ) : (
             <>
-              <div className="text-xs uppercase tracking-wider font-semibold mb-1" style={{ color: NEXUS_BLUE }}>PATIENT FILE</div>
+              <div className="text-xs uppercase tracking-wider font-semibold mb-1" style={{ color: NEXUS_BLUE }}>{t('pat.file')}</div>
               <h2 className="text-xl font-bold text-zinc-900">{picked.family_name} {picked.other_names ?? ''}</h2>
               <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
-                <Field label="PID"          value={picked.pid} mono />
-                <Field label="Lab ID"       value={picked.unique_lab_id ?? '—'} mono />
-                <Field label="National ID"  value={picked.national_id ?? '—'} mono />
-                <Field label="Gender / Age" value={`${picked.gender ?? '?'} · ${ageOf(picked.date_of_birth)}`} />
-                <Field label="Phone"        value={picked.phone ?? '—'} mono />
-                <Field label="District"     value={picked.address ?? '—'} />
+                <Field label={t('pat.f.pid')}         value={picked.pid} mono />
+                <Field label={t('pat.f.lab_id')}      value={picked.unique_lab_id ?? '—'} mono />
+                <Field label={t('pat.f.national_id')} value={picked.national_id ?? '—'} mono />
+                <Field label={t('pat.f.gender_age')}  value={`${picked.gender ?? '?'} · ${ageOf(picked.date_of_birth)}`} />
+                <Field label={t('pat.f.phone')}       value={picked.phone ?? '—'} mono />
+                <Field label={t('pat.f.district')}    value={picked.address ?? '—'} />
               </div>
 
               <div className="mt-5">
-                <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-500 mb-2">RECENT LAB ACTIVITY</h3>
+                <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-500 mb-2">{t('pat.recent_lab')}</h3>
                 {patientActivity.length === 0 ? (
-                  <p className="text-sm text-zinc-500">No lab requests yet.</p>
+                  <p className="text-sm text-zinc-500">{t('pat.no_requests')}</p>
                 ) : (
                   <div className="space-y-1">
                     {patientActivity.map(a => (

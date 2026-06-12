@@ -42,6 +42,7 @@ def patient_lab_report(
     department:   Optional[str] = None,
     days:         int           = 30,
     validated_only: bool        = True,
+    lang:         Optional[str] = None,
     db:           Session       = Depends(get_db),
     user:         User          = Depends(get_current_user),
 ):
@@ -92,9 +93,19 @@ def patient_lab_report(
     hospital_name  = hospital.name if hospital else 'JORINOVA NEXUS Hospital'
     hospital_phone = hospital.phone if hospital else ''
 
-    # PQC hash
-    pqc_payload = f'{patient.pid}:{patient_id}:{datetime.now().isoformat()}'
-    pqc_hash    = 'DILITHIUM3:' + hashlib.sha3_256(pqc_payload.encode()).hexdigest()
+    # Report language: explicit ?lang= → patient's → requester's → English.
+    report_lang = (lang
+                   or getattr(patient, 'preferred_language', None)
+                   or getattr(user, 'preferred_language', None)
+                   or 'en')
+    if report_lang not in ('en', 'fr', 'rw'):
+        report_lang = 'en'
+
+    # PQC signature (real CRYSTALS-Dilithium when pqcrypto is installed,
+    # else the SHA3-256 integrity fallback — same tag format either way).
+    from core import pqc
+    pqc_hash = pqc.sign_tag('patient-report', patient.pid, patient_id,
+                            datetime.now().isoformat())
 
     patient_dict = {
         'name':        patient.full_name if hasattr(patient,'full_name') else f'{patient.family_name} {patient.other_names or ""}',
@@ -113,6 +124,7 @@ def patient_lab_report(
         hospital_name=hospital_name,
         lab_manager=f'{user.first_name} {user.last_name}'.strip() or user.username,
         pqc_hash=pqc_hash,
+        lang=report_lang,
     )
 
     filename = f'NEXUS_Report_{patient.pid}_{datetime.now().strftime("%Y%m%d")}.pdf'
@@ -128,6 +140,7 @@ def patient_lab_report(
             responses={200: {'content': {'application/pdf': {}}}})
 def cbc_report(
     hem_result_id: int,
+    lang:          Optional[str] = None,
     db:            Session = Depends(get_db),
     user:          User    = Depends(get_current_user),
 ):
@@ -162,13 +175,20 @@ def cbc_report(
         'neut_abs': r.neut_abs, 'lymph_abs': r.lymph_abs,
     }
 
-    pqc_hash = 'DILITHIUM3:' + hashlib.sha3_256(f'CBC:{hem_result_id}:{datetime.now().isoformat()}'.encode()).hexdigest()
+    from core import pqc
+    pqc_hash = pqc.sign_tag('cbc-report', hem_result_id, datetime.now().isoformat())
+
+    report_lang = (lang or getattr(patient, 'preferred_language', None)
+                   or getattr(user, 'preferred_language', None) or 'en')
+    if report_lang not in ('en', 'fr', 'rw'):
+        report_lang = 'en'
 
     pdf_bytes = generate_cbc_report(
         patient=patient_dict, cbc_data=cbc_data,
         hospital_name=h_name,
         analyzer_name=r.analyzer_name or 'Sysmex XN-Series',
         pqc_hash=pqc_hash,
+        lang=report_lang,
     )
 
     pid = patient_dict.get('pid', 'unknown')
@@ -187,6 +207,7 @@ def critical_value_report(
     clinician_notified: str  = '',
     notification_method:str  = 'phone',
     readback_confirmed: bool = False,
+    lang:               Optional[str] = None,
     db:                 Session = Depends(get_db),
     user:               User    = Depends(get_current_user),
 ):
@@ -226,9 +247,13 @@ def critical_value_report(
         for r in critical_results_raw
     ]
 
-    pqc_hash = 'DILITHIUM3:' + hashlib.sha3_256(
-        f'CRITICAL:{lab_request_id}:{datetime.now().isoformat()}'.encode()
-    ).hexdigest()
+    from core import pqc
+    pqc_hash = pqc.sign_tag('critical-report', lab_request_id, datetime.now().isoformat())
+
+    report_lang = (lang or getattr(patient, 'preferred_language', None)
+                   or getattr(user, 'preferred_language', None) or 'en')
+    if report_lang not in ('en', 'fr', 'rw'):
+        report_lang = 'en'
 
     pdf_bytes = generate_critical_value_report(
         patient=patient_dict,
@@ -238,6 +263,7 @@ def critical_value_report(
         readback_confirmed=readback_confirmed,
         hospital_name=h_name,
         pqc_hash=pqc_hash,
+        lang=report_lang,
     )
 
     filename = f'NEXUS_CriticalValue_{req.lab_id or lab_request_id}_{datetime.now().strftime("%Y%m%d%H%M")}.pdf'
@@ -262,6 +288,7 @@ class CriticalSMS(BaseModel):
     value:           str
     unit:            str = ''
     flag:            str = 'HH'
+    language:        str = 'en'
 
 
 class OTPSMS(BaseModel):
@@ -329,6 +356,7 @@ async def sms_critical_value(
         flag            = body.flag,
         hospital_name   = hospital.name if hospital else 'NEXUS LAB',
         hospital_phone  = hospital.phone if hospital else '',
+        language        = getattr(body, 'language', 'en') or 'en',
         db              = db,
     )
     db.commit()

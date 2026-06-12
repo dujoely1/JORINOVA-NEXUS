@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '../contexts/AuthProvider'
+import { useI18n } from '../contexts/I18nProvider'
 import Logo from '../components/Logo'
 import { landingPathFor } from '../lib/role-routes'
 
@@ -21,6 +22,7 @@ const STRINGS: Record<Lang, {
   user: string; pwd: string; signIn: string; signingIn: string;
   forgot: string; helpFooter: string; powered: string;
   online: string; offline: string;
+  idle: string; showPwd: string; hidePwd: string; loginFailed: string;
 }> = {
   en: {
     welcome:    'WELCOME TO JORINOVA NEXUS ALIS-X',
@@ -35,6 +37,10 @@ const STRINGS: Record<Lang, {
     powered:    'Powered by JORINOVA NEXUS ALIS-X',
     online:     'Online',
     offline:    'Offline',
+    idle:       'Session ended after 5 minutes of inactivity. Sign in again to continue.',
+    showPwd:    'Show password',
+    hidePwd:    'Hide password',
+    loginFailed:'Login failed',
   },
   fr: {
     welcome:    'BIENVENUE À JORINOVA NEXUS ALIS-X',
@@ -49,6 +55,10 @@ const STRINGS: Record<Lang, {
     powered:    'Propulsé par JORINOVA NEXUS ALIS-X',
     online:     'En ligne',
     offline:    'Hors ligne',
+    idle:       'Session terminée après 5 minutes d’inactivité. Reconnectez-vous pour continuer.',
+    showPwd:    'Afficher le mot de passe',
+    hidePwd:    'Masquer le mot de passe',
+    loginFailed:'Échec de la connexion',
   },
   rw: {
     welcome:    'MURAKAZA NEZA KURI JORINOVA NEXUS ALIS-X',
@@ -63,18 +73,35 @@ const STRINGS: Record<Lang, {
     powered:    'Yashyizweho na JORINOVA NEXUS ALIS-X',
     online:     'Kuri internet',
     offline:    'Nta nternet',
+    idle:       'Igihe cyarangiye nyuma y’iminota 5 y’ubunebwe. Ongera winjire.',
+    showPwd:    'Erekana ijambo banga',
+    hidePwd:    'Hisha ijambo banga',
+    loginFailed:'Kwinjira byanze',
   },
 }
 
 
 export default function LoginPage() {
+  // useSearchParams() must sit inside a Suspense boundary for the production
+  // build to statically prerender /login. Wrap the real page here.
+  return (
+    <Suspense fallback={null}>
+      <LoginInner />
+    </Suspense>
+  )
+}
+
+function LoginInner() {
   // ── State ────────────────────────────────────────────────────────────────
   const [username,   setUsername]   = useState('')
   const [password,   setPassword]   = useState('')
   const [showPwd,    setShowPwd]    = useState(false)
   const [error,      setError]      = useState('')
   const [loading,    setLoading]    = useState(false)
-  const [lang,       setLang]       = useState<Lang>('en')
+  // Use the SHARED app language (I18nProvider) so the language chosen here also
+  // drives the API `X-Lang` header (localized 'Invalid credentials') and every
+  // page that follows (e.g. forgot-password) — not a separate local copy.
+  const { lang, setLang } = useI18n()
   // SSR-safe initial values — the real values land on the client in useEffect.
   // (`new Date()` and `navigator.onLine` would otherwise cause a hydration
   // mismatch because the SSR HTML and the first client render disagree.)
@@ -87,12 +114,8 @@ export default function LoginPage() {
   const idleSignout = sp?.get('reason') === 'idle'
   const t = STRINGS[lang]
 
-  // Persist language across reloads
-  useEffect(() => {
-    const saved = typeof window !== 'undefined' ? (localStorage.getItem('nexus.lang') as Lang | null) : null
-    if (saved && saved in STRINGS) setLang(saved)
-  }, [])
-  useEffect(() => { if (typeof window !== 'undefined') localStorage.setItem('nexus.lang', lang) }, [lang])
+  // Language persistence is handled centrally by I18nProvider (writes both
+  // `jorinova_lang` and `nexus.lang`), so no local persistence is needed here.
 
   // Live clock — ticks once per second. Set first value on mount so SSR
   // and client agree on the initial render.
@@ -126,7 +149,7 @@ export default function LoginPage() {
       // on theirs, receptionists on the LIS intake, etc.
       router.replace(landingPathFor(tokenOut.role))
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Login failed')
+      setError(err instanceof Error ? err.message : t.loginFailed)
     } finally {
       setLoading(false)
     }
@@ -258,7 +281,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             {idleSignout && !error && (
               <div className="rounded-lg bg-amber-50 border border-amber-300 px-3 py-2.5 text-sm text-amber-800">
-                Session ended after 5 minutes of inactivity. Sign in again to continue.
+                {t.idle}
               </div>
             )}
             {error && (
@@ -300,7 +323,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPwd(s => !s)}
-                  aria-label={showPwd ? 'Hide password' : 'Show password'}
+                  aria-label={showPwd ? t.hidePwd : t.showPwd}
                   className="absolute inset-y-0 right-2 px-1.5 text-xs text-zinc-500 hover:text-zinc-800"
                 >
                   {showPwd ? '🙈' : '👁'}

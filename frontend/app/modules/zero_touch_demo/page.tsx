@@ -1,8 +1,9 @@
 'use client'
 
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import RequireAuth from '../../components/RequireAuth'
+import { useT } from '../../contexts/I18nProvider'
 
 type Step = {
   id: string
@@ -30,6 +31,11 @@ function clamp(n: number, a: number, b: number) {
 }
 
 export default function ZeroTouchDemoPage() {
+  return <Suspense fallback={null}><ZeroTouchDemoInner /></Suspense>
+}
+
+function ZeroTouchDemoInner() {
+  const t = useT()
   const searchParams = useSearchParams()
   const skipAuth = searchParams?.get('demo') === '1'
 
@@ -208,7 +214,7 @@ export default function ZeroTouchDemoPage() {
   }
 
   useEffect(() => {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
     const wsUrl = apiBase.replace(/^http/, 'ws') + '/ws/zero-touch'
 
     let cancelled = false
@@ -423,23 +429,23 @@ export default function ZeroTouchDemoPage() {
         <div className="demoGrid">
           <div className="card">
             <div className="cardTitle">
-              <span>Patient Search</span>
-              <span className="chip">Zero-Touch Simulation</span>
+              <span>{t('zt.patient_search')}</span>
+              <span className="chip">{t('zt.simulation')}</span>
             </div>
 
             <input
               ref={patientSearchRef}
               className="patientInput"
-              placeholder="Enter Patient ID…"
-              aria-label="Patient Search"
+              placeholder={t('zt.enter_pid')}
+              aria-label={t('zt.patient_search')}
             />
 
             <div style={{ height: 12 }} />
 
             <div className="cardTitle" style={{ marginTop: 10 }}>
-              <span>Lab Results Panel (CBC)</span>
+              <span>{t('zt.lab_panel')}</span>
               <span style={{ fontSize: 12, color: 'rgba(226,232,240,0.6)' }}>
-                Cursor-driven UI
+                {t('zt.cursor_driven')}
               </span>
             </div>
 
@@ -468,16 +474,16 @@ export default function ZeroTouchDemoPage() {
 
           <div className="card">
             <div className="cardTitle">
-              <span>Authorization</span>
-              <span className="chip">Workflow Automations</span>
+              <span>{t('zt.authorization')}</span>
+              <span className="chip">{t('zt.workflow')}</span>
             </div>
 
             <div style={{ color: 'rgba(226,232,240,0.75)', fontSize: 13, lineHeight: 1.45 }}>
               <div>
-                Voice + virtual cursor control enabled.
+                {t('zt.voice_enabled')}
               </div>
               <div style={{ marginTop: 8 }}>
-                Status: <b style={{ color: '#c7d2fe' }}>{status}</b>
+                {t('zt.status')} <b style={{ color: '#c7d2fe' }}>{status}</b>
               </div>
               <div style={{ marginTop: 8, fontSize: 12, color: 'rgba(226,232,240,0.55)' }}>
                 WS: {connected ? 'Connected' : 'Disconnected'}
@@ -487,12 +493,12 @@ export default function ZeroTouchDemoPage() {
 
             <div className="approveWrap">
               <button ref={approveBtnRef} className="approveBtn" type="button">
-                Approve & Sign
+                {t('zt.approve_sign')}
               </button>
             </div>
 
             <div style={{ marginTop: 14, fontSize: 12, color: 'rgba(226,232,240,0.55)' }}>
-              Demo is intentionally zero-touch: no mouse/keyboard required.
+              {t('zt.footer')}
             </div>
           </div>
         </div>

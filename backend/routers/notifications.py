@@ -88,8 +88,19 @@ async def notify_critical_result(
     db: Session=Depends(get_db), user: User=Depends(get_current_user),
 ):
     """Send critical result notification to clinician (in-app + SMS queue)."""
-    title = f'🚨 CRITICAL: {test_name}'
-    body = f'Patient {patient_pid} — {test_name}: {result_value} [{flag}]. Immediate clinical action required.'
+    # Localize to the recipient clinician's preferred language.
+    recipient = db.query(User).filter(User.id == recipient_id).first()
+    lang = (getattr(recipient, 'preferred_language', None) or 'en')
+    _TITLE = {
+        'en': '🚨 CRITICAL: {t}',  'fr': '🚨 CRITIQUE : {t}',  'rw': '🚨 BIHUTIRWA: {t}',
+    }
+    _BODY = {
+        'en': 'Patient {p} — {t}: {v} [{f}]. Immediate clinical action required.',
+        'fr': 'Patient {p} — {t} : {v} [{f}]. Action clinique immédiate requise.',
+        'rw': 'Umurwayi {p} — {t}: {v} [{f}]. Hakenewe igikorwa cy’ubuvuzi ako kanya.',
+    }
+    title = _TITLE.get(lang, _TITLE['en']).format(t=test_name)
+    body  = _BODY.get(lang, _BODY['en']).format(p=patient_pid, t=test_name, v=result_value, f=flag)
     n = Notification(
         recipient_id=recipient_id, sender_id=user.id,
         notif_type='CRITICAL_RESULT', title=title, body=body, priority='CRITICAL',

@@ -1,12 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useParams, useSearchParams } from 'next/navigation'
 import RequireAuth from '../../../components/RequireAuth'
+import { useT, useI18n } from '../../../contexts/I18nProvider'
 import { resolveScene } from '../scenes'
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 
 type Step = {
   id:       string
@@ -47,6 +48,10 @@ function getToken(): string | null {
 }
 
 export default function TrainingRunnerPage() {
+  return <Suspense fallback={null}><TrainingRunnerGate /></Suspense>
+}
+
+function TrainingRunnerGate() {
   const sp = useSearchParams()
   const isPublic = sp?.get('demo') === '1'
   const body = <RunnerInner isPublic={isPublic} />
@@ -54,6 +59,8 @@ export default function TrainingRunnerPage() {
 }
 
 function RunnerInner({ isPublic }: { isPublic: boolean }) {
+  const t = useT()
+  const { lang } = useI18n()
   const params = useParams<{ id: string }>()
   const id = params?.id ?? ''
 
@@ -99,7 +106,7 @@ function RunnerInner({ isPublic }: { isPublic: boolean }) {
     let cancelled = false
     async function load() {
       try {
-        const url = `${API}/api/v1/training/${isPublic ? 'public/' : ''}scenarios/${id}`
+        const url = `${API}/api/v1/training/${isPublic ? 'public/' : ''}scenarios/${id}?lang=${lang}`
         const headers: Record<string, string> = {}
         if (!isPublic) {
           const tok = getToken()
@@ -129,7 +136,7 @@ function RunnerInner({ isPublic }: { isPublic: boolean }) {
     }
     load()
     return () => { cancelled = true }
-  }, [id, isPublic])
+  }, [id, isPublic, lang])
 
   // ── Voice ───────────────────────────────────────────────────────────────────
   // Robust narrator. Three rules:
@@ -182,6 +189,7 @@ function RunnerInner({ isPublic }: { isPublic: boolean }) {
   const cmdHandlerRef    = useRef<(cmd: string) => void>(() => {})
   const recognitionRef   = useRef<unknown>(null)
   const wantListeningRef = useRef(false)         // user intent — set true by Listen button
+  const recLocaleRef     = useRef<string | null>(null)  // forced locale after a fallback
 
   // Intent matcher — returns { intent, reply? }.
   // `intent` is one of:
@@ -253,9 +261,10 @@ function RunnerInner({ isPublic }: { isPublic: boolean }) {
         }
         rec.continuous     = true
         rec.interimResults = false
-        rec.lang = scenario?.language === 'fr' ? 'fr-FR'
-                : scenario?.language === 'rw' ? 'rw-RW'
-                : 'en-US'
+        rec.lang = recLocaleRef.current
+                ?? (scenario?.language === 'fr' ? 'fr-FR'
+                  : scenario?.language === 'rw' ? 'rw-RW'
+                  : 'en-US')
 
         rec.onresult = async (e) => {
           const last = e.results[e.results.length - 1]
@@ -297,6 +306,12 @@ function RunnerInner({ isPublic }: { isPublic: boolean }) {
         }
 
         rec.onerror = (ev) => {
+          // Locale unsupported (common for rw-RW) → fall back to English and let
+          // onend respawn with the new locale. Kinyarwanda command words still match.
+          if (ev?.error === 'language-not-supported' && recLocaleRef.current !== 'en-US') {
+            recLocaleRef.current = 'en-US'
+            return
+          }
           // 'no-speech' fires on silence — fine, ignore. Other errors should not kill the loop.
           if (ev?.error && ev.error !== 'no-speech') {
             setHeardCmd(`(mic ${ev.error})`)
@@ -510,8 +525,8 @@ function RunnerInner({ isPublic }: { isPublic: boolean }) {
       <div className="px-4 py-5 border-b border-zinc-800/60 bg-zinc-950/40 backdrop-blur">
         <div className="mx-auto max-w-5xl flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <Link href={isPublic ? '/modules/training?demo=1' : '/modules/training'} className="text-xs text-zinc-400 hover:text-zinc-200">← Back to scenarios</Link>
-            <div className="mt-1 text-base font-medium truncate">{scenario?.title ?? 'Loading…'}</div>
+            <Link href={isPublic ? '/modules/training?demo=1' : '/modules/training'} className="text-xs text-zinc-400 hover:text-zinc-200">{t('run.back')}</Link>
+            <div className="mt-1 text-base font-medium truncate">{scenario?.title ?? t('common.loading')}</div>
           </div>
           <Controls
             started={stepIdx >= 0}
@@ -534,13 +549,13 @@ function RunnerInner({ isPublic }: { isPublic: boolean }) {
         <div className="sticky top-0 z-40 mx-auto max-w-5xl px-4 py-2">
           {subtitle && (
             <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-4 py-2 text-sm text-indigo-100 shadow-lg">
-              <span className="text-[10px] uppercase tracking-wide text-indigo-300 mr-2">narrator</span>
+              <span className="text-[10px] uppercase tracking-wide text-indigo-300 mr-2">{t('run.narrator')}</span>
               {subtitle}
             </div>
           )}
           {heardCmd && (
             <div className="mt-1 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-[11px] text-amber-200">
-              <span className="text-[10px] uppercase tracking-wide text-amber-300 mr-2">heard</span>
+              <span className="text-[10px] uppercase tracking-wide text-amber-300 mr-2">{t('run.heard')}</span>
               &ldquo;{heardCmd}&rdquo;
             </div>
           )}
@@ -549,12 +564,12 @@ function RunnerInner({ isPublic }: { isPublic: boolean }) {
 
       {/* Status line */}
       <div className="mx-auto max-w-5xl px-4 py-3 text-xs text-zinc-500 border-b border-zinc-800/30">
-        {loadError && <span className="text-rose-300">Error: {loadError}</span>}
+        {loadError && <span className="text-rose-300">{t('pat.error')} {loadError}</span>}
         {!loadError && scenario && (
           <>
-            Step {Math.max(0, Math.min(stepIdx + 1, scenario.steps.length))} of {scenario.steps.length}
+            {t('run.step_of', { n: Math.max(0, Math.min(stepIdx + 1, scenario.steps.length)), total: scenario.steps.length })}
             {currentStep && <span className="text-zinc-300"> · {currentStep.voice.slice(0, 110)}{currentStep.voice.length > 110 ? '…' : ''}</span>}
-            {done && <span className="text-emerald-300"> · Demo complete</span>}
+            {done && <span className="text-emerald-300"> {t('run.complete')}</span>}
           </>
         )}
       </div>
@@ -565,7 +580,7 @@ function RunnerInner({ isPublic }: { isPublic: boolean }) {
           ? <SceneComponent typedText={typedText} highlight={highlight} liveData={scenario?.live_data ?? undefined} />
           : sceneName && (
             <div className="text-xs text-rose-300">
-              Unknown scene <code className="font-mono">{sceneName}</code> — register it in <code>scenes/index.ts</code>.
+              {t('run.unknown_scene')} <code className="font-mono">{sceneName}</code> {t('run.register_scene')} <code>scenes/index.ts</code>.
             </div>
           )
         }
@@ -587,44 +602,45 @@ function Controls({
   onStart: () => void; onPause: () => void; onResume: () => void; onRestart: () => void; onSkip: () => void
   onToggleMute: () => void; onToggleMic: () => void
 }) {
+  const t = useT()
   return (
     <div className="flex items-center gap-2 text-xs flex-wrap">
       {!started && (
         <button onClick={onStart}
           className="rounded-md bg-indigo-500/90 px-4 py-1.5 font-medium hover:bg-indigo-500 shadow-md">
-          ▶ Start {voicesReady ? '' : '(loading voice…)'}
+          {t('run.start')} {voicesReady ? '' : t('run.loading_voice')}
         </button>
       )}
       {started && !done && !paused && (
-        <button onClick={onPause} className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 hover:bg-zinc-700">⏸ Pause</button>
+        <button onClick={onPause} className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 hover:bg-zinc-700">{t('run.pause')}</button>
       )}
       {started && !done && paused && (
-        <button onClick={onResume} className="rounded-md bg-indigo-500/80 px-3 py-1.5 font-medium hover:bg-indigo-500">▶ Resume</button>
+        <button onClick={onResume} className="rounded-md bg-indigo-500/80 px-3 py-1.5 font-medium hover:bg-indigo-500">{t('run.resume')}</button>
       )}
       {started && !done && (
-        <button onClick={onSkip} disabled={stepIdx >= total - 1} className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 hover:bg-zinc-700 disabled:opacity-40">⏭ Skip</button>
+        <button onClick={onSkip} disabled={stepIdx >= total - 1} className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 hover:bg-zinc-700 disabled:opacity-40">{t('run.skip')}</button>
       )}
-      <button onClick={onRestart} className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 hover:bg-zinc-700">⟲ Restart</button>
+      <button onClick={onRestart} className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 hover:bg-zinc-700">{t('run.restart')}</button>
 
       <span className="mx-1 w-px h-5 bg-zinc-700" aria-hidden />
 
       <button
         onClick={onToggleMute}
-        title={muted ? 'Unmute narrator' : 'Mute narrator'}
+        title={muted ? t('run.unmute_title') : t('run.mute_title')}
         className={`rounded-md border px-2 py-1.5 ${muted
           ? 'border-rose-500/40 bg-rose-500/15 text-rose-200'
           : 'border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200'}`}
       >
-        {muted ? '🔇 Muted' : '🔊 Voice'}
+        {muted ? t('run.muted') : t('run.voice')}
       </button>
       <button
         onClick={onToggleMic}
-        title='Toggle voice command listening'
+        title={t('run.mic_title')}
         className={`rounded-md border px-2 py-1.5 ${listening
           ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-200 animate-pulse'
           : 'border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200'}`}
       >
-        {listening ? '🎙 Listening…' : '🎤 Listen'}
+        {listening ? t('run.listening') : t('run.listen')}
       </button>
     </div>
   )

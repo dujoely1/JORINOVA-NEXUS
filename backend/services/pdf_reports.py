@@ -49,6 +49,93 @@ LOGO_PATH = str(
 )
 
 
+# ── Report localization (en / fr / rw) ────────────────────────────────────────
+# Patient-facing reports are printed in the patient's / requester's language.
+# Tiny flag badges (CRIT/HIGH/LOW/POS/NEG) stay as universal lab codes so they
+# never overflow the badge; everything else (prose, labels, headings) localizes.
+
+_RL: dict[str, dict[str, str]] = {
+    'subtitle':       {'en': 'Advanced Laboratory Information System', 'fr': 'Système avancé d’information de laboratoire', 'rw': 'Sisitemu y’amakuru ya laboratwari'},
+    'title.results':  {'en': 'Laboratory Test Results Report', 'fr': 'Rapport des résultats de laboratoire', 'rw': 'Raporo y’ibisubizo bya laboratwari'},
+    'title.cont':     {'en': 'Laboratory Test Results Report (cont.)', 'fr': 'Rapport des résultats de laboratoire (suite)', 'rw': 'Raporo y’ibisubizo bya laboratwari (gukomeza)'},
+    'title.results_cont': {'en': 'Laboratory Test Results (cont.)', 'fr': 'Résultats de laboratoire (suite)', 'rw': 'Ibisubizo bya laboratwari (gukomeza)'},
+    'title.sigs':     {'en': 'Laboratory Test Results (signatures)', 'fr': 'Résultats de laboratoire (signatures)', 'rw': 'Ibisubizo bya laboratwari (imikono)'},
+    'patient':        {'en': 'Patient', 'fr': 'Patient', 'rw': 'Umurwayi'},
+    'pid':            {'en': 'PID', 'fr': 'PID', 'rw': 'PID'},
+    'page':           {'en': 'Page {n} of {m}', 'fr': 'Page {n} sur {m}', 'rw': 'Ipaji {n} kuri {m}'},
+    'footer.conf':    {'en': 'Confidential Medical Record', 'fr': 'Dossier médical confidentiel', 'rw': 'Inyandiko y’ubuvuzi y’ibanga'},
+    'pqc_signed':     {'en': 'PQC-Signed', 'fr': 'Signé PQC', 'rw': 'Umukono wa PQC'},
+    'printed':        {'en': 'Printed', 'fr': 'Imprimé', 'rw': 'Byacapwe'},
+    'laboratory':     {'en': 'Laboratory', 'fr': 'Laboratoire', 'rw': 'Laboratwari'},
+    'f.full_name':    {'en': 'Full Name', 'fr': 'Nom complet', 'rw': 'Amazina yose'},
+    'f.dob':          {'en': 'Date of Birth', 'fr': 'Date de naissance', 'rw': 'Itariki y’amavuko'},
+    'f.sex':          {'en': 'Sex', 'fr': 'Sexe', 'rw': 'Igitsina'},
+    'f.age':          {'en': 'Age', 'fr': 'Âge', 'rw': 'Imyaka'},
+    'f.lid':          {'en': 'Lab ID (LID)', 'fr': 'ID labo (LID)', 'rw': 'ID ya labo (LID)'},
+    'f.national_id':  {'en': 'National ID', 'fr': 'ID national', 'rw': 'Indangamuntu'},
+    'f.insurance':    {'en': 'Insurance', 'fr': 'Assurance', 'rw': 'Ubwishingizi'},
+    'sec.patient':    {'en': 'Patient Information', 'fr': 'Informations du patient', 'rw': 'Amakuru y’umurwayi'},
+    'sec.sample':     {'en': 'Sample Information', 'fr': 'Informations de l’échantillon', 'rw': 'Amakuru y’urugero'},
+    'sample.type':    {'en': 'Sample Type', 'fr': 'Type d’échantillon', 'rw': 'Ubwoko bw’urugero'},
+    'sample.collected':{'en': 'Collected', 'fr': 'Prélevé', 'rw': 'Byatoranyijwe'},
+    'sample.received':{'en': 'Received', 'fr': 'Reçu', 'rw': 'Byakiriwe'},
+    'sample.doctor':  {'en': 'Requesting Doctor', 'fr': 'Médecin prescripteur', 'rw': 'Muganga wasabye'},
+    'tbl.test':       {'en': 'Test Name', 'fr': 'Nom du test', 'rw': 'Izina ry’ikizamini'},
+    'tbl.result':     {'en': 'Result', 'fr': 'Résultat', 'rw': 'Igisubizo'},
+    'tbl.unit':       {'en': 'Unit', 'fr': 'Unité', 'rw': 'Igipimo'},
+    'tbl.ref':        {'en': 'Reference Range', 'fr': 'Valeurs de référence', 'rw': 'Urugero rusanzwe'},
+    'tbl.flag':       {'en': 'Flag', 'fr': 'Indicateur', 'rw': 'Ikimenyetso'},
+    'flag.normal':    {'en': '✓ Normal', 'fr': '✓ Normal', 'rw': '✓ Bisanzwe'},
+    'crit.title':     {'en': '⚠️ CRITICAL VALUES — Immediate Clinical Action Required', 'fr': '⚠️ VALEURS CRITIQUES — Action clinique immédiate requise', 'rw': '⚠️ IBISUBIZO BIHUTIRWA — Hakenewe igikorwa cy’ubuvuzi ako kanya'},
+    'sig.tech':       {'en': 'Laboratory Scientist / Technician', 'fr': 'Scientifique / Technicien de laboratoire', 'rw': 'Umuhanga / Tekiniseni wa laboratwari'},
+    'sig.validator':  {'en': 'Senior Scientist / Validator', 'fr': 'Scientifique senior / Validateur', 'rw': 'Umuhanga mukuru / Uwemeza'},
+    'sig.manager':    {'en': 'Laboratory Manager / Pathologist', 'fr': 'Responsable de laboratoire / Pathologiste', 'rw': 'Umuyobozi wa labo / Umuganga wa patolojiya'},
+    'sig.pathologist':{'en': 'Pathologist', 'fr': 'Pathologiste', 'rw': 'Umuganga wa patolojiya'},
+    'sig.notifying':  {'en': 'Notifying Scientist', 'fr': 'Scientifique notifiant', 'rw': 'Umuhanga wamenyesheje'},
+    'sig.lab_manager':{'en': 'Laboratory Manager', 'fr': 'Responsable de laboratoire', 'rw': 'Umuyobozi wa laboratwari'},
+    'sig.clinician_ack':{'en': 'Clinician (Acknowledgement)', 'fr': 'Clinicien (Accusé de réception)', 'rw': 'Muganga (Kwemeza)'},
+
+    # CBC report
+    'cbc.title':      {'en': 'Complete Blood Count (CBC) Report', 'fr': 'Rapport de numération formule sanguine (NFS)', 'rw': 'Raporo y’isuzuma ryuzuye ry’amaraso (CBC)'},
+    'f.name':         {'en': 'Name', 'fr': 'Nom', 'rw': 'Izina'},
+    'f.date':         {'en': 'Date', 'fr': 'Date', 'rw': 'Itariki'},
+    'cbc.params':     {'en': 'CBC Parameters', 'fr': 'Paramètres NFS', 'rw': 'Ibipimo bya CBC'},
+    'h.parameter':    {'en': 'Parameter', 'fr': 'Paramètre', 'rw': 'Igipimo'},
+    'h.refrange':     {'en': 'Ref Range', 'fr': 'Réf.', 'rw': 'Urugero'},
+    'cbc.wbc_diff':   {'en': 'WBC Differential Count', 'fr': 'Formule leucocytaire', 'rw': 'Kubara ubwoko bw’uturemangingo twera'},
+    'h.cell_type':    {'en': 'Cell Type', 'fr': 'Type cellulaire', 'rw': 'Ubwoko bw’uturemangingo'},
+    'h.ref_pct':      {'en': 'Ref %', 'fr': 'Réf %', 'rw': 'Urugero %'},
+    'h.bar':          {'en': 'Bar', 'fr': 'Barre', 'rw': 'Umurongo'},
+    'cbc.disclaimer_hdr': {'en': 'Disclaimer', 'fr': 'Avertissement', 'rw': 'Itangazo'},
+    'cbc.disclaimer1':{'en': 'Results must be interpreted in clinical context by the responsible clinician. This report is generated by JORINOVA NEXUS ALIS-X and validated by the laboratory.', 'fr': 'Les résultats doivent être interprétés dans le contexte clinique par le clinicien responsable. Ce rapport est généré par JORINOVA NEXUS ALIS-X et validé par le laboratoire.', 'rw': 'Ibisubizo bigomba gusobanurwa n’umuganga ushinzwe. Iyi raporo yakozwe na JORINOVA NEXUS ALIS-X kandi yemejwe na laboratwari.'},
+    'cbc.disclaimer2':{'en': 'Critical values have been communicated to the requesting clinician as per ISO 15189:2022 requirements.', 'fr': 'Les valeurs critiques ont été communiquées au clinicien prescripteur conformément aux exigences ISO 15189:2022.', 'rw': 'Ibisubizo bihutirwa byamenyeshejwe umuganga wasabye nk’uko ISO 15189:2022 ibisaba.'},
+
+    # Critical value notification report
+    'crit.report_title':{'en': '🚨 CRITICAL VALUE NOTIFICATION REPORT', 'fr': '🚨 RAPPORT DE NOTIFICATION DE VALEUR CRITIQUE', 'rw': '🚨 RAPORO YO KUMENYESHA IGISUBIZO CYIHUTIRWA'},
+    'crit.banner':    {'en': '⚠️  CRITICAL VALUE — IMMEDIATE CLINICAL ACTION REQUIRED  ⚠️', 'fr': '⚠️  VALEUR CRITIQUE — ACTION CLINIQUE IMMÉDIATE REQUISE  ⚠️', 'rw': '⚠️  IGISUBIZO CYIHUTIRWA — HAKENEWE IGIKORWA AKO KANYA  ⚠️'},
+    'crit.archived':  {'en': 'This notification is permanently archived per ISO 15189:2022 § 5.9', 'fr': 'Cette notification est archivée de façon permanente selon ISO 15189:2022 § 5.9', 'rw': 'Iri menyesha ribikwa burundu nk’uko ISO 15189:2022 § 5.9 ibiteganya'},
+    'crit.results':   {'en': 'Critical Results', 'fr': 'Résultats critiques', 'rw': 'Ibisubizo bihutirwa'},
+    'crit.ref':       {'en': 'Reference', 'fr': 'Référence', 'rw': 'Urugero'},
+    'crit.default_interp':{'en': 'Critical value', 'fr': 'Valeur critique', 'rw': 'Igisubizo cyihutirwa'},
+    'crit.notif_record':{'en': 'Clinician Notification Record', 'fr': 'Registre de notification du clinicien', 'rw': 'Inyandiko yo kumenyesha umuganga'},
+    'crit.f.notified':{'en': 'Clinician Notified', 'fr': 'Clinicien notifié', 'rw': 'Umuganga wamenyeshejwe'},
+    'crit.f.method':  {'en': 'Notification Method', 'fr': 'Méthode de notification', 'rw': 'Uburyo bwo kumenyesha'},
+    'crit.f.readback':{'en': 'Read-back Confirmed', 'fr': 'Relecture confirmée', 'rw': 'Gusubiramo byemejwe'},
+    'crit.f.time':    {'en': 'Notification Time', 'fr': 'Heure de notification', 'rw': 'Igihe cyo kumenyesha'},
+    'crit.readback_yes':{'en': '✅ YES — clinician confirmed understanding', 'fr': '✅ OUI — le clinicien a confirmé sa compréhension', 'rw': '✅ YEGO — umuganga yemeje ko yumvise'},
+    'crit.readback_no':{'en': '⚠️ NO read-back recorded', 'fr': '⚠️ AUCUNE relecture enregistrée', 'rw': '⚠️ NTA gusubiramo byanditswe'},
+    'crit.see_sig':   {'en': 'See signature below', 'fr': 'Voir signature ci-dessous', 'rw': 'Reba umukono hepfo'},
+}
+
+
+def _t(key: str, lang: str = 'en', **kw) -> str:
+    entry = _RL.get(key)
+    if not entry:
+        return key
+    s = entry.get(lang) or entry.get('en') or key
+    return s.format(**kw) if kw else s
+
+
 # ── Color helpers ─────────────────────────────────────────────────────────────
 
 def _hex_to_rgb(h: str):
@@ -80,7 +167,8 @@ HEADER_H = 70.9   # 2.5cm at 72dpi ≈ 70.9pt
 
 def _draw_header(c, hospital_name: str, report_title: str,
                  patient_name: str = '', patient_pid: str = '',
-                 report_date: str = '', page_num: int = 1, total_pages: int = 1):
+                 report_date: str = '', page_num: int = 1, total_pages: int = 1,
+                 lang: str = 'en'):
     """Draw the 2.5cm fixed header on every page."""
     from reportlab.pdfgen import canvas as cv
     from reportlab.lib.pagesizes import A4
@@ -115,7 +203,7 @@ def _draw_header(c, hospital_name: str, report_title: str,
     _set_fill(c, GRAY_MID)
     c.setFont('Helvetica', 7)
     c.drawString(logo_x + logo_size + 10, A4_H - HEADER_H + 30,
-                 'Advanced Laboratory Information System  ·  ISO 15189:2022')
+                 _t('subtitle', lang) + '  ·  ISO 15189:2022')
     c.drawString(logo_x + logo_size + 10, A4_H - HEADER_H + 20, report_title)
 
     # Right side: patient + date
@@ -126,11 +214,11 @@ def _draw_header(c, hospital_name: str, report_title: str,
     _set_fill(c, GRAY_MID)
     c.setFont('Helvetica', 7)
     if patient_name:
-        c.drawRightString(MARGIN_R, A4_H - HEADER_H + 38, f'Patient: {patient_name}')
+        c.drawRightString(MARGIN_R, A4_H - HEADER_H + 38, f'{_t("patient", lang)}: {patient_name}')
     if patient_pid:
-        c.drawRightString(MARGIN_R, A4_H - HEADER_H + 28, f'PID: {patient_pid}')
+        c.drawRightString(MARGIN_R, A4_H - HEADER_H + 28, f'{_t("pid", lang)}: {patient_pid}')
     c.drawRightString(MARGIN_R, A4_H - HEADER_H + 18,
-                      f'Page {page_num} of {total_pages}')
+                      _t('page', lang, n=page_num, m=total_pages))
 
 
 def _draw_logo_placeholder(c, x, y, size):
@@ -144,7 +232,7 @@ def _draw_logo_placeholder(c, x, y, size):
 
 # ── Footer ────────────────────────────────────────────────────────────────────
 
-def _draw_footer(c, pqc_hash: str = '', lab_manager: str = '', page_num: int = 1):
+def _draw_footer(c, pqc_hash: str = '', lab_manager: str = '', page_num: int = 1, lang: str = 'en'):
     """Draw the 1cm footer on every page."""
     # Thin cyan top rule
     _set_stroke(c, CYAN)
@@ -154,19 +242,19 @@ def _draw_footer(c, pqc_hash: str = '', lab_manager: str = '', page_num: int = 1
     _set_fill(c, GRAY_MID)
     c.setFont('Helvetica', 6)
     c.drawString(MARGIN_L, MARGIN_B - 8,
-                 'JORINOVA NEXUS ALIS-X  ·  Confidential Medical Record  ·  ISO 15189:2022')
+                 f'JORINOVA NEXUS ALIS-X  ·  {_t("footer.conf", lang)}  ·  ISO 15189:2022')
     if pqc_hash:
         _set_fill(c, GREEN)
         c.setFont('Helvetica', 5.5)
         c.drawString(MARGIN_L, MARGIN_B - 18,
-                     f'🔐 PQC-Signed: {pqc_hash[:60]}')
+                     f'🔐 {_t("pqc_signed", lang)}: {pqc_hash[:60]}')
 
     _set_fill(c, GRAY_MID)
     c.setFont('Helvetica', 6)
     c.drawRightString(MARGIN_R, MARGIN_B - 8,
-                      f'Printed: {datetime.now().strftime("%d %b %Y %H:%M")}')
+                      f'{_t("printed", lang)}: {datetime.now().strftime("%d %b %Y %H:%M")}')
     if lab_manager:
-        c.drawRightString(MARGIN_R, MARGIN_B - 18, f'Laboratory: {lab_manager}')
+        c.drawRightString(MARGIN_R, MARGIN_B - 18, f'{_t("laboratory", lang)}: {lab_manager}')
 
 
 # ── Section heading ───────────────────────────────────────────────────────────
@@ -183,19 +271,19 @@ def _draw_section(c, y: float, title: str) -> float:
 
 # ── Patient info block ────────────────────────────────────────────────────────
 
-def _draw_patient_block(c, y: float, patient: dict) -> float:
+def _draw_patient_block(c, y: float, patient: dict, lang: str = 'en') -> float:
     """Draw 2-column patient info block."""
     fields_l = [
-        ('Full Name',     patient.get('name', '—')),
-        ('Date of Birth', patient.get('dob',  '—')),
-        ('Sex',           patient.get('sex',  '—')),
-        ('Age',           patient.get('age',  '—')),
+        (_t('f.full_name', lang), patient.get('name', '—')),
+        (_t('f.dob', lang),       patient.get('dob',  '—')),
+        (_t('f.sex', lang),       patient.get('sex',  '—')),
+        (_t('f.age', lang),       patient.get('age',  '—')),
     ]
     fields_r = [
-        ('PID',              patient.get('pid',      '—')),
-        ('Lab ID (LID)',      patient.get('lid',      '—')),
-        ('National ID',      patient.get('national_id','—')),
-        ('Insurance',        patient.get('insurance', '—')),
+        (_t('pid', lang),          patient.get('pid',      '—')),
+        (_t('f.lid', lang),        patient.get('lid',      '—')),
+        (_t('f.national_id', lang),patient.get('national_id','—')),
+        (_t('f.insurance', lang),  patient.get('insurance', '—')),
     ]
     mid = (MARGIN_L + MARGIN_R) / 2
 
@@ -220,7 +308,7 @@ def _draw_patient_block(c, y: float, patient: dict) -> float:
 
 # ── Result row ────────────────────────────────────────────────────────────────
 
-def _draw_result_row(c, y: float, result: dict, row_even: bool) -> float:
+def _draw_result_row(c, y: float, result: dict, row_even: bool, lang: str = 'en') -> float:
     """Draw one lab result row with flag colour coding."""
     if row_even:
         _set_fill(c, '#f7fdff')
@@ -268,7 +356,7 @@ def _draw_result_row(c, y: float, result: dict, row_even: bool) -> float:
     else:
         _set_fill(c, GREEN)
         c.setFont('Helvetica', 7)
-        c.drawString(MARGIN_R - 40, y - 9, '✓ Normal')
+        c.drawString(MARGIN_R - 40, y - 9, _t('flag.normal', lang))
 
     return y - 16
 
@@ -304,6 +392,7 @@ def generate_lab_result_report(
     requesting_doctor: str = '',
     sample_info: dict  = None,
     pqc_hash: str      = '',
+    lang: str          = 'en',
 ) -> bytes:
     """
     Generate a complete lab result report PDF.
@@ -338,11 +427,11 @@ def generate_lab_result_report(
         _set_fill(c, WHITE)
         c.setFont('Helvetica-Bold', 7)
         for col_x, label in [
-            (MARGIN_L + 4, 'Test Name'),
-            (MARGIN_L + 200, 'Result'),
-            (MARGIN_L + 260, 'Unit'),
-            (MARGIN_L + 315, 'Reference Range'),
-            (MARGIN_R - 45, 'Flag'),
+            (MARGIN_L + 4,   _t('tbl.test', lang)),
+            (MARGIN_L + 200, _t('tbl.result', lang)),
+            (MARGIN_L + 260, _t('tbl.unit', lang)),
+            (MARGIN_L + 315, _t('tbl.ref', lang)),
+            (MARGIN_R - 45,  _t('tbl.flag', lang)),
         ]:
             c.drawString(col_x, y - 9, label)
         return y - 16
@@ -351,27 +440,27 @@ def generate_lab_result_report(
     total_pages = max(1, (len(results) // 25) + 1)
     page_num    = 1
 
-    _draw_header(c, hospital_name, 'Laboratory Test Results Report',
+    _draw_header(c, hospital_name, _t('title.results', lang),
                  patient.get('name', ''), patient.get('pid', ''),
-                 now_str, page_num, total_pages)
+                 now_str, page_num, total_pages, lang=lang)
 
     y = A4_H - HEADER_H - 12
 
     # Patient block
-    y = _draw_section(c, y, '📋 Patient Information')
-    y = _draw_patient_block(c, y, patient)
+    y = _draw_section(c, y, '📋 ' + _t('sec.patient', lang))
+    y = _draw_patient_block(c, y, patient, lang=lang)
     y -= 4
 
     # Sample info
     if sample_info:
-        y = _draw_section(c, y, '🧪 Sample Information')
+        y = _draw_section(c, y, '🧪 ' + _t('sec.sample', lang))
         _set_fill(c, GRAY_LIGHT)
         c.rect(MARGIN_L, y - 30, MARGIN_R - MARGIN_L, 30, fill=1, stroke=0)
         _set_fill(c, GRAY_MID)
         c.setFont('Helvetica-Bold', 7.5)
-        c.drawString(MARGIN_L + 6, y - 10, 'Sample Type:')
-        c.drawString(MARGIN_L + 200, y - 10, 'Collected:')
-        c.drawString(MARGIN_L + 370, y - 10, 'Received:')
+        c.drawString(MARGIN_L + 6, y - 10, _t('sample.type', lang) + ':')
+        c.drawString(MARGIN_L + 200, y - 10, _t('sample.collected', lang) + ':')
+        c.drawString(MARGIN_L + 370, y - 10, _t('sample.received', lang) + ':')
         _set_fill(c, BLACK)
         c.setFont('Helvetica', 7.5)
         c.drawString(MARGIN_L + 80, y - 10, sample_info.get('sample_type', '—'))
@@ -380,7 +469,7 @@ def generate_lab_result_report(
         if requesting_doctor:
             _set_fill(c, GRAY_MID)
             c.setFont('Helvetica-Bold', 7.5)
-            c.drawString(MARGIN_L + 6, y - 22, 'Requesting Doctor:')
+            c.drawString(MARGIN_L + 6, y - 22, _t('sample.doctor', lang) + ':')
             _set_fill(c, BLACK)
             c.setFont('Helvetica', 7.5)
             c.drawString(MARGIN_L + 105, y - 22, requesting_doctor)
@@ -396,12 +485,12 @@ def generate_lab_result_report(
     for dept_name, dept_results in depts.items():
         # Check page space
         if y < MARGIN_B + 80:
-            _draw_footer(c, pqc_hash, lab_manager, page_num)
+            _draw_footer(c, pqc_hash, lab_manager, page_num, lang=lang)
             c.showPage()
             page_num += 1
-            _draw_header(c, hospital_name, 'Laboratory Test Results Report (cont.)',
+            _draw_header(c, hospital_name, _t('title.cont', lang),
                          patient.get('name', ''), patient.get('pid', ''),
-                         now_str, page_num, total_pages)
+                         now_str, page_num, total_pages, lang=lang)
             y = A4_H - HEADER_H - 12
             row_even = True
 
@@ -410,17 +499,17 @@ def generate_lab_result_report(
 
         for result in dept_results:
             if y < MARGIN_B + 30:
-                _draw_footer(c, pqc_hash, lab_manager, page_num)
+                _draw_footer(c, pqc_hash, lab_manager, page_num, lang=lang)
                 c.showPage()
                 page_num += 1
-                _draw_header(c, hospital_name, 'Laboratory Test Results (cont.)',
+                _draw_header(c, hospital_name, _t('title.results_cont', lang),
                              patient.get('name', ''), patient.get('pid', ''),
-                             now_str, page_num, total_pages)
+                             now_str, page_num, total_pages, lang=lang)
                 y = A4_H - HEADER_H - 12
                 y = draw_table_header(y)
                 row_even = True
 
-            y = _draw_result_row(c, y, result, row_even)
+            y = _draw_result_row(c, y, result, row_even, lang=lang)
             row_even = not row_even
         y -= 6
 
@@ -437,7 +526,7 @@ def generate_lab_result_report(
                MARGIN_R - MARGIN_L, len(critical) * 12 + 20, fill=0, stroke=1)
         _set_fill(c, RED)
         c.setFont('Helvetica-Bold', 8)
-        c.drawString(MARGIN_L + 6, y - 10, '⚠️ CRITICAL VALUES — Immediate Clinical Action Required')
+        c.drawString(MARGIN_L + 6, y - 10, _t('crit.title', lang))
         row_y = y - 22
         for r in critical:
             _set_fill(c, BLACK)
@@ -450,21 +539,21 @@ def generate_lab_result_report(
 
     # Signature block
     if y < MARGIN_B + 80:
-        _draw_footer(c, pqc_hash, lab_manager, page_num)
+        _draw_footer(c, pqc_hash, lab_manager, page_num, lang=lang)
         c.showPage()
         page_num += 1
-        _draw_header(c, hospital_name, 'Laboratory Test Results (signatures)',
-                     patient.get('name', ''), patient.get('pid', ''), now_str, page_num, total_pages)
+        _draw_header(c, hospital_name, _t('title.sigs', lang),
+                     patient.get('name', ''), patient.get('pid', ''), now_str, page_num, total_pages, lang=lang)
         y = A4_H - HEADER_H - 30
 
     y -= 10
     _draw_signatures(c, y, [
-        'Laboratory Scientist / Technician',
-        'Senior Scientist / Validator',
-        'Laboratory Manager / Pathologist',
+        _t('sig.tech', lang),
+        _t('sig.validator', lang),
+        _t('sig.manager', lang),
     ])
 
-    _draw_footer(c, pqc_hash, lab_manager, page_num)
+    _draw_footer(c, pqc_hash, lab_manager, page_num, lang=lang)
     c.save()
     return buf.getvalue()
 
@@ -475,6 +564,7 @@ def generate_cbc_report(
     hospital_name: str = 'JORINOVA NEXUS Hospital',
     analyzer_name: str = 'Sysmex XN-Series',
     pqc_hash: str      = '',
+    lang: str          = 'en',
 ) -> bytes:
     """
     Generate a Sysmex-format CBC report with all parameters + differential.
@@ -488,20 +578,20 @@ def generate_cbc_report(
     c.setTitle(f'CBC Report — {patient.get("name", "Patient")}')
     now_str = datetime.now().strftime('%A, %d %B %Y  %H:%M')
 
-    _draw_header(c, hospital_name, 'Complete Blood Count (CBC) Report',
+    _draw_header(c, hospital_name, _t('cbc.title', lang),
                  patient.get('name', ''), patient.get('pid', ''),
-                 now_str, 1, 1)
+                 now_str, 1, 1, lang=lang)
 
     y = A4_H - HEADER_H - 12
 
     # Patient info (compact)
-    y = _draw_section(c, y, '📋 Patient  ·  ' + analyzer_name)
+    y = _draw_section(c, y, '📋 ' + _t('patient', lang) + '  ·  ' + analyzer_name)
     _set_fill(c, GRAY_LIGHT)
     c.rect(MARGIN_L, y - 26, MARGIN_R - MARGIN_L, 26, fill=1, stroke=0)
     info = [
-        ('Name', patient.get('name','—')),  ('PID', patient.get('pid','—')),
-        ('Sex',  patient.get('sex','—')),   ('Age', patient.get('age','—')),
-        ('Date', now_str[:16]),
+        (_t('f.name', lang), patient.get('name','—')),  (_t('pid', lang), patient.get('pid','—')),
+        (_t('f.sex', lang),  patient.get('sex','—')),   (_t('f.age', lang), patient.get('age','—')),
+        (_t('f.date', lang), now_str[:16]),
     ]
     col_w = (MARGIN_R - MARGIN_L) / len(info)
     for i,(lbl,val) in enumerate(info):
@@ -527,14 +617,16 @@ def generate_cbc_report(
         ('MPV',          'mpv',   'fL',       7.5,  12.5, 7.5,  12.5, None, None),
     ]
     sex = patient.get('sex','M')
-    y = _draw_section(c, y, '🩸 CBC Parameters')
+    y = _draw_section(c, y, '🩸 ' + _t('cbc.params', lang))
 
     mid = (MARGIN_L + MARGIN_R) / 2
     # Column headers
-    for cx,lbl in [(MARGIN_L+4,'Parameter'),(MARGIN_L+130,'Result'),(MARGIN_L+175,'Unit'),
-                   (MARGIN_L+220,'Ref Range'),(MARGIN_L+300,'Flag'),
-                   (mid+4,'Parameter'),(mid+130,'Result'),(mid+175,'Unit'),
-                   (mid+220,'Ref Range'),(mid+300,'Flag')]:
+    _hp, _hr, _hu, _hf = _t('h.parameter', lang), _t('tbl.result', lang), _t('tbl.unit', lang), _t('tbl.flag', lang)
+    _hrr = _t('h.refrange', lang)
+    for cx,lbl in [(MARGIN_L+4,_hp),(MARGIN_L+130,_hr),(MARGIN_L+175,_hu),
+                   (MARGIN_L+220,_hrr),(MARGIN_L+300,_hf),
+                   (mid+4,_hp),(mid+130,_hr),(mid+175,_hu),
+                   (mid+220,_hrr),(mid+300,_hf)]:
         _set_fill(c, GRAY_MID); c.setFont('Helvetica-Bold', 6.5)
         c.drawString(cx, y, lbl)
     y -= 4
@@ -589,11 +681,11 @@ def generate_cbc_report(
         ('Eosinophils', 'eos_pct',  'eos_abs',  '%', '×10³/µL',  1,  6, 0.0, 0.5, '#f97316'),
         ('Basophils',   'bas_pct',  'bas_abs',  '%', '×10³/µL',  0,  1, 0.0, 0.1, '#8b5cf6'),
     ]
-    y = _draw_section(c, y, '🔬 WBC Differential Count')
+    y = _draw_section(c, y, '🔬 ' + _t('cbc.wbc_diff', lang))
 
     # Header
-    for hx, hl in [(MARGIN_L+4,'Cell Type'),(MARGIN_L+130,'%'),(MARGIN_L+180,'# ×10³/µL'),
-                   (MARGIN_L+250,'Ref %'),(MARGIN_L+310,'Bar')]:
+    for hx, hl in [(MARGIN_L+4,_t('h.cell_type', lang)),(MARGIN_L+130,'%'),(MARGIN_L+180,'# ×10³/µL'),
+                   (MARGIN_L+250,_t('h.ref_pct', lang)),(MARGIN_L+310,_t('h.bar', lang))]:
         _set_fill(c, GRAY_MID); c.setFont('Helvetica-Bold', 6.5)
         c.drawString(hx, y, hl)
     y -= 4
@@ -637,21 +729,18 @@ def generate_cbc_report(
 
     # Interpretation note
     y -= 5
-    _draw_section(c, y, '⚠️ Disclaimer')
+    _draw_section(c, y, '⚠️ ' + _t('cbc.disclaimer_hdr', lang))
     y -= 14
     _set_fill(c, GRAY_MID); c.setFont('Helvetica', 6.5)
-    c.drawString(MARGIN_L + 4, y,
-        'Results must be interpreted in clinical context by the responsible clinician. '
-        'This report is generated by JORINOVA NEXUS ALIS-X and validated by the laboratory.')
+    c.drawString(MARGIN_L + 4, y, _t('cbc.disclaimer1', lang))
     y -= 10
-    c.drawString(MARGIN_L + 4, y,
-        'Critical values have been communicated to the requesting clinician as per ISO 15189:2022 requirements.')
+    c.drawString(MARGIN_L + 4, y, _t('cbc.disclaimer2', lang))
     y -= 18
 
     _draw_signatures(c, y, [
-        'Laboratory Scientist / Technician', 'Senior Scientist / Validator', 'Pathologist',
+        _t('sig.tech', lang), _t('sig.validator', lang), _t('sig.pathologist', lang),
     ])
-    _draw_footer(c, pqc_hash, '', 1)
+    _draw_footer(c, pqc_hash, '', 1, lang=lang)
     c.save()
     return buf.getvalue()
 
@@ -664,6 +753,7 @@ def generate_critical_value_report(
     readback_confirmed: bool,
     hospital_name: str = 'JORINOVA NEXUS Hospital',
     pqc_hash: str = '',
+    lang: str = 'en',
 ) -> bytes:
     """Generate a Critical Value Notification Report (ISO 15189 required)."""
     from reportlab.pdfgen import canvas as Canvas
@@ -673,8 +763,8 @@ def generate_critical_value_report(
     c   = Canvas.Canvas(buf, pagesize=A4)
     now_str = datetime.now().strftime('%A, %d %B %Y  %H:%M')
 
-    _draw_header(c, hospital_name, '🚨 CRITICAL VALUE NOTIFICATION REPORT',
-                 patient.get('name',''), patient.get('pid',''), now_str, 1, 1)
+    _draw_header(c, hospital_name, _t('crit.report_title', lang),
+                 patient.get('name',''), patient.get('pid',''), now_str, 1, 1, lang=lang)
 
     y = A4_H - HEADER_H - 12
 
@@ -684,18 +774,16 @@ def generate_critical_value_report(
     _set_stroke(c, RED); c.setLineWidth(2)
     c.rect(MARGIN_L, y - 40, MARGIN_R - MARGIN_L, 40, fill=0, stroke=1)
     _set_fill(c, RED); c.setFont('Helvetica-Bold', 12)
-    c.drawCentredString((MARGIN_L+MARGIN_R)/2, y - 18,
-                        '⚠️  CRITICAL VALUE — IMMEDIATE CLINICAL ACTION REQUIRED  ⚠️')
+    c.drawCentredString((MARGIN_L+MARGIN_R)/2, y - 18, _t('crit.banner', lang))
     _set_fill(c, '#7f1d1d'); c.setFont('Helvetica', 8)
-    c.drawCentredString((MARGIN_L+MARGIN_R)/2, y - 32,
-                        'This notification is permanently archived per ISO 15189:2022 § 5.9')
+    c.drawCentredString((MARGIN_L+MARGIN_R)/2, y - 32, _t('crit.archived', lang))
     y -= 52
 
-    y = _draw_section(c, y, '📋 Patient Information')
-    y = _draw_patient_block(c, y, patient)
+    y = _draw_section(c, y, '📋 ' + _t('sec.patient', lang))
+    y = _draw_patient_block(c, y, patient, lang=lang)
     y -= 4
 
-    y = _draw_section(c, y, '🚨 Critical Results')
+    y = _draw_section(c, y, '🚨 ' + _t('crit.results', lang))
     for r in critical_results:
         y -= 4
         _set_fill(c, '#fff0f0')
@@ -705,32 +793,34 @@ def generate_critical_value_report(
                      f'{r.get("test_name")}: {r.get("value")} {r.get("unit","")} [{r.get("flag")}]')
         _set_fill(c, BLACK); c.setFont('Helvetica', 7.5)
         c.drawString(MARGIN_L + 8, y - 20,
-                     f'Reference: {r.get("reference_range","—")}  |  {r.get("interpretation","Critical value")[:80]}')
+                     f'{_t("crit.ref", lang)}: {r.get("reference_range","—")}  |  {r.get("interpretation", _t("crit.default_interp", lang))[:80]}')
         y -= 30
 
     y -= 4
-    y = _draw_section(c, y, '📞 Clinician Notification Record')
+    y = _draw_section(c, y, '📞 ' + _t('crit.notif_record', lang))
+    _readback_txt = _t('crit.readback_yes', lang) if readback_confirmed else _t('crit.readback_no', lang)
     fields = [
-        ('Clinician Notified', clinician_notified),
-        ('Notification Method', notification_method),
-        ('Read-back Confirmed', '✅ YES — clinician confirmed understanding' if readback_confirmed else '⚠️ NO read-back recorded'),
-        ('Notification Time', now_str),
-        ('Notifying Scientist', 'See signature below'),
+        (_t('crit.f.notified', lang), clinician_notified),
+        (_t('crit.f.method', lang), notification_method),
+        (_t('crit.f.readback', lang), _readback_txt),
+        (_t('crit.f.time', lang), now_str),
+        (_t('sig.notifying', lang), _t('crit.see_sig', lang)),
     ]
     _set_fill(c, GRAY_LIGHT)
     c.rect(MARGIN_L, y - (len(fields)*14+6), MARGIN_R - MARGIN_L, len(fields)*14+6, fill=1, stroke=0)
     row_y = y - 4
+    _no_marker = _t('crit.readback_no', lang)
     for lbl, val in fields:
         _set_fill(c, GRAY_MID); c.setFont('Helvetica-Bold', 7.5)
         c.drawString(MARGIN_L + 6, row_y, lbl + ':')
-        _set_fill(c, RED if 'NO' in str(val) else BLACK)
+        _set_fill(c, RED if str(val) == _no_marker else BLACK)
         c.setFont('Helvetica', 7.5)
         c.drawString(MARGIN_L + 140, row_y, str(val))
         row_y -= 14
     y = row_y - 10
 
-    _draw_signatures(c, y - 20, ['Notifying Scientist', 'Laboratory Manager', 'Clinician (Acknowledgement)'])
-    _draw_footer(c, pqc_hash, '', 1)
+    _draw_signatures(c, y - 20, [_t('sig.notifying', lang), _t('sig.lab_manager', lang), _t('sig.clinician_ack', lang)])
+    _draw_footer(c, pqc_hash, '', 1, lang=lang)
     c.save()
     return buf.getvalue()
 
@@ -801,14 +891,16 @@ def generate_specimen_label(data: dict, copies: int = 1) -> bytes:
         if copy_n > 0:
             c.showPage()
 
-        # ── Background ───────────────────────────────────────────────────────
-        c.setFillColorRGB(1, 1, 1)
-        c.rect(0, 0, LABEL_W, LABEL_H, fill=1, stroke=0)
-
-        # ── Left colour stripe (tube type indicator) ──────────────────────────
+        # ── Background — faint wash of the specimen/tube colour so trays sort
+        #    at a glance, kept light (~12% colour) so all text stays crisp ─────
         stripe_w = 6.5
         tube_color = (data.get('tube_color') or 'clear').lower()
         rgb = _TUBE_COLORS.get(tube_color, _TUBE_COLORS['clear'])
+        bg  = tuple(comp * 0.12 + 0.88 for comp in rgb)
+        c.setFillColorRGB(*bg)
+        c.rect(0, 0, LABEL_W, LABEL_H, fill=1, stroke=0)
+
+        # ── Left colour stripe (full-strength tube type indicator) ────────────
         c.setFillColorRGB(*rgb)
         c.rect(0, 0, stripe_w, LABEL_H, fill=1, stroke=0)
 
@@ -916,6 +1008,83 @@ def generate_specimen_label(data: dict, copies: int = 1) -> bytes:
         c.setStrokeColorRGB(0.75, 0.87, 0.93)
         c.setLineWidth(0.5)
         c.rect(0, 0, LABEL_W, LABEL_H, fill=0, stroke=1)
+
+    c.save()
+    return buf.getvalue()
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  MICROSCOPY SLIDE LABEL  (25 mm × 18 mm — fits the frosted end of a glass slide)
+# ══════════════════════════════════════════════════════════════════════════════
+
+SLIDE_LABEL_W = 25 * 2.835
+SLIDE_LABEL_H = 18 * 2.835
+
+
+def generate_slide_label(data: dict, copies: int = 1) -> bytes:
+    """
+    Generate a tiny microscopy-slide label that fits the frosted end of a
+    standard 75 × 25 mm glass slide. Holds the slide/accession ID, patient
+    name, PID, stain, and a compact Code-128 barcode whose human-readable
+    digits are the backup scan number if the barcode smudges.
+
+    `data` keys (all optional): sid|slide_id|accession, patient_name, pid,
+    stain|test_names, barcode, tube_color|color.
+    """
+    from reportlab.pdfgen import canvas as Canvas
+    from reportlab.graphics.barcode import code128
+
+    buf = io.BytesIO()
+    W, H = SLIDE_LABEL_W, SLIDE_LABEL_H
+    c = Canvas.Canvas(buf, pagesize=(W, H))
+
+    for copy_n in range(copies):
+        if copy_n > 0:
+            c.showPage()
+
+        # Faint colour wash by stain/department for at-a-glance sorting
+        col = (data.get('tube_color') or data.get('color') or 'clear').lower()
+        rgb = _TUBE_COLORS.get(col, _TUBE_COLORS['clear'])
+        bg  = tuple(comp * 0.10 + 0.90 for comp in rgb)
+        c.setFillColorRGB(*bg)
+        c.rect(0, 0, W, H, fill=1, stroke=0)
+
+        # Top cyan rule
+        c.setFillColorRGB(0.04, 0.57, 0.70)
+        c.rect(0, H - 2, W, 2, fill=1, stroke=0)
+
+        # Slide / accession ID (bold cyan)
+        sid = data.get('sid') or data.get('slide_id') or data.get('accession') or 'SLIDE-??'
+        c.setFillColorRGB(0.04, 0.57, 0.70)
+        c.setFont('Helvetica-Bold', 7)
+        c.drawString(3, H - 10, str(sid)[:18])
+
+        # Patient + PID + stain
+        name = (data.get('patient_name') or '—')[:18]
+        pid  = data.get('pid', '—')
+        stain = (data.get('stain') or data.get('test_names') or '')[:14]
+        c.setFillColorRGB(0.06, 0.06, 0.06)
+        c.setFont('Helvetica-Bold', 5.5)
+        c.drawString(3, H - 17, name)
+        c.setFont('Helvetica', 5)
+        c.drawString(3, H - 23, f'PID {pid}  {stain}'[:34])
+
+        # Compact barcode at the bottom; human-readable digits = backup number
+        bcval = str(data.get('barcode') or sid)
+        try:
+            bc = code128.Code128(bcval, barWidth=0.45, barHeight=9,
+                                 humanReadable=True, fontSize=4,
+                                 fontName='Helvetica', quiet=False)
+            bc.drawOn(c, 3, 1)
+        except Exception:
+            c.setFillColorRGB(0.3, 0.3, 0.3)
+            c.setFont('Helvetica', 4.5)
+            c.drawString(3, 2, bcval[-18:])
+
+        # Border
+        c.setStrokeColorRGB(0.75, 0.87, 0.93)
+        c.setLineWidth(0.4)
+        c.rect(0, 0, W, H, fill=0, stroke=1)
 
     c.save()
     return buf.getvalue()

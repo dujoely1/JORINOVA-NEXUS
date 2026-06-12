@@ -5,6 +5,7 @@ import secrets
 import string
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
@@ -12,6 +13,7 @@ from core.database import get_db
 from core.security import (hash_password, verify_password,
                             create_access_token, get_current_user)
 from core.config import get_settings
+from core import pqc
 from models.user import User, LoginLog
 
 # In-memory OTP store: {email: (otp, expires_at)}
@@ -22,6 +24,15 @@ _otp_store: dict = {}
 # Short-lived (10 min) so a leaked token has tight blast radius.
 _reset_token_store: dict = {}
 _RESET_TOKEN_TTL_MIN = 10
+
+# In-memory "Yes, it's me" magic-link store: {confirm_token: (email, expires_at)}
+_confirm_store: dict = {}
+
+
+def _app_base_url() -> str:
+    """Public base URL of the frontend, used to build the email magic link.
+    Set APP_BASE_URL in .env to your pilot URL (e.g. the Cloudflare tunnel)."""
+    return (os.environ.get('APP_BASE_URL') or '').rstrip('/')
 
 router = APIRouter(prefix='/auth', tags=['Authentication'])
 
@@ -122,6 +133,21 @@ def me(current_user: User = Depends(get_current_user)):
     }
 
 
+@router.patch('/me/language')
+def set_language(
+    language: str,
+    current_user: User    = Depends(get_current_user),
+    db:           Session = Depends(get_db),
+):
+    """Persist the user's preferred interface language (en | fr | rw)."""
+    if language not in {'en', 'fr', 'rw'}:
+        raise HTTPException(400, 'language must be one of en, fr, rw')
+    if hasattr(current_user, 'preferred_language'):
+        current_user.preferred_language = language
+        db.commit()
+    return {'status': 'ok', 'preferred_language': language}
+
+
 @router.post('/change-password')
 def change_password(
     body:         PasswordChange,
@@ -184,10 +210,12 @@ class ResetPasswordIn(BaseModel):
 
 
 def _generate_otp(length: int = 6) -> str:
-    return ''.join(random.choices(string.digits, k=length))
+    # Cryptographically secure AND bound to the post-quantum signing layer
+    # (see core/pqc.derive_code) so the code is tied to the PQC key.
+    return pqc.derive_code(length)
 
 
-def _send_otp_email(email: str, otp: str, username: str) -> bool:
+def _send_otp_email(email: str, otp: str, username: str, confirm_token: str = '') -> bool:
     """
     Send OTP via email. In production: configure SMTP in .env.
     Logs the OTP to server console as fallback (dev mode).
@@ -212,18 +240,24 @@ def _send_otp_email(email: str, otp: str, username: str) -> bool:
         if not smtp_host or not smtp_user:
             return True   # dev mode — OTP logged to console
 
+        base = _app_base_url()
+        magic = f'{base}/forgot-password?confirm={confirm_token}' if (base and confirm_token) else ''
         msg = MIMEMultipart()
         msg['From']    = f'JORINOVA NEXUS ALIS-X <{smtp_user}>'
         msg['To']      = email
-        msg['Subject'] = 'ALIS-X Password Reset OTP'
+        msg['Subject'] = 'ALIS-X Password Reset Code'
+        magic_line = (f'\nOr simply click "Yes, it\'s me" to continue securely:\n    {magic}\n'
+                      if magic else '')
         body = f"""
 Hello {username},
 
-Your password reset OTP is:
+Your password reset code is:
 
     {otp}
 
-This code expires in 15 minutes.
+Enter this 6-digit code in JORINOVA NEXUS to continue.
+{magic_line}
+This code expires in 15 minutes. It is bound to our post-quantum security key.
 If you did not request a password reset, please ignore this email.
 
 JORINOVA NEXUS ALIS-X Security System
@@ -247,24 +281,54 @@ def forgot_password(body: ForgotPasswordIn, db: Session = Depends(get_db)):
 
     Always returns 200 (to avoid user enumeration attacks).
 
-    Dev convenience: when DEBUG=true AND no SMTP is configured, the OTP is
-    echoed back in the response so the frontend can show it during local
-    development. In production this is suppressed — never expose secrets.
+    The 6-digit code is sent ONLY to the registered email — it is never
+    returned to the browser. The email also carries a "Yes, it's me" magic
+    link (when APP_BASE_URL is set) so the user can confirm from their own
+    device. If SMTP is not configured the code is written to the SERVER log
+    only (so an operator can retrieve it during setup) — still never exposed
+    to the client.
     """
     user    = db.query(User).filter(User.email == body.email).first()
-    payload = {'message': 'If that email is registered, an OTP has been sent.'}
+    payload = {'message': 'If that email is registered, a reset code has been sent.'}
     if user:
+        key     = body.email.lower()
         otp     = _generate_otp()
         expires = datetime.now(timezone.utc) + timedelta(minutes=15)
-        _otp_store[body.email.lower()] = (otp, expires)
-        _send_otp_email(user.email, otp, user.username)
-        # Dev echo: only when both conditions are true
-        settings = get_settings()
-        smtp_configured = bool(os.environ.get('EMAIL_HOST')) and bool(os.environ.get('EMAIL_HOST_USER'))
-        if settings.debug and not smtp_configured:
-            payload['dev_otp'] = otp                      # PLEASE never enable in prod
-            payload['dev_note'] = 'DEV ONLY — SMTP not configured. OTP echoed for local testing.'
+        _otp_store[key] = (otp, expires)
+        # "Yes, it's me" magic-link token (same 15-min lifetime as the code)
+        confirm_token = secrets.token_urlsafe(24)
+        _confirm_store[confirm_token] = (key, expires)
+        _send_otp_email(user.email, otp, user.username, confirm_token)
     return payload
+
+
+@router.get('/confirm-reset')
+def confirm_reset(token: str):
+    """Magic-link target — the user tapped "Yes, it's me" in their email.
+    Validates the confirm token, consumes the pending OTP, issues a reset
+    token, and redirects the browser straight to the set-new-password step.
+    Falls back to a relative path when APP_BASE_URL is not configured."""
+    base   = _app_base_url()
+    stored = _confirm_store.pop(token, None)
+
+    def _to(path: str):
+        return RedirectResponse((base + path) if base else path, status_code=303)
+
+    if not stored:
+        return _to('/forgot-password?error=expired')
+    email_key, expires = stored
+    if datetime.now(timezone.utc) > expires:
+        _otp_store.pop(email_key, None)
+        return _to('/forgot-password?error=expired')
+
+    # Identity confirmed from the user's own email/device — consume the OTP and
+    # issue a short-lived reset token, then drop the user on the password step.
+    _otp_store.pop(email_key, None)
+    rt = secrets.token_urlsafe(32)
+    _reset_token_store[rt] = (
+        email_key, datetime.now(timezone.utc) + timedelta(minutes=_RESET_TOKEN_TTL_MIN),
+    )
+    return _to(f'/forgot-password?reset_token={rt}')
 
 
 @router.post('/verify-otp')

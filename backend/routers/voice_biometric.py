@@ -348,6 +348,29 @@ def confirm_enrollment(
     }
 
 
+# Voice-enrollment notifications, localized to the recipient's language.
+_VOICE_NOTIF = {
+    'pending.title':  {'en': 'Voice enrollment pending: {u}',
+                       'fr': 'Enrôlement vocal en attente : {u}',
+                       'rw': 'Kwiyandikisha kw’ijwi gutegereje: {u}'},
+    'pending.body':   {'en': '{u} has submitted a voice enrollment (quality: {q}). Review and approve at Admin Dashboard → Voice Management.',
+                       'fr': '{u} a soumis un enrôlement vocal (qualité : {q}). Vérifiez et approuvez dans Admin → Gestion vocale.',
+                       'rw': '{u} yatanze kwiyandikisha kw’ijwi (ubwiza: {q}). Genzura wemeze kuri Admin → Voice Management.'},
+    'approved.title': {'en': '✅ Voice enrollment approved!',
+                       'fr': '✅ Enrôlement vocal approuvé !',
+                       'rw': '✅ Kwiyandikisha kw’ijwi kwemejwe!'},
+    'approved.body':  {'en': 'Your voice registration has been approved by {by}. You can now use voice commands in JORINOVA NEXUS ALIS-X.',
+                       'fr': 'Votre enrôlement vocal a été approuvé par {by}. Vous pouvez désormais utiliser les commandes vocales dans JORINOVA NEXUS ALIS-X.',
+                       'rw': 'Kwiyandikisha kw’ijwi ryawe kwemejwe na {by}. Ubu ushobora gukoresha amabwiriza y’ijwi muri JORINOVA NEXUS ALIS-X.'},
+}
+
+
+def _vt(key: str, lang: str, **kw) -> str:
+    e = _VOICE_NOTIF.get(key, {})
+    s = e.get(lang if lang in ('en', 'fr', 'rw') else 'en') or e.get('en') or key
+    return s.format(**kw) if kw else s
+
+
 def _notify_admins_enrollment(username: str, enrollment_id: int, quality: float):
     """Send in-app notification to admins about pending voice enrollment."""
     try:
@@ -356,12 +379,12 @@ def _notify_admins_enrollment(username: str, enrollment_id: int, quality: float)
         db = SessionLocal()
         admins = db.query(User).filter(User.role.in_(ADMIN_ROLES), User.is_active==True).all()
         for admin in admins:
+            lg = getattr(admin, 'preferred_language', 'en') or 'en'
             n = Notification(
                 recipient_id=admin.id, sender_id=None,
                 notif_type='VOICE_ENROLLMENT',
-                title=f'Voice enrollment pending: {username}',
-                body=f'{username} has submitted a voice enrollment (quality: {quality:.1%}). '
-                     f'Review and approve at Admin Dashboard → Voice Management.',
+                title=_vt('pending.title', lg, u=username),
+                body=_vt('pending.body', lg, u=username, q=f'{quality:.1%}'),
                 priority='NORMAL',
                 action_url=f'/admin/?tab=voice&enrollment_id={enrollment_id}',
             )
@@ -515,15 +538,16 @@ def approve_enrollment(
     enr.approved_at    = datetime.now(timezone.utc)
     db.commit()
 
-    # Notify enrolled user
+    # Notify enrolled user — in their own language.
     try:
         from models.notifications import Notification
+        target = db.query(User).filter(User.id == enr.user_id).first()
+        lg = getattr(target, 'preferred_language', 'en') or 'en'
         n = Notification(
             recipient_id=enr.user_id, sender_id=user.id,
             notif_type='VOICE_ENROLLMENT',
-            title='✅ Voice enrollment approved!',
-            body=(f'Your voice registration has been approved by {user.full_name}. '
-                  'You can now use voice commands in JORINOVA NEXUS ALIS-X.'),
+            title=_vt('approved.title', lg),
+            body=_vt('approved.body', lg, by=user.full_name),
             priority='NORMAL',
         )
         db.add(n); db.commit()

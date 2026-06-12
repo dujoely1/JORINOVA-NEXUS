@@ -20,8 +20,9 @@ import Link from 'next/link'
 import RequireAuth from '../../components/RequireAuth'
 import AppShell    from '../../components/AppShell'
 import { useAuth } from '../../contexts/AuthProvider'
+import { useT } from '../../contexts/I18nProvider'
 
-const API        = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API        = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 const NEXUS_BLUE = '#0066CC'
 const MIL_GREEN  = '#4B5320'
 const GOLD_DK    = '#A6800F'
@@ -54,6 +55,7 @@ export default function DoctorPortal() {
 
 function DoctorInner() {
   const { user } = useAuth()
+  const t = useT()
   const [patients, setPatients] = useState<Patient[]>([])
   const [feed,     setFeed]     = useState<FeedItem[]>([])
   const [stats,    setStats]    = useState<Stats | null>(null)
@@ -83,21 +85,21 @@ function DoctorInner() {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <div className="text-xs uppercase tracking-wider font-semibold" style={{ color: NEXUS_BLUE }}>
-              CLINICIAN PORTAL
+              {t('doc.crumb')}
             </div>
             <h1 className="text-2xl font-extrabold tracking-wide mt-1" style={{ color: MIL_GREEN }}>
-              GOOD MORNING, DR. {(user?.last_name || user?.username || '').toUpperCase()}
+              {t('doc.greeting', { name: (user?.last_name || user?.username || '').toUpperCase() })}
             </h1>
             <p className="text-sm italic font-semibold mt-1" style={{ color: GOLD_DK }}>
-              Smart data. Safer health.
+              {t('dash.tagline')}
             </p>
           </div>
           <div className="flex gap-2">
             <Link href="/modules/laboratory" className="px-4 py-2 rounded-lg text-white text-sm font-semibold shadow-sm" style={{ background: NEXUS_BLUE }}>
-              + New test request
+              {t('doc.new_request')}
             </Link>
             <Link href="/dashboard" className="px-4 py-2 rounded-lg border border-zinc-300 text-zinc-700 text-sm font-medium hover:bg-zinc-50">
-              Lab dashboard
+              {t('doc.dashboard')}
             </Link>
           </div>
         </div>
@@ -105,10 +107,10 @@ function DoctorInner() {
 
       {/* Today snapshot */}
       <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Kpi label="Pending results"      value={stats?.lab_requests.pending ?? '—'}      accent={NEXUS_BLUE} hint={`${stats?.lab_requests.stat_today ?? 0} STAT today`} />
-        <Kpi label="Validated today"      value={stats?.lab_requests.validated_today ?? '—'} accent="#0F766E"  hint="Ready to act on" />
-        <Kpi label="Critical alerts"      value={stats?.results.critical_today ?? '—'}    accent="#B91C1C"   hint="Phone the lab" />
-        <Kpi label="Requests this week"   value={stats?.lab_requests.week ?? '—'}         accent="#7C3AED"   hint="Across your patients" />
+        <Kpi label={t('doc.kpi.pending')}    value={stats?.lab_requests.pending ?? '—'}      accent={NEXUS_BLUE} hint={t('doc.kpi.pending.h', { n: stats?.lab_requests.stat_today ?? 0 })} />
+        <Kpi label={t('doc.kpi.validated')}  value={stats?.lab_requests.validated_today ?? '—'} accent="#0F766E"  hint={t('doc.kpi.validated.h')} />
+        <Kpi label={t('doc.kpi.critical')}   value={stats?.results.critical_today ?? '—'}    accent="#B91C1C"   hint={t('doc.kpi.critical.h')} />
+        <Kpi label={t('doc.kpi.week')}       value={stats?.lab_requests.week ?? '—'}         accent="#7C3AED"   hint={t('doc.kpi.week.h')} />
       </section>
 
       {/* Two-column: patients + recent activity */}
@@ -117,16 +119,16 @@ function DoctorInner() {
         {/* Patient roster */}
         <section className="rounded-2xl border bg-white p-5 shadow-sm" style={{ borderColor: `${NEXUS_BLUE}30` }}>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold tracking-wide" style={{ color: NEXUS_BLUE }}>MY PATIENTS</h2>
+            <h2 className="text-sm font-bold tracking-wide" style={{ color: NEXUS_BLUE }}>{t('doc.my_patients')}</h2>
             <input
               type="text" value={query} onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by PID or name"
+              placeholder={t('doc.search')}
               className="text-xs px-3 py-1.5 rounded-md border border-zinc-300 outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           {filteredPatients.length === 0 ? (
             <p className="text-sm text-zinc-500 py-4 text-center">
-              {query ? 'No patient matches that search.' : 'No patients yet — register one or wait for assignment.'}
+              {query ? t('doc.no_match') : t('doc.no_patients')}
             </p>
           ) : (
             <div className="divide-y divide-zinc-100">
@@ -151,11 +153,11 @@ function DoctorInner() {
         {/* Recent results / requests */}
         <section className="rounded-2xl border bg-white p-5 shadow-sm" style={{ borderColor: `${NEXUS_BLUE}30` }}>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold tracking-wide" style={{ color: NEXUS_BLUE }}>RECENT LAB ACTIVITY</h2>
-            <span className="text-[11px] text-zinc-500">latest 15</span>
+            <h2 className="text-sm font-bold tracking-wide" style={{ color: NEXUS_BLUE }}>{t('doc.recent')}</h2>
+            <span className="text-[11px] text-zinc-500">{t('doc.latest15')}</span>
           </div>
           {feed.length === 0 ? (
-            <p className="text-sm text-zinc-500 py-4 text-center">No recent activity.</p>
+            <p className="text-sm text-zinc-500 py-4 text-center">{t('doc.no_activity')}</p>
           ) : (
             <div className="divide-y divide-zinc-100">
               {feed.map(f => (

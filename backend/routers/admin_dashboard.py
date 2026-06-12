@@ -24,6 +24,17 @@ def require_admin(user: User = Depends(get_current_user)):
     return user
 
 
+# ── Post-quantum security status ──────────────────────────────────
+
+@router.get('/pqc')
+def pqc_status(_u: User = Depends(require_admin)):
+    """Active post-quantum signing backend + public-key fingerprint.
+    `real_pqc=false` means the SHA3-256 fallback is in use (install `pqcrypto`
+    with a C toolchain to activate true CRYSTALS-Dilithium signatures)."""
+    from core import pqc
+    return pqc.status()
+
+
 # ── System Stats ──────────────────────────────────────────────────
 
 @router.get('/stats')

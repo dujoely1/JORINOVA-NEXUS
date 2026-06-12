@@ -13,8 +13,9 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import RequireAuth from '../../components/RequireAuth'
 import AppShell    from '../../components/AppShell'
+import { useT } from '../../contexts/I18nProvider'
 
-const API        = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API        = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 const NEXUS_BLUE = '#0066CC'
 const MIL_GREEN  = '#4B5320'
 const GOLD_DK    = '#A6800F'
@@ -35,6 +36,7 @@ export default function HelpSupportPage() {
 }
 
 function HelpInner() {
+  const t = useT()
   const [scenarios, setScenarios] = useState<Scenario[]>([])
   const [loading,   setLoading]   = useState(true)
   const [filter,    setFilter]    = useState('')
@@ -58,18 +60,17 @@ function HelpInner() {
       {/* Header strip */}
       <header className="rounded-2xl border bg-white p-5" style={{ borderColor: `${NEXUS_BLUE}30` }}>
         <div className="text-xs uppercase tracking-wider font-semibold" style={{ color: NEXUS_BLUE }}>
-          HELP &amp; SUPPORT
+          {t('help.crumb')}
         </div>
         <h1 className="text-2xl font-extrabold tracking-wide mt-1" style={{ color: MIL_GREEN }}>
-          TRAINING VIDEOS &amp; GUIDED WALKTHROUGHS
+          {t('help.title')}
         </h1>
         <p className="text-sm italic font-semibold mt-1" style={{ color: GOLD_DK }}>
-          Smart data. Safer health.
+          {t('dash.tagline')}
         </p>
         <p className="text-sm text-zinc-600 mt-3">
-          Every voice-narrated walkthrough lives here. Click any tile to launch the in-app
-          assistant — say <span className="font-mono px-1 py-0.5 bg-zinc-100 rounded">Jorinova start</span> to play,
-          <span className="font-mono px-1 py-0.5 bg-zinc-100 rounded ml-1">Jorinova next</span> to advance.
+          {t('help.intro_1')} <span className="font-mono px-1 py-0.5 bg-zinc-100 rounded">Jorinova start</span> {t('help.intro_play')}
+          <span className="font-mono px-1 py-0.5 bg-zinc-100 rounded ml-1">Jorinova next</span> {t('help.intro_next')}
         </p>
       </header>
 
@@ -78,18 +79,18 @@ function HelpInner() {
         <input
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          placeholder="Search scenarios (e.g. blood bank, OCR, malaria)"
+          placeholder={t('help.search')}
           className="flex-1 max-w-md bg-white border border-zinc-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <span className="text-xs text-zinc-500">{filtered.length} of {scenarios.length}</span>
+        <span className="text-xs text-zinc-500">{t('help.count', { n: filtered.length, m: scenarios.length })}</span>
       </div>
 
       {/* Scenario grid */}
       {loading ? (
-        <div className="text-center py-12 text-zinc-500">Loading scenarios…</div>
+        <div className="text-center py-12 text-zinc-500">{t('help.loading')}</div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-12 text-zinc-500">
-          No scenarios match &ldquo;{filter}&rdquo;.
+          {t('help.no_match', { q: filter })}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -102,7 +103,7 @@ function HelpInner() {
               <div className="flex items-start justify-between mb-2">
                 <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-1 rounded-full"
                       style={{ background: `${MIL_GREEN}15`, color: '#3A4019', border: `1px solid ${MIL_GREEN}40` }}>
-                  ▶ {s.duration_minutes} min · {s.step_count ?? '?'} steps
+                  {t('help.tile_meta', { min: s.duration_minutes, steps: s.step_count ?? '?' })}
                 </span>
               </div>
               <h3 className="text-base font-bold text-zinc-900 group-hover:text-blue-700 mb-1">
@@ -125,16 +126,12 @@ function HelpInner() {
 
       {/* FAQ */}
       <section className="rounded-2xl border bg-white p-5 shadow-sm" style={{ borderColor: `${NEXUS_BLUE}30` }}>
-        <h2 className="text-sm font-bold tracking-wide mb-3" style={{ color: NEXUS_BLUE }}>FREQUENTLY ASKED</h2>
+        <h2 className="text-sm font-bold tracking-wide mb-3" style={{ color: NEXUS_BLUE }}>{t('help.faq')}</h2>
         <div className="space-y-3">
-          <Faq q="The voice assistant doesn't speak — what should I check?"
-               a="Click 🔊 Voice in the runner header (the mute toggle). On first load, browsers wait for a user interaction before allowing audio. Volume must be up." />
-          <Faq q="The mic doesn't hear me when I say 'Jorinova start'"
-               a="Click 🎤 Listen, then accept the browser permission prompt. The 'heard' bar shows what the mic actually picked up. SpeechRecognition needs Chrome or Edge on HTTPS or localhost." />
-          <Faq q="My session keeps signing out"
-               a="The system auto-logs-out after 5 minutes of inactivity for security. Any mouse / key / scroll resets the timer. Sign in again to continue." />
-          <Faq q="Where do I report a bug or request a feature?"
-               a="Email jorinovanexus@gmail.com with a screen recording and the time it happened — we cross-reference with the audit log." />
+          <Faq q={t('help.faq1.q')} a={t('help.faq1.a')} />
+          <Faq q={t('help.faq2.q')} a={t('help.faq2.a')} />
+          <Faq q={t('help.faq3.q')} a={t('help.faq3.a')} />
+          <Faq q={t('help.faq4.q')} a={t('help.faq4.a')} />
         </div>
       </section>
     </div>

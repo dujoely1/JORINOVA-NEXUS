@@ -3,7 +3,7 @@
 
 import type { User, TokenOut } from '@/types'
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 
 function getToken(): string | null {
   if (typeof window === 'undefined') return null
@@ -14,9 +14,10 @@ function getToken(): string | null {
 }
 
 function setToken(t: string) {
-  // short-lived cookie for auth-server middleware + localStorage fallback
+  // Persistent session cookie (7 days) + localStorage fallback so the operator
+  // is not forced to re-login during a shift / demo.
   try {
-    document.cookie = `access_token=${t}; path=/; max-age=28800; SameSite=Lax`
+    document.cookie = `access_token=${t}; path=/; max-age=604800; SameSite=Lax`
   } catch {
     /* IE<11 fallback — no-op */
   }

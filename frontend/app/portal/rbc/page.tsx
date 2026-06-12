@@ -23,8 +23,9 @@ import Link from 'next/link'
 import RequireAuth from '../../components/RequireAuth'
 import AppShell    from '../../components/AppShell'
 import { useAuth } from '../../contexts/AuthProvider'
+import { useT } from '../../contexts/I18nProvider'
 
-const API        = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API        = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 const NEXUS_BLUE = '#0066CC'
 const RBC_RED    = '#B91C1C'        // accent for outbreak/critical
 const MIL_GREEN  = '#4B5320'
@@ -79,6 +80,7 @@ export default function RbcPortal() {
 
 function RbcInner() {
   const { user } = useAuth()
+  const t = useT()
   const [dash,    setDash]    = useState<SurvDashboard>(null)
   const [signals, setSignals] = useState<Signal[]>([])
   const [amr,     setAmr]     = useState<AmrRow[]>([])
@@ -101,21 +103,21 @@ function RbcInner() {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <div className="text-xs uppercase tracking-wider font-semibold" style={{ color: RBC_RED }}>
-              RWANDA BIOMEDICAL CENTRE · PUBLIC HEALTH SURVEILLANCE
+              {t('rbc.crumb')}
             </div>
             <h1 className="text-2xl font-extrabold tracking-wide mt-1" style={{ color: MIL_GREEN }}>
               {(user?.full_name || user?.username || '').toUpperCase()}
             </h1>
             <p className="text-sm italic font-semibold mt-1" style={{ color: GOLD_DK }}>
-              Smart data. Safer health.
+              {t('dash.tagline')}
             </p>
           </div>
           <div className="flex gap-2">
             <Link href="/modules/audit" className="px-4 py-2 rounded-lg border border-zinc-300 text-zinc-700 text-sm font-medium hover:bg-zinc-50">
-              Audit trail
+              {t('rbc.audit')}
             </Link>
             <Link href="/dashboard" className="px-4 py-2 rounded-lg text-white text-sm font-semibold" style={{ background: NEXUS_BLUE }}>
-              Lab dashboard
+              {t('rbc.dashboard')}
             </Link>
           </div>
         </div>
@@ -123,27 +125,27 @@ function RbcInner() {
 
       {/* KPI row */}
       <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Kpi label="Active signals"   value={dash?.active_signals   ?? '—'} accent={RBC_RED}    hint={`${dash?.high_risk ?? 0} high-risk`} />
-        <Kpi label="Signals — 7 days" value={dash?.signals_7d       ?? '—'} accent="#B45309"   hint="New signals" />
-        <Kpi label="Reporting labs"   value={dash?.reporting_labs   ?? '—'} accent={NEXUS_BLUE} hint="Currently uploading" />
-        <Kpi label="AMR alerts"       value={dash?.amr_alerts       ?? '—'} accent="#7C3AED"   hint="Resistance patterns" />
+        <Kpi label={t('rbc.kpi.active')}   value={dash?.active_signals   ?? '—'} accent={RBC_RED}    hint={t('rbc.kpi.active.h', { n: dash?.high_risk ?? 0 })} />
+        <Kpi label={t('rbc.kpi.7d')}       value={dash?.signals_7d       ?? '—'} accent="#B45309"   hint={t('rbc.kpi.7d.h')} />
+        <Kpi label={t('rbc.kpi.labs')}     value={dash?.reporting_labs   ?? '—'} accent={NEXUS_BLUE} hint={t('rbc.kpi.labs.h')} />
+        <Kpi label={t('rbc.kpi.amr')}      value={dash?.amr_alerts       ?? '—'} accent="#7C3AED"   hint={t('rbc.kpi.amr.h')} />
       </section>
 
       {/* National workload context */}
       <section className="rounded-2xl border bg-white p-5 shadow-sm" style={{ borderColor: `${NEXUS_BLUE}30` }}>
-        <h2 className="text-sm font-bold tracking-wide mb-2" style={{ color: NEXUS_BLUE }}>NATIONAL LAB WORKLOAD</h2>
+        <h2 className="text-sm font-bold tracking-wide mb-2" style={{ color: NEXUS_BLUE }}>{t('rbc.workload')}</h2>
         <div className="flex items-baseline gap-6 flex-wrap">
           <div>
             <div className="text-3xl font-extrabold text-zinc-900">{stats?.lab_requests?.today ?? '—'}</div>
-            <div className="text-[11px] uppercase tracking-wider text-zinc-500">requests today</div>
+            <div className="text-[11px] uppercase tracking-wider text-zinc-500">{t('rbc.requests_today')}</div>
           </div>
           <div>
             <div className="text-3xl font-extrabold text-zinc-900">{stats?.lab_requests?.week ?? '—'}</div>
-            <div className="text-[11px] uppercase tracking-wider text-zinc-500">this week</div>
+            <div className="text-[11px] uppercase tracking-wider text-zinc-500">{t('rbc.this_week')}</div>
           </div>
           <div>
             <div className="text-3xl font-extrabold text-zinc-900">{dash?.diseases_tracked ?? '—'}</div>
-            <div className="text-[11px] uppercase tracking-wider text-zinc-500">diseases tracked</div>
+            <div className="text-[11px] uppercase tracking-wider text-zinc-500">{t('rbc.diseases')}</div>
           </div>
         </div>
       </section>
@@ -154,26 +156,26 @@ function RbcInner() {
         {/* Outbreak signals */}
         <section className="rounded-2xl border bg-white p-5 shadow-sm" style={{ borderColor: `${RBC_RED}30` }}>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold tracking-wide" style={{ color: RBC_RED }}>ACTIVE OUTBREAK SIGNALS</h2>
-            <span className="text-[11px] text-zinc-500">latest 15</span>
+            <h2 className="text-sm font-bold tracking-wide" style={{ color: RBC_RED }}>{t('rbc.outbreaks')}</h2>
+            <span className="text-[11px] text-zinc-500">{t('rbc.latest15')}</span>
           </div>
           {signals.length === 0 ? (
-            <p className="text-sm text-zinc-500 py-6 text-center">No outbreak signals currently active.</p>
+            <p className="text-sm text-zinc-500 py-6 text-center">{t('rbc.no_outbreaks')}</p>
           ) : (
             <div className="divide-y divide-zinc-100">
               {signals.slice(0, 15).map((s, idx) => (
                 <div key={s.id ?? idx} className="flex items-center justify-between py-2.5 text-sm">
                   <div className="min-w-0">
                     <div className="font-semibold text-zinc-900 truncate">
-                      {s.pathogen ?? s.disease ?? 'Unspecified'}
+                      {s.pathogen ?? s.disease ?? t('rbc.unspecified')}
                     </div>
                     <div className="text-[11px] text-zinc-500">
-                      {s.district ?? 'National'}{typeof s.cases_7d === 'number' ? ` · ${s.cases_7d} cases / 7d` : ''}
+                      {s.district ?? t('rbc.national')}{typeof s.cases_7d === 'number' ? ` · ${t('rbc.cases_7d', { n: s.cases_7d })}` : ''}
                     </div>
                   </div>
                   <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded-full font-semibold"
                         style={severityStyle(s.severity)}>
-                    {s.severity ?? s.status ?? 'monitoring'}
+                    {s.severity ?? s.status ?? t('rbc.monitoring')}
                   </span>
                 </div>
               ))}
@@ -183,9 +185,9 @@ function RbcInner() {
 
         {/* AMR */}
         <section className="rounded-2xl border bg-white p-5 shadow-sm" style={{ borderColor: '#7C3AED30' }}>
-          <h2 className="text-sm font-bold tracking-wide mb-3" style={{ color: '#6D28D9' }}>ANTIMICROBIAL RESISTANCE</h2>
+          <h2 className="text-sm font-bold tracking-wide mb-3" style={{ color: '#6D28D9' }}>{t('rbc.amr_title')}</h2>
           {amr.length === 0 ? (
-            <p className="text-sm text-zinc-500 py-6 text-center">No AMR data yet — reporting labs need at least 14 days of cultures.</p>
+            <p className="text-sm text-zinc-500 py-6 text-center">{t('rbc.no_amr')}</p>
           ) : (
             <div className="divide-y divide-zinc-100">
               {amr.slice(0, 12).map((r, i) => (
@@ -195,7 +197,7 @@ function RbcInner() {
                       <span className="italic">{r.organism ?? '?'}</span>
                       {r.antibiotic ? ` vs ${r.antibiotic}` : ''}
                     </div>
-                    <div className="text-[11px] text-zinc-500">{r.sample_count ?? 0} isolates</div>
+                    <div className="text-[11px] text-zinc-500">{t('rbc.isolates', { n: r.sample_count ?? 0 })}</div>
                   </div>
                   {typeof r.resistance_pct === 'number' && (
                     <span className="text-sm font-bold"

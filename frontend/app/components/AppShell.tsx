@@ -18,9 +18,12 @@ import { ReactNode, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../contexts/AuthProvider'
+import { useI18n, useT } from '../contexts/I18nProvider'
+import { LANGUAGES, type Lang } from '../lib/i18n'
 import Logo from './Logo'
 import Avatar from './Avatar'
 import Sidebar from './Sidebar'
+import ModuleToolbar from './ModuleToolbar'
 
 const NEXUS_BLUE    = '#0066CC'
 const NEXUS_BLUE_LT = '#E6F0FA'
@@ -28,7 +31,12 @@ const NEO_TOP       = '#0A1628'
 const NEO_MID       = '#020817'
 const NEO_BOTTOM    = '#000814'
 
-const IDLE_MS = 5 * 60 * 1000          // 5 minutes
+// Idle auto-logout window. Pilot: keep the session alive for a full shift so
+// the operator is never bumped back to the login screen mid-demo. Set
+// NEXT_PUBLIC_IDLE_MINUTES to a small number to re-enable a short timeout, or
+// 0 to disable idle logout entirely.
+const _IDLE_MIN = Number(process.env.NEXT_PUBLIC_IDLE_MINUTES ?? '720')   // default 12 h
+const IDLE_MS = _IDLE_MIN > 0 ? _IDLE_MIN * 60 * 1000 : 0
 
 export default function AppShell({
   children,
@@ -44,10 +52,13 @@ export default function AppShell({
 }) {
   const { user, logout } = useAuth()
   const router = useRouter()
+  const { lang, setLang } = useI18n()
+  const t = useT()
 
   const [now,    setNow]    = useState<Date | null>(null)
   const [online, setOnline] = useState<boolean>(true)
   const [navOpen, setNavOpen] = useState<boolean>(false)
+  const [langOpen, setLangOpen] = useState<boolean>(false)
 
   // ── Live clock + online status (SSR-safe) ─────────────────────────────
   useEffect(() => {
@@ -70,6 +81,7 @@ export default function AppShell({
   // ── Idle timeout ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!user) return                                // never log out a non-logged-in user
+    if (IDLE_MS <= 0) return                          // idle logout disabled (persistent session)
     let timer: number
     const reset = () => {
       window.clearTimeout(timer)
@@ -89,7 +101,6 @@ export default function AppShell({
     }
   }, [user, logout, router])
 
-  const lang = (user?.preferred_language ?? 'en') as 'en' | 'fr' | 'rw'
   const dateStr = now ? now.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB',
                        { day: '2-digit', month: 'short', year: 'numeric' }) : ''
   const timeStr = now ? now.toLocaleTimeString(lang === 'fr' ? 'fr-FR' : 'en-GB',
@@ -126,7 +137,7 @@ export default function AppShell({
               <div className="leading-tight">
                 <div className="font-bold tracking-wide text-sm sm:text-base">JORINOVA NEXUS</div>
                 <div className="text-[10px] sm:text-xs text-blue-100 -mt-0.5">
-                  ALIS-X{pageTag ? ` · ${pageTag}` : ' · Laboratory Intelligence'}
+                  ALIS-X{pageTag ? ` · ${pageTag}` : ` · ${t('shell.tagline')}`}
                 </div>
               </div>
             </Link>
@@ -145,8 +156,37 @@ export default function AppShell({
               }`}
             >
               <span className={`h-2 w-2 rounded-full ${online ? 'bg-emerald-300 animate-pulse' : 'bg-rose-300'}`} />
-              {online ? 'Online' : 'Offline'}
+              {online ? t('shell.online') : t('shell.offline')}
             </span>
+
+            {/* ── Language switcher ─────────────────────────────────── */}
+            <div className="relative">
+              <button
+                onClick={() => setLangOpen(o => !o)}
+                onBlur={() => setTimeout(() => setLangOpen(false), 150)}
+                title={t('shell.language')}
+                className="text-xs px-2 py-1.5 rounded-md bg-white/10 hover:bg-white/25 border border-white/30 transition-colors flex items-center gap-1"
+              >
+                <span>{LANGUAGES[lang].flag}</span>
+                <span className="font-bold uppercase tracking-wider">{lang}</span>
+              </button>
+              {langOpen && (
+                <div className="absolute right-0 top-full mt-1 min-w-[140px] rounded-lg border border-slate-300/40 bg-white text-zinc-800 shadow-xl z-50 overflow-hidden">
+                  {(Object.entries(LANGUAGES) as [Lang, typeof LANGUAGES['en']][]).map(([code, info]) => (
+                    <button
+                      key={code}
+                      onMouseDown={(e) => { e.preventDefault(); setLang(code); setLangOpen(false) }}
+                      className={`w-full text-left px-3 py-2 text-xs hover:bg-blue-50 flex items-center gap-2
+                        ${lang === code ? 'bg-blue-50 font-bold text-blue-700' : ''}`}
+                    >
+                      <span className="text-base">{info.flag}</span>
+                      <span>{info.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {user && (
               <>
                 <div className="hidden sm:block text-right leading-tight">
@@ -156,7 +196,7 @@ export default function AppShell({
                 <Avatar src={user.photo_url} name={user.full_name || user.username} size={34} />
                 <button
                   onClick={() => { logout(); router.push('/login') }}
-                  title="Sign out"
+                  title={t('shell.sign_out')}
                   className="text-xs px-2.5 py-1.5 rounded-md bg-white/10 hover:bg-white/25 border border-white/30 transition-colors"
                 >
                   ⎋
@@ -188,6 +228,9 @@ export default function AppShell({
         <main className="flex-1 min-w-0">{children}</main>
       </div>
 
+      {/* ── FLOATING MODULE TOOLBAR (mic + image AI + label) ───────────── */}
+      {user && <ModuleToolbar />}
+
       {/* ── FOOTER ──────────────────────────────────────────────────────── */}
       <footer
         className="text-white"
@@ -197,7 +240,7 @@ export default function AppShell({
           <a href="mailto:jorinovanexus@gmail.com" className="hover:underline font-medium">
             jorinovanexus@gmail.com
           </a>
-          <span className="text-blue-100">Powered by JORINOVA NEXUS ALIS-X · Auto-logout after 5 min idle</span>
+          <span className="text-blue-100">Powered by JORINOVA NEXUS ALIS-X · {t('shell.idle_logout')}</span>
         </div>
       </footer>
     </div>

@@ -21,8 +21,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import RequireAuth from '../../../components/RequireAuth'
 import AppShell    from '../../../components/AppShell'
+import { useT } from '../../../contexts/I18nProvider'
 
-const API        = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API        = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 const NEXUS_BLUE = '#0066CC'
 const MIL_GREEN  = '#4B5320'
 
@@ -50,6 +51,7 @@ export default function NewPatientPage() {
 
 function Inner() {
   const router = useRouter()
+  const t = useT()
 
   // Identifiers
   const [family,   setFamily]   = useState('')
@@ -144,15 +146,13 @@ function Inner() {
     <div className="mx-auto max-w-3xl px-4 sm:px-6 py-6 space-y-5">
       <header className="rounded-2xl border bg-white p-5" style={{ borderColor: `${NEXUS_BLUE}30` }}>
         <div className="text-xs uppercase tracking-wider font-semibold" style={{ color: NEXUS_BLUE }}>
-          PATIENT REGISTRY · WALK-IN
+          {t('pnew.crumb')}
         </div>
         <h1 className="text-xl sm:text-2xl font-extrabold tracking-wide mt-1" style={{ color: MIL_GREEN }}>
-          REGISTER A WALK-IN PATIENT
+          {t('pnew.title')}
         </h1>
         <p className="text-sm text-zinc-500 mt-1">
-          Use this only when the standard OCR + LIS auto-mapping path is not available
-          (paper-only site, after-hours arrival, emergency). The system auto-checks for
-          duplicates by NID, phone, or name + date-of-birth before saving.
+          {t('pnew.subtitle')}
         </p>
       </header>
 
@@ -165,7 +165,7 @@ function Inner() {
               </svg>
             </div>
             <div>
-              <h2 className="text-base font-bold text-zinc-900">Patient registered</h2>
+              <h2 className="text-base font-bold text-zinc-900">{t('pnew.registered')}</h2>
               <p className="text-sm text-zinc-600">
                 {created.family_name} {created.other_names ?? ''} ·
                 <span className="font-mono"> PID {created.pid}</span>
@@ -177,14 +177,14 @@ function Inner() {
             <Link href={`/modules/patients?pid=${created.pid}`}
                   className="px-4 py-2 rounded-lg text-white text-sm font-semibold"
                   style={{ background: NEXUS_BLUE }}>
-              Open patient file
+              {t('pnew.open_file')}
             </Link>
             <Link href="/modules/laboratory" className="px-4 py-2 rounded-lg border border-zinc-300 text-zinc-700 text-sm">
-              Order a test
+              {t('pnew.order_test')}
             </Link>
             <button onClick={() => { setCreated(null); setFamily(''); setOther(''); setDuplicates([]); setSkipDup(false); }}
                     className="px-4 py-2 rounded-lg border border-zinc-300 text-zinc-700 text-sm">
-              Register another
+              {t('pnew.register_another')}
             </button>
           </div>
         </section>
@@ -198,24 +198,24 @@ function Inner() {
 
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <Input label="Family name *" value={family} onChange={setFamily} />
-              <Input label="Other names"   value={other}  onChange={setOther} />
+              <Input label={t('pnew.family')} value={family} onChange={setFamily} />
+              <Input label={t('pnew.other')}  value={other}  onChange={setOther} />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <Select label="Gender *" value={gender} onChange={v => setGender(v as 'M' | 'F' | '')}
-                      options={[{v:'',  l:'—'}, {v:'M', l:'Male'}, {v:'F', l:'Female'}]} />
-              <Input  label="Date of birth" type="date" value={dob} onChange={setDob} />
+              <Select label={t('pnew.gender')} value={gender} onChange={v => setGender(v as 'M' | 'F' | '')}
+                      options={[{v:'',  l:'—'}, {v:'M', l:t('pnew.male')}, {v:'F', l:t('pnew.female')}]} />
+              <Input  label={t('pnew.dob')} type="date" value={dob} onChange={setDob} />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <Input label="Phone"        value={phone} onChange={setPhone} placeholder="+250788123456" />
-              <Input label="Email"        value={email} onChange={setEmail} type="email" />
+              <Input label={t('pnew.phone')}        value={phone} onChange={setPhone} placeholder="+250788123456" />
+              <Input label={t('pnew.email')}        value={email} onChange={setEmail} type="email" />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <Input label="National ID"  value={nid} onChange={setNid} />
-              <Select label="Blood group" value={bloodGrp} onChange={setBloodGrp}
+              <Input label={t('pnew.nid')}  value={nid} onChange={setNid} />
+              <Select label={t('pnew.blood_group')} value={bloodGrp} onChange={setBloodGrp}
                       options={[{v:'',l:'—'},'O+','O-','A+','A-','B+','B-','AB+','AB-'].map(o => typeof o === 'string' ? {v:o,l:o} : o)} />
             </div>
-            <Input label="Address (district / village)" value={address} onChange={setAddress} />
+            <Input label={t('pnew.address')} value={address} onChange={setAddress} />
           </div>
 
           {/* Duplicate check */}
@@ -223,25 +223,25 @@ function Inner() {
             {duplicates.length > 0 && (
               <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-3 py-3 text-sm">
                 <div className="font-semibold text-amber-800 mb-1">
-                  Possible duplicate{duplicates.length > 1 ? 's' : ''} ({duplicates.length}):
+                  {t('pnew.dup_title', { n: duplicates.length })}
                 </div>
                 <ul className="space-y-1">
                   {duplicates.map((d, i) => (
                     <li key={i} className="text-amber-900">
                       • <span className="font-semibold">{d.patient.family_name} {d.patient.other_names ?? ''}</span>
                       <span className="font-mono"> · PID {d.patient.pid}</span>
-                      <span className="text-amber-700"> · matched on {d.match_field}</span>
+                      <span className="text-amber-700"> · {t('pnew.matched_on')} {d.match_field}</span>
                     </li>
                   ))}
                 </ul>
                 <div className="mt-3 flex gap-3 items-center">
                   <Link href={`/modules/patients?pid=${duplicates[0].patient.pid}`}
                         className="text-sm font-semibold underline text-blue-700">
-                    Use existing patient
+                    {t('pnew.use_existing')}
                   </Link>
                   <label className="text-xs flex items-center gap-1.5 text-amber-800">
                     <input type="checkbox" checked={skipDup} onChange={e => setSkipDup(e.target.checked)} />
-                    No, this is a different person — register anyway
+                    {t('pnew.register_anyway')}
                   </label>
                 </div>
               </div>
@@ -249,22 +249,22 @@ function Inner() {
 
             <div className="flex items-center justify-between">
               <Link href="/modules/patients" className="text-sm text-zinc-600 hover:underline">
-                ← Back to roster
+                {t('pnew.back')}
               </Link>
               <div className="flex gap-2">
                 <button onClick={checkDuplicates} disabled={!canCheck || checking}
                         className="px-4 py-2 rounded-lg border border-zinc-300 text-sm font-medium disabled:opacity-50">
-                  {checking ? 'Checking…' : 'Check duplicates'}
+                  {checking ? t('pnew.checking') : t('pnew.check_dup')}
                 </button>
                 <button onClick={submit} disabled={!canSubmit}
                         className="px-5 py-2 rounded-lg text-white font-semibold text-sm shadow-sm disabled:opacity-50"
                         style={{ background: NEXUS_BLUE }}>
-                  {submitting ? 'Saving…' : 'Register'}
+                  {submitting ? t('pnew.saving') : t('pnew.register')}
                 </button>
               </div>
             </div>
             <p className="text-[11px] text-zinc-500 mt-2 text-right">
-              {needCheckFirst ? 'Run "Check duplicates" first, or tick the override above.' : 'Ready to register.'}
+              {needCheckFirst ? t('pnew.need_check') : t('pnew.ready')}
             </p>
           </div>
         </section>

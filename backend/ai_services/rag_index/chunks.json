@@ -1,0 +1,1167 @@
+[
+ {
+  "kind": "ABBREV",
+  "key": "GE",
+  "text": "GE : Goutte Épaisse (Thick Blood Smear — malaria)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "FS",
+  "text": "FS : Frottis Sanguin (Thin Blood Smear — malaria)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "SID",
+  "text": "SID : Specimen ID (unique tube identifier)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "CID",
+  "text": "CID : Culture ID (microbiology plate identifier)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "QNS",
+  "text": "QNS : Quantity Not Sufficient (rejection reason)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "TAT",
+  "text": "TAT : Turnaround Time"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "LIS",
+  "text": "LIS : Laboratory Information System"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "IQC",
+  "text": "IQC : Internal Quality Control"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "EQA",
+  "text": "EQA : External Quality Assurance"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "SOP",
+  "text": "SOP : Standard Operating Procedure"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "NCR",
+  "text": "NCR : Non-Conformity Report"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "CAPA",
+  "text": "CAPA : Corrective and Preventive Action"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "AFB",
+  "text": "AFB : Acid-Fast Bacilli"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "ZN",
+  "text": "ZN : Ziehl-Neelsen (AFB stain)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "PCR",
+  "text": "PCR : Polymerase Chain Reaction"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "NAAT",
+  "text": "NAAT : Nucleic Acid Amplification Test"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "NGS",
+  "text": "NGS : Next Generation Sequencing"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "MIC",
+  "text": "MIC : Minimum Inhibitory Concentration"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "AST",
+  "text": "AST : Aspartate Aminotransferase (SGOT) — liver/heart"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "CLSI",
+  "text": "CLSI : Clinical and Laboratory Standards Institute (USA)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "EUCAST",
+  "text": "EUCAST : European Committee on Antimicrobial Susceptibility Testing"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "ISBT",
+  "text": "ISBT : International Society of Blood Transfusion"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "TB",
+  "text": "TB : Tuberculosis"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "MTB",
+  "text": "MTB : Mycobacterium tuberculosis"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "MDR",
+  "text": "MDR : Multi-Drug Resistant (TB)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "XDR",
+  "text": "XDR : Extensively Drug Resistant (TB)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "RIF",
+  "text": "RIF : Rifampicin"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "HIV",
+  "text": "HIV : Human Immunodeficiency Virus"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "AIDS",
+  "text": "AIDS : Acquired Immunodeficiency Syndrome"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "ARV",
+  "text": "ARV : Antiretroviral"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "VL",
+  "text": "VL : Viral Load"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "PMTCT",
+  "text": "PMTCT : Prevention of Mother-to-Child Transmission"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "PTME",
+  "text": "PTME : Prévention de la Transmission Mère-Enfant"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "HBV",
+  "text": "HBV : Hepatitis B Virus"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "HCV",
+  "text": "HCV : Hepatitis C Virus"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "HAV",
+  "text": "HAV : Hepatitis A Virus"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "HEV",
+  "text": "HEV : Hepatitis E Virus"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "HPV",
+  "text": "HPV : Human Papillomavirus"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "CMV",
+  "text": "CMV : Cytomegalovirus"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "EBV",
+  "text": "EBV : Epstein-Barr Virus"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "VZV",
+  "text": "VZV : Varicella-Zoster Virus (chickenpox/shingles)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "HSV",
+  "text": "HSV : Herpes Simplex Virus"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "RSV",
+  "text": "RSV : Respiratory Syncytial Virus"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "SARS",
+  "text": "SARS : Severe Acute Respiratory Syndrome"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "COVID",
+  "text": "COVID : COVID-19 (SARS-CoV-2)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "MRSA",
+  "text": "MRSA : Methicillin-Resistant Staphylococcus aureus"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "VRE",
+  "text": "VRE : Vancomycin-Resistant Enterococcus"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "ESBL",
+  "text": "ESBL : Extended Spectrum Beta-Lactamase"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "CPE",
+  "text": "CPE : Carbapenemase-Producing Enterobacteriaceae"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "GAS",
+  "text": "GAS : Group A Streptococcus (S.pyogenes)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "GBS",
+  "text": "GBS : Group B Streptococcus (S.agalactiae)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "STI",
+  "text": "STI : Sexually Transmitted Infection"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "GC",
+  "text": "GC : Gonorrhoea (Neisseria gonorrhoeae)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "CT",
+  "text": "CT : Chlamydia trachomatis"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "GUD",
+  "text": "GUD : Genital Ulcer Disease"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "CBC",
+  "text": "CBC : Complete Blood Count"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "FBC",
+  "text": "FBC : Full Blood Count"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "WBC",
+  "text": "WBC : White Blood Cells (Leukocytes)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "RBC",
+  "text": "RBC : Red Blood Cells (Erythrocytes)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "HGB",
+  "text": "HGB : Haemoglobin"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "HCT",
+  "text": "HCT : Haematocrit (Packed Cell Volume)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "MCV",
+  "text": "MCV : Mean Corpuscular Volume"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "MCH",
+  "text": "MCH : Maternal and Child Health"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "MCHC",
+  "text": "MCHC : Mean Corpuscular Haemoglobin Concentration"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "RDW",
+  "text": "RDW : Red Cell Distribution Width"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "PLT",
+  "text": "PLT : Platelets (Thrombocytes)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "MPV",
+  "text": "MPV : Mean Platelet Volume"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "ESR",
+  "text": "ESR : Erythrocyte Sedimentation Rate"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "PBS",
+  "text": "PBS : Peripheral Blood Smear"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "IDA",
+  "text": "IDA : Iron Deficiency Anaemia"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "B12",
+  "text": "B12 : Vitamin B12 (Cobalamin)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "DIC",
+  "text": "DIC : Disseminated Intravascular Coagulation"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "TTP",
+  "text": "TTP : Thrombotic Thrombocytopenic Purpura"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "HUS",
+  "text": "HUS : Haemolytic Uraemic Syndrome"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "PT",
+  "text": "PT : Prothrombin Time"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "INR",
+  "text": "INR : International Normalized Ratio"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "APTT",
+  "text": "APTT : Activated Partial Thromboplastin Time"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "TT",
+  "text": "TT : Thrombin Time"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "DDIMER",
+  "text": "DDIMER : D-Dimer (fibrin degradation product)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "FDP",
+  "text": "FDP : Fibrin Degradation Products"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "vWF",
+  "text": "vWF : von Willebrand Factor"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "LFT",
+  "text": "LFT : Liver Function Tests"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "RFT",
+  "text": "RFT : Renal Function Tests"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "TFT",
+  "text": "TFT : Thyroid Function Tests"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "FBS",
+  "text": "FBS : Fasting Blood Sugar"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "RBS",
+  "text": "RBS : Random Blood Sugar"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "OGTT",
+  "text": "OGTT : Oral Glucose Tolerance Test"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "HbA1c",
+  "text": "HbA1c : Glycated Haemoglobin (diabetes monitoring)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "ALT",
+  "text": "ALT : Alanine Aminotransferase (SGPT) — liver"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "GGT",
+  "text": "GGT : Gamma-Glutamyl Transferase — liver/biliary"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "ALP",
+  "text": "ALP : Alkaline Phosphatase"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "LDH",
+  "text": "LDH : Lactate Dehydrogenase"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "CK",
+  "text": "CK : Creatine Kinase"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "CKMB",
+  "text": "CKMB : CK Myocardial Band — cardiac marker"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "BNP",
+  "text": "BNP : Brain Natriuretic Peptide — heart failure"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "NTBNP",
+  "text": "NTBNP : NT-proBNP — heart failure"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "TROP",
+  "text": "TROP : Troponin (I or T) — myocardial infarction"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "CRP",
+  "text": "CRP : C-Reactive Protein — inflammation"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "PCT",
+  "text": "PCT : Procalcitonin — bacterial sepsis"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "ABG",
+  "text": "ABG : Arterial Blood Gas"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "TIBC",
+  "text": "TIBC : Total Iron Binding Capacity"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "PSA",
+  "text": "PSA : Prostate Specific Antigen"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "CEA",
+  "text": "CEA : Carcinoembryonic Antigen"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "AFP",
+  "text": "AFP : Alpha-Fetoprotein"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "CA125",
+  "text": "CA125 : Cancer Antigen 125 (ovarian)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "CA199",
+  "text": "CA199 : Cancer Antigen 19-9 (pancreatic)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "CA153",
+  "text": "CA153 : Cancer Antigen 15-3 (breast)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "HCG",
+  "text": "HCG : Human Chorionic Gonadotropin"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "TSH",
+  "text": "TSH : Thyroid Stimulating Hormone"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "FT4",
+  "text": "FT4 : Free Thyroxine"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "FT3",
+  "text": "FT3 : Free Triiodothyronine"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "PTH",
+  "text": "PTH : Parathyroid Hormone"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "FSH",
+  "text": "FSH : Follicle Stimulating Hormone"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "LH",
+  "text": "LH : Luteinizing Hormone"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "PRL",
+  "text": "PRL : Prolactin"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "DHEAS",
+  "text": "DHEAS : Dehydroepiandrosterone Sulphate"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "ALDO",
+  "text": "ALDO : Aldosterone"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "CORT",
+  "text": "CORT : Cortisol"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "HBsAg",
+  "text": "HBsAg : Hepatitis B surface Antigen"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "AntiHBs",
+  "text": "AntiHBs : Anti-Hepatitis B surface Antibody"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "HBeAg",
+  "text": "HBeAg : Hepatitis B e Antigen"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "AntiHCV",
+  "text": "AntiHCV : Anti-Hepatitis C Antibody"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "VDRL",
+  "text": "VDRL : Venereal Disease Research Lab (syphilis screening)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "RPR",
+  "text": "RPR : Rapid Plasma Reagin (syphilis)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "TPHA",
+  "text": "TPHA : Treponema pallidum Haemagglutination (syphilis conf)"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "RF",
+  "text": "RF : Rheumatoid Factor"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "ANA",
+  "text": "ANA : Antinuclear Antibody"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "ANCA",
+  "text": "ANCA : Antineutrophil Cytoplasmic Antibody"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "CrAg",
+  "text": "CrAg : Cryptococcal Antigen"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "CD4",
+  "text": "CD4 : CD4 T-lymphocyte count"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "OPD",
+  "text": "OPD : Outpatient Department"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "IPD",
+  "text": "IPD : Inpatient Department"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "ICU",
+  "text": "ICU : Intensive Care Unit"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "SICU",
+  "text": "SICU : Surgical ICU"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "NICU",
+  "text": "NICU : Neonatal ICU"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "PICU",
+  "text": "PICU : Paediatric ICU"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "HDU",
+  "text": "HDU : High Dependency Unit"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "OT",
+  "text": "OT : Operating Theatre"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "A&E",
+  "text": "A&E : Accident & Emergency"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "ER",
+  "text": "ER : Emergency Room"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "ANC",
+  "text": "ANC : Antenatal Care"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "PNC",
+  "text": "PNC : Postnatal Care"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "CPN",
+  "text": "CPN : Consultation Prénatale"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "GYN",
+  "text": "GYN : Gynaecology"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "PED",
+  "text": "PED : Paediatrics"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "ONCO",
+  "text": "ONCO : Oncology"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "CARD",
+  "text": "CARD : Cardiology"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "NEURO",
+  "text": "NEURO : Neurology"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "NEPH",
+  "text": "NEPH : Nephrology"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "PULM",
+  "text": "PULM : Pulmonology / Chest"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "GASTRO",
+  "text": "GASTRO : Gastroenterology"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "RHEUM",
+  "text": "RHEUM : Rheumatology"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "ENDO",
+  "text": "ENDO : Endocrinology"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "ORTHO",
+  "text": "ORTHO : Orthopaedics"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "BURNS",
+  "text": "BURNS : Burns Unit"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "REHAB",
+  "text": "REHAB : Rehabilitation"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "DERM",
+  "text": "DERM : Dermatology"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "OPHTH",
+  "text": "OPHTH : Ophthalmology"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "ENT",
+  "text": "ENT : Ear Nose Throat"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "PSYCH",
+  "text": "PSYCH : Psychiatry"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "ID",
+  "text": "ID : Infectious Disease"
+ },
+ {
+  "kind": "ABBREV",
+  "key": "RENAL",
+  "text": "RENAL : Renal / Dialysis Unit"
+ },
+ {
+  "kind": "WARD",
+  "key": "OPD",
+  "text": "OPD (ward): Outpatient / Consultations Externes"
+ },
+ {
+  "kind": "WARD",
+  "key": "IPD",
+  "text": "IPD (ward): Inpatient / Hospitalisation"
+ },
+ {
+  "kind": "WARD",
+  "key": "ICU",
+  "text": "ICU (ward): Unité de Soins Intensifs / Réanimation"
+ },
+ {
+  "kind": "WARD",
+  "key": "NICU",
+  "text": "NICU (ward): Neonatologie"
+ },
+ {
+  "kind": "WARD",
+  "key": "PICU",
+  "text": "PICU (ward): Pédiatrie Intensive"
+ },
+ {
+  "kind": "WARD",
+  "key": "HDU",
+  "text": "HDU (ward): High Dependency / Semi-intensif"
+ },
+ {
+  "kind": "WARD",
+  "key": "OT",
+  "text": "OT (ward): Bloc Opératoire"
+ },
+ {
+  "kind": "WARD",
+  "key": "ER",
+  "text": "ER (ward): Urgences / Emergency Room"
+ },
+ {
+  "kind": "WARD",
+  "key": "ANC",
+  "text": "ANC (ward): Soins Prénataux / CPN"
+ },
+ {
+  "kind": "WARD",
+  "key": "PNC",
+  "text": "PNC (ward): Soins Postnataux"
+ },
+ {
+  "kind": "WARD",
+  "key": "MCH",
+  "text": "MCH (ward): Santé Mère-Enfant"
+ },
+ {
+  "kind": "WARD",
+  "key": "GYN",
+  "text": "GYN (ward): Gynécologie"
+ },
+ {
+  "kind": "WARD",
+  "key": "PED",
+  "text": "PED (ward): Pédiatrie"
+ },
+ {
+  "kind": "WARD",
+  "key": "MED",
+  "text": "MED (ward): Médecine Interne"
+ },
+ {
+  "kind": "WARD",
+  "key": "SURG",
+  "text": "SURG (ward): Chirurgie Générale"
+ },
+ {
+  "kind": "WARD",
+  "key": "ORTHO",
+  "text": "ORTHO (ward): Orthopédie"
+ },
+ {
+  "kind": "WARD",
+  "key": "CARD",
+  "text": "CARD (ward): Cardiologie"
+ },
+ {
+  "kind": "WARD",
+  "key": "NEURO",
+  "text": "NEURO (ward): Neurologie"
+ },
+ {
+  "kind": "WARD",
+  "key": "NEPH",
+  "text": "NEPH (ward): Néfrologie"
+ },
+ {
+  "kind": "WARD",
+  "key": "PULM",
+  "text": "PULM (ward): Pneumologie / Chest"
+ },
+ {
+  "kind": "WARD",
+  "key": "GASTRO",
+  "text": "GASTRO (ward): Gastroentérologie"
+ },
+ {
+  "kind": "WARD",
+  "key": "ONCO",
+  "text": "ONCO (ward): Oncologie"
+ },
+ {
+  "kind": "WARD",
+  "key": "HAEM",
+  "text": "HAEM (ward): Hématologie Clinique"
+ },
+ {
+  "kind": "WARD",
+  "key": "DERM",
+  "text": "DERM (ward): Dermatologie"
+ },
+ {
+  "kind": "WARD",
+  "key": "OPHTH",
+  "text": "OPHTH (ward): Ophtalmologie"
+ },
+ {
+  "kind": "WARD",
+  "key": "ENT",
+  "text": "ENT (ward): ORL"
+ },
+ {
+  "kind": "WARD",
+  "key": "PSYCH",
+  "text": "PSYCH (ward): Psychiatrie"
+ },
+ {
+  "kind": "WARD",
+  "key": "RHEUM",
+  "text": "RHEUM (ward): Rhumatologie"
+ },
+ {
+  "kind": "WARD",
+  "key": "ENDO",
+  "text": "ENDO (ward): Endocrinologie"
+ },
+ {
+  "kind": "WARD",
+  "key": "ID",
+  "text": "ID (ward): Maladies Infectieuses"
+ },
+ {
+  "kind": "WARD",
+  "key": "REHAB",
+  "text": "REHAB (ward): Rééducation"
+ },
+ {
+  "kind": "WARD",
+  "key": "BURNS",
+  "text": "BURNS (ward): Brûlologie"
+ },
+ {
+  "kind": "WARD",
+  "key": "VL",
+  "text": "VL (ward): Viral Load (result type)"
+ },
+ {
+  "kind": "WARD",
+  "key": "GE",
+  "text": "GE (ward): Goutte Épaisse (malaria test)"
+ },
+ {
+  "kind": "WARD",
+  "key": "FS",
+  "text": "FS (ward): Frottis Sanguin (malaria test)"
+ },
+ {
+  "kind": "WARD",
+  "key": "GYN_SWAB",
+  "text": "GYN_SWAB (ward): HVS / Prélèvement Vaginal"
+ },
+ {
+  "kind": "STAIN",
+  "key": "GRAM",
+  "text": "Stain: GRAM\n  use: Classify bacteria as Gram+ or Gram-, assess morphology\n  steps: Crystal violet (primary), Gram iodine (mordant), Acetone-alcohol decoloriser, Safranin (counterstain)\n  gram_pos:\n    color: PURPLE/VIOLET\n    examples: ['Staphylococcus cocci clusters', 'Streptococcus cocci chains', 'Pneumococcus lancet diplococci', 'Bacillus/Clostridium rods']\n  gram_neg:\n    color: PINK/RED\n    examples: ['E.coli short rods', 'Klebsiella plump rods', 'Pseudomonas slim rods', 'Neisseria diplococci (kidney-bean)', 'H.influenzae coccobacilli']\n  clinical: First step in all culture positives. Guides empirical antibiotic choice within 1-2 hours."
+ },
+ {
+  "kind": "STAIN",
+  "key": "ZN_AFB",
+  "text": "Stain: ZN_AFB\n  use: Detect acid-fast organisms (Mycobacterium, Nocardia, Cryptosporidium)\n  steps: Carbol fuchsin (hot), Acid-alcohol decolorise, Methylene blue counterstain\n  positive: BRIGHT RED rods on BLUE background\n  grading:\n    0: No AFB seen (Neg)\n    1-9/100 fields: Scanty (report number)\n    1+: 1-9 per field\n    2+: 10-99 per field\n    3+: >99 per field\n  clinical: Diagnosis of TB, leprosy, Nocardia infection. Sensitivity 50-80% in pulmonary TB.\n  note: Modified ZN (cold method) for Cryptosporidium, Cyclospora — PINK oocysts 4-6µm"
+ },
+ {
+  "kind": "STAIN",
+  "key": "GIEMSA",
+  "text": "Stain: GIEMSA\n  use: Blood parasites (malaria, trypanosomes, Leishmania, Babesia), blood cell morphology\n  fixative: Methanol\n  stain: Giemsa diluted in buffer pH 7.2\n  results:\n    malaria: Ring forms, trophozoites, schizonts, gametocytes — species specific\n    Leishmania: LD bodies (amastigotes) 2-4µm in macrophages\n    Trypanosoma: trypomastigotes with undulating membrane\n    Babesia: intraerythrocytic, often 4-cell maltese cross\n  clinical: Gold standard for malaria speciation and parasitemia quantification."
+ },
+ {
+  "kind": "STAIN",
+  "key": "FIELDS",
+  "text": "Stain: FIELDS\n  use: Rapid malaria detection in field/high-volume settings\n  stains: Field A (polychrome methylene blue) + Field B (eosin)\n  time: 30-60 seconds\n  results: Same as Giemsa — rings/trophozoites/gametocytes in RBCs\n  clinical: Used in Rwanda for GE and FS. Faster than Giemsa for routine malaria."
+ },
+ {
+  "kind": "STAIN",
+  "key": "INDIA_INK",
+  "text": "Stain: INDIA_INK\n  use: Visualise Cryptococcus capsule in CSF\n  principle: negative stain — black background, capsule appears as CLEAR HALO around yeast\n  positive: CLEAR/WHITE HALO around budding yeast (5-15µm) on BLACK background\n  clinical: Diagnose Cryptococcal meningitis. Sensitivity 70-90% in HIV patients.\n  note: Follow with CrAg LFA (sensitivity 99%) for confirmation."
+ },
+ {
+  "kind": "STAIN",
+  "key": "KOH",
+  "text": "Stain: KOH\n  use: Detect fungal elements in skin, nail, hair, sputum, vaginal discharge\n  concentration: 10-20% KOH\n  time: 5-30 min\n  results:\n    positive: Hyphae, pseudohyphae, spores — refractile on microscopy\n    C.albicans: budding yeast + pseudohyphae\n    Dermatophyte: septate hyphae + arthrospores\n  clinical: Rapid point-of-care fungal diagnosis. Calcofluor white (fluorescent) more sensitive."
+ },
+ {
+  "kind": "STAIN",
+  "key": "HE",
+  "text": "Stain: HE\n  use: Routine histology — all tissue biopsies\n  stains: Haematoxylin (nuclei blue/purple) + Eosin (cytoplasm pink)\n  use_cases: Histopathology all organs, Cancer diagnosis and grading, Inflammatory infiltrates\n  clinical: Universal stain — starting point for all histological diagnosis."
+ },
+ {
+  "kind": "STAIN",
+  "key": "PAS",
+  "text": "Stain: PAS\n  use: Detect glycogen, mucin, fungi (Pneumocystis, Candida), basement membranes\n  results: Positive=MAGENTA/PINK, Negative=blue/green counterstain\n  use_cases: Fungal detection (Pneumocystis jirovecii in BAL), Renal PAS (basement membrane thickening in DM), Mucin staining"
+ },
+ {
+  "kind": "STAIN",
+  "key": "GMS",
+  "text": "Stain: GMS\n  use: Fungal detection — silver methenamine (Grocott) stain\n  results: Fungi BLACK on green/grey background\n  sensitivity: Higher than PAS for fungi\n  use_cases: Pneumocystis jirovecii, Histoplasma, Aspergillus, Cryptococcus"
+ },
+ {
+  "kind": "STAIN",
+  "key": "ALBERT",
+  "text": "Stain: ALBERT\n  use: Corynebacterium diphtheriae — detect metachromatic granules\n  results: Granules DARK BLUE/BLACK; rest of cell GREEN\n  clinical: Diagnose diphtheria when pseudomembrane present."
+ },
+ {
+  "kind": "STAIN",
+  "key": "NEW_METHYLENE_BLUE",
+  "text": "Stain: NEW_METHYLENE_BLUE\n  use: Reticulocyte count, Heinz bodies, blood parasites (quick)\n  results: Reticulocytes show blue RNA network\n  clinical: Haemolytic anaemia, G6PD — Heinz bodies (denatured Hb)"
+ },
+ {
+  "kind": "MEDIA",
+  "key": "BLOOD_AGAR",
+  "text": "Culture medium BLOOD_AGAR:\n  type: general (enriched)\n  base: Trypticase Soy\n  supplement: 5% sheep blood\n  use: All specimens — general isolation\n  temp: 35°C\n  atm: aerobic/5% CO2\n  colonies: {'S.aureus': 'golden-yellow, beta-haemolysis', 'S.pneumoniae': 'alpha-haemolysis, draughtsman', 'GAS': 'beta-haemolysis, small', 'E.coli': 'large grey, no haemolysis'}\n  selectivity: non-selective (grows all organisms)"
+ },
+ {
+  "kind": "MEDIA",
+  "key": "CHOCOLATE_AGAR",
+  "text": "Culture medium CHOCOLATE_AGAR:\n  type: enriched (heated blood)\n  supplement: heated (lysed) blood\n  use: Haemophilus influenzae (needs X+V factors), Neisseria gonorrhoeae/meningitidis\n  temp: 35°C\n  atm: 5-10% CO2\n  notes: Heated blood releases hemin (X factor) and NAD (V factor)"
+ },
+ {
+  "kind": "MEDIA",
+  "key": "MACCONKEY",
+  "text": "Culture medium MACCONKEY:\n  type: selective-differential\n  inhibitor: bile salts + crystal violet (Gram+)\n  use: Gram-negative rod isolation\n  indicator: neutral red (pH)\n  colonies: {'E.coli': 'PINK/RED (lactose fermenter)', 'Klebsiella': 'PINK/mucoid', 'Salmonella': 'COLORLESS (non-fermenter)', 'Shigella': 'COLORLESS', 'Pseudomonas': 'COLORLESS, flat'}\n  selectivity: inhibits Gram-positive organisms"
+ },
+ {
+  "kind": "MEDIA",
+  "key": "CLED",
+  "text": "Culture medium CLED:\n  type: selective-differential (cystine-lactose-electrolyte-deficient)\n  use: Urine culture — counts CFU/mL, differentiates organisms\n  colonies: {'E.coli': 'YELLOW (lactose+)', 'Klebsiella': 'YELLOW mucoid', 'Proteus': 'translucent blue (no swarming on CLED!)', 'Enterococcus': 'YELLOW small'}\n  notes: Prevents Proteus swarming unlike BAP"
+ },
+ {
+  "kind": "MEDIA",
+  "key": "MANNITOL_SALT",
+  "text": "Culture medium MANNITOL_SALT:\n  type: selective-differential\n  inhibitor: 7.5% NaCl (halophilic)\n  use: Staphylococcus isolation and differentiation\n  colonies: {'S.aureus': 'YELLOW (mannitol fermentation)', 'S.epidermidis': 'PINK/RED (non-fermenter)'}"
+ },
+ {
+  "kind": "MEDIA",
+  "key": "SABOURAUD_DEXTROSE",
+  "text": "Culture medium SABOURAUD_DEXTROSE:\n  type: selective (fungal)\n  pH: 5.6 (acidic — inhibits bacteria)\n  use: Fungi: Candida, Aspergillus, Dermatophytes\n  temp: 25-30°C (room temp)\n  incubation: 7-21 days\n  colonies: {'Candida albicans': 'white/cream pasty', 'Aspergillus': 'grey-green with powdery top', 'Dermatophytes': 'fluffy/cottony'}"
+ },
+ {
+  "kind": "MEDIA",
+  "key": "LOWENSTEIN_JENSEN",
+  "text": "Culture medium LOWENSTEIN_JENSEN:\n  type: selective (mycobacterial)\n  base: egg + glycerol + malachite green\n  use: Mycobacterium tuberculosis culture (solid)\n  temp: 37°C\n  incubation: 6-8 weeks\n  colonies: {'MTB': 'rough, crumbly, cream/buff coloured (after 3-8 weeks)', 'NTM': 'faster growing, pigmented'}"
+ },
+ {
+  "kind": "MEDIA",
+  "key": "MGIT",
+  "text": "Culture medium MGIT:\n  type: liquid broth (BACTEC MGIT 960)\n  use: Rapid TB culture + DST\n  time: 7-42 days (vs 6-8 weeks on LJ)\n  fluorescent: O2-sensitive fluorochrome\n  notes: WHO recommended first-line TB culture method. Auto-signals positivity."
+ },
+ {
+  "kind": "MEDIA",
+  "key": "TCBS",
+  "text": "Culture medium TCBS:\n  type: selective-differential (thiosulfate-citrate-bile-sucrose)\n  use: Vibrio species\n  inhibitor: bile salts inhibit most organisms\n  colonies: {'V.cholerae': 'YELLOW (sucrose+)', 'V.parahaemolyticus': 'BLUE-GREEN (sucrose-)'}"
+ },
+ {
+  "kind": "MEDIA",
+  "key": "XLD",
+  "text": "Culture medium XLD:\n  type: selective-differential (xylose-lysine-deoxycholate)\n  use: Salmonella/Shigella from stool\n  colonies: {'Salmonella': 'PINK/RED with BLACK centre (H2S)', 'Shigella': 'PINK/RED, no black', 'E.coli': 'YELLOW (xylose+)'}"
+ },
+ {
+  "kind": "MEDIA",
+  "key": "MUELLER_HINTON",
+  "text": "Culture medium MUELLER_HINTON:\n  type: non-selective (AST standard)\n  use: Antibiotic susceptibility disk diffusion (Kirby-Bauer)\n  temp: 35°C\n  atm: aerobic\n  notes: WHO/CLSI standard for disk diffusion. Standardised depth 4mm."
+ },
+ {
+  "kind": "MEDIA",
+  "key": "THAYER_MARTIN",
+  "text": "Culture medium THAYER_MARTIN:\n  type: selective (modified chocolate agar)\n  inhibitors: VCN (vancomycin, colistin, nystatin)\n  use: Neisseria gonorrhoeae isolation from genital specimens\n  temp: 35°C\n  atm: 5% CO2"
+ },
+ {
+  "kind": "MEDIA",
+  "key": "CAMPY_AGAR",
+  "text": "Culture medium CAMPY_AGAR:\n  type: selective (Campylobacter)\n  temp: 42°C (selective!)\n  atm: microaerophilic (5% O2)\n  use: Campylobacter from stool\n  incubation: 48-72h\n  colonies: {'Campylobacter': 'grey/flat, spreading, oxidase+'}"
+ },
+ {
+  "kind": "MEDIA",
+  "key": "CHROMAGAR",
+  "text": "Culture medium CHROMAGAR:\n  type: chromogenic (colour-producing)\n  use: Candida species ID, MRSA screening, VRE\n  colonies: {'C.albicans': 'GREEN', 'C.tropicalis': 'BLUE/METALLIC', 'C.krusei': 'PINK FUZZY', 'MRSA': 'MAUVE/PINK on MRSA chromagar'}"
+ },
+ {
+  "kind": "CRITICAL",
+  "key": "GLUCOSE",
+  "text": "Critical values for GLUCOSE: {'low_critical': 2.2, 'high_critical': 22.2, 'unit': 'mmol/L', 'action': 'IV dextrose if <2.2; insulin if >22.2'}"
+ },
+ {
+  "kind": "CRITICAL",
+  "key": "POTASSIUM",
+  "text": "Critical values for POTASSIUM: {'low_critical': 2.8, 'high_critical': 6.5, 'unit': 'mmol/L', 'action': 'ECG monitoring; IV KCl if <2.8; urgent treatment if >6.5'}"
+ },
+ {
+  "kind": "CRITICAL",
+  "key": "SODIUM",
+  "text": "Critical values for SODIUM: {'low_critical': 120, 'high_critical': 160, 'unit': 'mmol/L', 'action': 'Seizure risk <120; slow correction; neurological monitoring'}"
+ },
+ {
+  "kind": "CRITICAL",
+  "key": "CALCIUM",
+  "text": "Critical values for CALCIUM: {'low_critical': 1.75, 'high_critical': 3.5, 'unit': 'mmol/L', 'action': 'IV calcium gluconate if <1.75; IV fluids + bisphosphonate if >3.5'}"
+ },
+ {
+  "kind": "CRITICAL",
+  "key": "HAEMOGLOBIN",
+  "text": "Critical values for HAEMOGLOBIN: {'low_critical': 7.0, 'high_critical': None, 'unit': 'g/dL', 'action': 'Consider transfusion if symptomatic'}"
+ },
+ {
+  "kind": "CRITICAL",
+  "key": "PLATELETS",
+  "text": "Critical values for PLATELETS: {'low_critical': 20, 'high_critical': None, 'unit': '×10⁹/L', 'action': 'Platelet transfusion if <10-20 or bleeding'}"
+ },
+ {
+  "kind": "CRITICAL",
+  "key": "TROPONIN",
+  "text": "Critical values for TROPONIN: {'low_critical': None, 'high_critical': 0.04, 'unit': 'ng/mL', 'action': 'ECG, urgent cardiology consult — ACS until proved otherwise'}"
+ },
+ {
+  "kind": "CRITICAL",
+  "key": "CREATININE",
+  "text": "Critical values for CREATININE: {'low_critical': None, 'high_critical': 884, 'unit': 'µmol/L', 'action': 'Urgent nephrology — consider dialysis'}"
+ },
+ {
+  "kind": "CRITICAL",
+  "key": "BICARBONATE",
+  "text": "Critical values for BICARBONATE: {'low_critical': 10, 'high_critical': 40, 'unit': 'mmol/L', 'action': 'ABG, treat underlying cause — DKA vs COPD'}"
+ },
+ {
+  "kind": "CRITICAL",
+  "key": "INR",
+  "text": "Critical values for INR: {'low_critical': None, 'high_critical': 5.0, 'unit': 'ratio', 'action': 'Hold anticoagulant; Vitamin K or FFP if bleeding'}"
+ }
+]

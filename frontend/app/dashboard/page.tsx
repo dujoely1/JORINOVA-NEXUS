@@ -19,10 +19,14 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../contexts/AuthProvider'
+import { useT } from '../contexts/I18nProvider'
+import type { TKey } from '../lib/i18n'
 import RequireAuth from '../components/RequireAuth'
 import AppShell from '../components/AppShell'
+import Logo from '../components/Logo'
+import VoiceMic from '../components/VoiceMic'
 
-const API         = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API         = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 const NEXUS_BLUE  = '#0066CC'
 const MIL_GREEN   = '#4B5320'
 const MIL_GREEN_DK= '#3A4019'
@@ -31,16 +35,57 @@ const GOLD_DK     = '#A6800F'
 
 // ── Module + demo definitions ───────────────────────────────────────────────
 
-const CLINICAL_MODULES = [
-  { key: 'laboratory',    label: 'Laboratory',     icon: '🧪', desc: 'Results, worklists, validation',     href: '/modules/laboratory' },
-  { key: 'patients',      label: 'Patients',       icon: '👤', desc: 'Registry, demographics, history',    href: '/modules/patients' },
-  { key: 'billing',       label: 'Billing & MoMo', icon: '💳', desc: 'Invoices, MoMo, insurance',          href: '/modules/billing' },
-  { key: 'inventory',     label: 'Inventory',      icon: '📦', desc: 'Stock levels, reorder triggers',     href: '/modules/inventory' },
-  { key: 'blood_bank',    label: 'Blood Bank',     icon: '🩸', desc: 'Chamber/slot, crossmatch',           href: '/modules/blood_bank' },
-  { key: 'ai_nexus',      label: 'AI Nexus',       icon: '🤖', desc: 'Hybrid AI assistant',                href: '/modules/ai_nexus' },
-  { key: 'notifications', label: 'Notifications',  icon: '🔔', desc: 'SMS, escalations',                   href: '/modules/notifications' },
-  { key: 'audit',         label: 'Audit',          icon: '📋', desc: 'PQC signatures, compliance',         href: '/modules/audit' },
-] as const
+// Departments grouped by category. Each item carries i18n keys so the labels
+// localise automatically when the user switches language.
+
+type ModItem = { key: string; nameKey: TKey; icon: string; href: string }
+type ModGroup = { titleKey: TKey; accent: string; items: ModItem[] }
+
+const MODULE_GROUPS: readonly ModGroup[] = [
+  {
+    titleKey: 'dash.group.intake', accent: '#0066CC',
+    items: [
+      { key: 'patients',     nameKey: 'nav.patients',    icon: '👤', href: '/modules/patients' },
+      { key: 'lis_mapping',  nameKey: 'nav.lis_mapping', icon: '📄', href: '/modules/lis_mapping' },
+      { key: 'register',     nameKey: 'nav.register',    icon: '📚', href: '/modules/register' },
+    ],
+  },
+  {
+    titleKey: 'dash.group.clinical', accent: '#0F766E',
+    items: [
+      { key: 'laboratory',   nameKey: 'nav.laboratory',  icon: '🧪', href: '/modules/laboratory' },
+      { key: 'biochemistry', nameKey: 'nav.biochem',     icon: '🧫', href: '/modules/biochemistry' },
+      { key: 'microbiology', nameKey: 'nav.micro',       icon: '🦠', href: '/modules/microbiology' },
+      { key: 'serology',     nameKey: 'nav.serology',    icon: '🩸', href: '/modules/serology' },
+      { key: 'molecular',    nameKey: 'nav.molecular',   icon: '🧬', href: '/modules/molecular_advanced' },
+      { key: 'anapath',      nameKey: 'nav.anapath',     icon: '🔭', href: '/modules/anapath' },
+      { key: 'toxicology',   nameKey: 'nav.toxicology',  icon: '☠️', href: '/modules/toxicology' },
+      { key: 'blood_bank',   nameKey: 'nav.blood_bank',  icon: '🩸', href: '/modules/blood_bank' },
+    ],
+  },
+  {
+    titleKey: 'dash.group.ops', accent: '#D4A017',
+    items: [
+      { key: 'quality',      nameKey: 'nav.quality',      icon: '📐', href: '/modules/quality' },
+      { key: 'surveillance', nameKey: 'nav.surveillance', icon: '🔭', href: '/modules/surveillance' },
+      { key: 'inventory',    nameKey: 'nav.inventory',    icon: '📦', href: '/modules/inventory' },
+      { key: 'billing',      nameKey: 'nav.billing',      icon: '💳', href: '/modules/billing' },
+      { key: 'staffhub',     nameKey: 'nav.staffhub',     icon: '🧑‍⚕️', href: '/modules/staffhub' },
+      { key: 'connectivity', nameKey: 'nav.connectivity', icon: '🌐', href: '/modules/connectivity' },
+    ],
+  },
+  {
+    titleKey: 'dash.group.intel', accent: '#A855F7',
+    items: [
+      { key: 'ai_nexus',      nameKey: 'nav.ai_nexus',      icon: '🤖', href: '/modules/ai_nexus' },
+      { key: 'notifications', nameKey: 'nav.notifications', icon: '🔔', href: '/modules/notifications' },
+      { key: 'audit',         nameKey: 'nav.audit',         icon: '📋', href: '/modules/audit' },
+      { key: 'admin',         nameKey: 'nav.admin',         icon: '🛡️', href: '/admin' },
+      { key: 'settings',      nameKey: 'nav.settings',      icon: '⚙️', href: '/modules/settings' },
+      { key: 'help-support',  nameKey: 'nav.help',          icon: '🎓', href: '/modules/help-support' },
+    ],
+  },
+]
 
 const TRAINING_SCENES = [
   { id: 'iot_analyzer_intake_demo',   title: 'IoT analyzer ingestion',  tag: 'Vendor-neutral',  icon: '⚡' },
@@ -53,9 +98,9 @@ const TRAINING_SCENES = [
 ] as const
 
 const REAL_FEATURE_LINKS = [
-  { label: 'LIS Auto-Mapping (live)', href: '/modules/lis_mapping',     icon: '🔎', desc: 'Upload a real form → mapped LabRequest' },
-  { label: 'Training scenarios',       href: '/modules/training',        icon: '🎓', desc: 'Run any voice-narrated demo scene' },
-  { label: 'Zero-touch demo',          href: '/modules/zero_touch_demo', icon: '🔁', desc: 'End-to-end OCR pipeline showcase' },
+  { label: 'LIS Auto-Mapping',         href: '/modules/lis_mapping',     icon: '🔎', desc: 'Scan lab form → auto-mapped LabRequest' },
+  { label: 'AI image upload',          href: '/modules/ai_nexus',        icon: '📷', desc: 'Microscopy / slide image → AI reads it' },
+  { label: 'Laboratory Registers',     href: '/modules/register',        icon: '📚', desc: '42 books · auto-archive · amendments' },
 ] as const
 
 // ── Types ───────────────────────────────────────────────────────────────────
@@ -102,6 +147,7 @@ export default function DashboardPage() {
 function DashboardInner() {
   const { user } = useAuth()
   const router = useRouter()
+  const t = useT()
 
   const [stats,           setStats]           = useState<Stats | null>(null)
   const [feed,            setFeed]            = useState<FeedItem[]>([])
@@ -169,15 +215,21 @@ function DashboardInner() {
         }}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-7 text-center space-y-3">
-          <h1
-            className="text-2xl sm:text-3xl font-extrabold tracking-wide"
-            style={{
-              color: '#A6C97A',                     // brighter olive-green for dark BG
-              textShadow: '0 0 24px rgba(166,201,122,0.35), 0 1px 0 rgba(0,0,0,0.4)',
-            }}
-          >
-            WELCOME, {user?.first_name?.toUpperCase() || user?.username?.toUpperCase()}
-          </h1>
+          <div className="flex flex-col items-center gap-3">
+            <Logo size={88} className="ring-2 ring-sky-400/40 shadow-xl" />
+            <div className="flex items-center justify-center gap-3 flex-wrap">
+              <h1
+                className="text-2xl sm:text-3xl font-extrabold tracking-wide"
+                style={{
+                  color: '#A6C97A',                     // brighter olive-green for dark BG
+                  textShadow: '0 0 24px rgba(166,201,122,0.35), 0 1px 0 rgba(0,0,0,0.4)',
+                }}
+              >
+                {t('dash.welcome', { name: (user?.first_name?.toUpperCase() || user?.username?.toUpperCase() || '') })}
+              </h1>
+              <VoiceMic />
+            </div>
+          </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1">
             <p
               className="text-lg sm:text-xl font-extrabold italic"
@@ -186,7 +238,7 @@ function DashboardInner() {
                 textShadow: '0 0 18px rgba(255,217,112,0.35), 0 1px 0 rgba(0,0,0,0.4)',
               }}
             >
-              Smart data. Safer health.
+              {t('dash.tagline')}
             </p>
             <span
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider"
@@ -201,7 +253,7 @@ function DashboardInner() {
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 <path d="M9 12l2 2 4-4" />
               </svg>
-              Post-quantum cryptography
+              {t('dash.pqc')}
             </span>
           </div>
         </div>
@@ -211,19 +263,22 @@ function DashboardInner() {
 
         {/* ── KPI tiles ──────────────────────────────────────────────────── */}
         <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <KpiTile label="Requests today"   value={stats?.lab_requests.today ?? '—'}        accent={NEXUS_BLUE}  hint={`${stats?.lab_requests.week ?? 0} this week`} />
-          <KpiTile label="Validated today"  value={stats?.lab_requests.validated_today ?? '—'} accent="#0F766E"      hint={`${stats?.results.entered_today ?? 0} results entered`} />
-          <KpiTile label="Critical results" value={stats?.results.critical_today ?? '—'}    accent="#B91C1C"     hint="HH / LL flags today" />
-          <KpiTile label="Pending"          value={stats?.lab_requests.pending ?? '—'}      accent="#B45309"     hint={`${stats?.lab_requests.stat_today ?? 0} STAT today`} />
+          <KpiTile label={t('dash.kpi.requests')}  value={stats?.lab_requests.today ?? '—'}            accent={NEXUS_BLUE} hint={t('dash.kpi.this_week', { n: stats?.lab_requests.week ?? 0 })} />
+          <KpiTile label={t('dash.kpi.validated')} value={stats?.lab_requests.validated_today ?? '—'} accent="#0F766E"     hint={t('dash.kpi.entered', { n: stats?.results.entered_today ?? 0 })} />
+          <KpiTile label={t('dash.kpi.critical')}  value={stats?.results.critical_today ?? '—'}       accent="#B91C1C"     hint={t('dash.kpi.flags')} />
+          <KpiTile label={t('dash.kpi.pending')}   value={stats?.lab_requests.pending ?? '—'}         accent="#B45309"     hint={t('dash.kpi.stat', { n: stats?.lab_requests.stat_today ?? 0 })} />
         </section>
+
+        {/* ── AI briefing: what to do today + outbreak / critical alerts ─ */}
+        <AIBriefing stats={stats} feed={feed} />
 
         {/* ── Smart sample routing ──────────────────────────────────────── */}
         <section className="rounded-xl border bg-slate-900/60 backdrop-blur p-5 shadow-sm" style={{ borderColor: `${NEXUS_BLUE}30` }}>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-bold tracking-wide text-sky-300">
-              SMART SAMPLE ROUTING
+              {t('dash.routing.title')}
             </h2>
-            <span className="text-[11px] text-slate-400">Barcode → auto-pick destination department(s)</span>
+            <span className="text-[11px] text-slate-400">{t('dash.routing.hint')}</span>
           </div>
           <form onSubmit={handleScan} className="flex gap-2">
             <input
@@ -268,10 +323,10 @@ function DashboardInner() {
         <section>
           <div className="flex items-baseline justify-between mb-3">
             <h2 className="text-sm font-bold tracking-wide text-sky-300">
-              VOICE-NARRATED DEMOS
+              {t('dash.demos.title')}
             </h2>
-            <Link href="/modules/training" className="text-xs font-medium hover:underline" className="text-sky-300">
-              All scenarios →
+            <Link href="/modules/training" className="text-xs font-medium hover:underline text-sky-300">
+              {t('dash.demos.all')}
             </Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -296,32 +351,37 @@ function DashboardInner() {
           </div>
         </section>
 
-        {/* ── Clinical modules grid ─────────────────────────────────────── */}
-        <section>
-          <h2 className="text-sm font-bold tracking-wide mb-3 text-sky-300">
-            CLINICAL MODULES
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {CLINICAL_MODULES.map(m => (
-              <button
-                key={m.key}
-                onClick={() => router.push(m.href)}
-                className="text-left rounded-xl bg-slate-900/60 backdrop-blur border border-slate-700/60 p-3 transition-all hover:border-sky-400/60 hover:bg-slate-900/80"
-                style={{ boxShadow: '0 0 14px rgba(56,189,248,0.05)' }}
-              >
-                <div className="text-2xl mb-1">{m.icon}</div>
-                <div className="font-semibold text-sm text-slate-100">{m.label}</div>
-                <div className="text-[11px] text-slate-400 mt-0.5">{m.desc}</div>
-              </button>
-            ))}
-          </div>
-        </section>
+        {/* ── All modules grouped by category ───────────────────────────── */}
+        {MODULE_GROUPS.map(group => (
+          <section key={group.titleKey}>
+            <h2 className="text-sm font-bold tracking-wide mb-3 uppercase"
+                style={{ color: group.accent, textShadow: `0 0 14px ${group.accent}55` }}>
+              {t(group.titleKey)}
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {group.items.map(m => (
+                <button
+                  key={m.key}
+                  onClick={() => router.push(m.href)}
+                  className="text-left rounded-xl bg-slate-900/60 backdrop-blur border p-3 transition-all hover:bg-slate-900/80"
+                  style={{
+                    borderColor: `${group.accent}30`,
+                    boxShadow: `0 0 14px ${group.accent}0F`,
+                  }}
+                >
+                  <div className="text-2xl mb-1">{m.icon}</div>
+                  <div className="font-semibold text-sm text-slate-100">{t(m.nameKey)}</div>
+                </button>
+              ))}
+            </div>
+          </section>
+        ))}
 
         {/* ── Activity feed ─────────────────────────────────────────────── */}
         {feed.length > 0 && (
           <section className="rounded-xl border bg-slate-900/60 backdrop-blur p-5 shadow-sm" style={{ borderColor: `${NEXUS_BLUE}30` }}>
             <h2 className="text-sm font-bold tracking-wide mb-3 text-sky-300">
-              RECENT ACTIVITY
+              {t('dash.recent')}
             </h2>
             <div className="space-y-1.5">
               {feed.map(f => (
@@ -399,6 +459,97 @@ function DashboardInner() {
 
 
 // ── Bits ────────────────────────────────────────────────────────────────────
+
+// ── AI briefing widget ─────────────────────────────────────────────────────
+// Reads the current dashboard stats + activity feed and surfaces the
+// 3 most actionable things the user should do right now. Also flashes a
+// red banner for any STAT request or critical-flagged result so a clinician
+// can react immediately on opening the system.
+
+function AIBriefing({
+  stats, feed,
+}: { stats: Stats | null; feed: FeedItem[] }) {
+  const t = useT()
+  const todos: { icon: string; text: string; href?: string }[] = []
+  const statCount   = feed.filter(f => f.emergency_level === 'stat').length
+  const urgentCount = feed.filter(f => f.emergency_level === 'urgent').length
+
+  if (stats?.results.critical_today && stats.results.critical_today > 0) {
+    const n = stats.results.critical_today
+    todos.push({
+      icon: '🚨',
+      text: t('dash.briefing.criticals', { n, s: n > 1 ? 's' : '' }),
+      href: '/modules/register',
+    })
+  }
+  if (stats?.lab_requests.stat_today && stats.lab_requests.stat_today > 0) {
+    const n = stats.lab_requests.stat_today
+    todos.push({
+      icon: '⚡',
+      text: t('dash.briefing.stat', { n, s: n > 1 ? 's' : '' }),
+      href: '/modules/laboratory',
+    })
+  }
+  if (stats?.lab_requests.pending && stats.lab_requests.pending > 0) {
+    const n = stats.lab_requests.pending
+    todos.push({
+      icon: '⏳',
+      text: t('dash.briefing.pending', { n, s: n > 1 ? 's' : '' }),
+      href: '/modules/laboratory',
+    })
+  }
+  if (todos.length === 0) {
+    todos.push({ icon: '✅', text: t('dash.briefing.allgood'), href: '/modules/register' })
+  }
+
+  const hasAlarm = statCount > 0 || (stats?.results.critical_today ?? 0) > 0
+
+  return (
+    <section
+      className="rounded-xl border bg-slate-900/60 backdrop-blur p-5"
+      style={{
+        borderColor: hasAlarm ? 'rgba(220,38,38,0.55)' : 'rgba(56,189,248,0.30)',
+        boxShadow:   hasAlarm ? '0 0 28px rgba(220,38,38,0.20)' : '0 0 22px rgba(56,189,248,0.08)',
+      }}
+    >
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <h2 className="text-sm font-bold tracking-wide flex items-center gap-2"
+            style={{ color: hasAlarm ? '#FCA5A5' : '#7DD3FC' }}>
+          <span className="text-xl">{hasAlarm ? '🚨' : '🤖'}</span>
+          {t('dash.briefing.title')}
+        </h2>
+        {(statCount > 0 || urgentCount > 0) && (
+          <div className="flex items-center gap-2 text-xs">
+            {statCount > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-200 border border-rose-400/40 font-bold animate-pulse">
+                {statCount} STAT
+              </span>
+            )}
+            {urgentCount > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/40 font-bold">
+                {urgentCount} URGENT
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+      <ol className="space-y-2">
+        {todos.map((item, i) => (
+          <li key={i}>
+            <Link
+              href={item.href || '/dashboard'}
+              className="flex items-start gap-3 rounded-lg px-3 py-2 bg-slate-800/50 border border-slate-700 hover:border-sky-400/50 hover:bg-slate-800/80 transition-colors"
+            >
+              <span className="text-lg leading-none mt-0.5">{item.icon}</span>
+              <span className="flex-1 text-sm text-slate-200">{item.text}</span>
+              <span className="text-slate-500 text-sm">→</span>
+            </Link>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
 
 function KpiTile({
   label, value, accent, hint,

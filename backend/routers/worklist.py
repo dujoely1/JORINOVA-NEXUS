@@ -450,24 +450,32 @@ def record_print(
 def label_pdf(
     entry_id: int,
     copies:   int     = Query(1, ge=1, le=10),
+    format:   str     = Query('tube', pattern='^(tube|slide)$',
+                              description='tube = 57×32mm specimen label, slide = 25×18mm microscopy-slide label'),
     db:       Session = Depends(get_db),
     user:     User    = Depends(get_current_user),
 ):
-    """Download thermal-format specimen label PDF (57mm × 32mm per label)."""
+    """Download a label PDF: thermal specimen label (57×32mm) or, with
+    `?format=slide`, a microscopy-slide label (25×18mm) for the frosted end."""
     from services.worklist_service import build_label_data, record_label_printed
-    from services.pdf_reports import generate_specimen_label
+    from services.pdf_reports import generate_specimen_label, generate_slide_label
 
     try:
         data = build_label_data(db, entry_id)
     except ValueError as e:
         raise HTTPException(404, str(e))
 
-    pdf_bytes = generate_specimen_label(data, copies=copies)
-    record_label_printed(db, entry_id, data.get('label_type', 'TUBE'), user.id)
+    if format == 'slide':
+        pdf_bytes  = generate_slide_label(data, copies=copies)
+        label_kind = 'SLIDE'
+    else:
+        pdf_bytes  = generate_specimen_label(data, copies=copies)
+        label_kind = data.get('label_type', 'TUBE')
+    record_label_printed(db, entry_id, label_kind, user.id)
     db.commit()
 
     sid      = data.get('sid', 'label')
-    filename = f'NEXUS_Label_{sid}.pdf'
+    filename = f'NEXUS_{label_kind}_Label_{sid}.pdf'
     return Response(
         content=pdf_bytes,
         media_type='application/pdf',

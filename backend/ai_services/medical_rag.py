@@ -29,6 +29,7 @@ from typing import Optional
 from ai_services import local_llm
 from ai_services.schemas import AIResponse
 from ai_services import medical_knowledge as mk
+from ai_services import rag_embed
 
 
 # ── Build a flat chunk index once at import time ────────────────────────────
@@ -141,8 +142,8 @@ def _query_kw(query: str) -> set[str]:
 
 # ── Retrieval ───────────────────────────────────────────────────────────────
 
-def retrieve(query: str, k: int = 5) -> list[dict]:
-    """Return the top-k chunks whose keyword set overlaps the query."""
+def retrieve_keyword(query: str, k: int = 5) -> list[dict]:
+    """Top-k chunks by keyword overlap with the query (the original retriever)."""
     qk = _query_kw(query)
     if not qk:
         return []
@@ -154,6 +155,29 @@ def retrieve(query: str, k: int = 5) -> list[dict]:
             scored.append((overlap, c))
     scored.sort(key=lambda x: -x[0])
     return [c for _, c in scored[:k]]
+
+
+def retrieve(query: str, k: int = 5) -> list[dict]:
+    """
+    Hybrid retriever: try semantic (embeddings) first, fall back to keyword.
+
+    Returns dicts shaped {kind, key, text, ...} with an optional 'score'
+    field on embedding hits. Callers don't need to know which path ran.
+
+    Embedding path is used when:
+      - rag_embed index artefacts exist on disk
+      - sentence-transformers + numpy are installed
+      - the embedding retriever returns at least one chunk above threshold
+
+    Otherwise we transparently fall back to the keyword retriever.
+    """
+    embed_hits = rag_embed.retrieve_embed(query, k=k)
+    if embed_hits:                          # at least one match above threshold
+        return embed_hits
+    if embed_hits is None:                  # subsystem off (no deps / no index)
+        return retrieve_keyword(query, k=k)
+    # embed returned [] (everything below min_score) — keyword as a second chance
+    return retrieve_keyword(query, k=k)
 
 
 # ── Generation ──────────────────────────────────────────────────────────────

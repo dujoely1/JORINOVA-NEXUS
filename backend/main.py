@@ -22,6 +22,14 @@ from jinja2 import BaseLoader, Environment, FileSystemLoader, TemplateNotFound
 # ── Ensure backend is on sys.path ──────────────────────────────────────────────
 sys.path.insert(0, str(Path(__file__).parent))
 
+# Force UTF-8 console so emoji / accented chars in log lines (☎ 🚨 — etc.) never
+# crash logging on a Windows cp1252 terminal.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding='utf-8')   # type: ignore[attr-defined]
+    except Exception:
+        pass
+
 from core.config import get_settings
 from core.database import create_all_tables
 from core.security import hash_password
@@ -432,7 +440,7 @@ app.add_middleware(
     allow_origins=_ALLOWED_ORIGINS if not settings.debug else ['*'],
     allow_credentials=True,
     allow_methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allow_headers=['Authorization', 'Content-Type', 'X-Request-ID'],
+    allow_headers=['Authorization', 'Content-Type', 'X-Request-ID', 'Accept-Language', 'X-Lang'],
     expose_headers=['X-Request-ID'],
     max_age=600,
 )
@@ -569,6 +577,9 @@ _ROUTERS = [
     ('routers.microbiology',    'router'),
     ('routers.molecular',       'router'),
     ('routers.biochemistry',    'router'),
+    ('routers.anapath',         'router'),
+    ('routers.toxicology',      'router'),
+    ('routers.molecular_advanced', 'router'),
     ('routers.blood_bank',      'router'),
     # Operations
     ('routers.inventory',       'router'),
@@ -578,6 +589,9 @@ _ROUTERS = [
     ('routers.dashboard',       'router'),
     ('routers.reports',         'router'),
     ('routers.records',         'router'),
+    ('routers.amendments',      'router'),
+    ('routers.reception',       'router'),
+    ('routers.shift_handover',  'router'),
     ('routers.notifications',   'router'),
     ('routers.audit',           'router'),
     ('routers.interoperability','router'),
@@ -602,6 +616,8 @@ _ROUTERS = [
     ('routers.billing',          'router'),
     # Production voice AI assistant
     ('routers.voice_assistant',  'router'),
+    # Staff Mobile Hub — Android companion app backend
+    ('routers.staff_mobile',     'router'),
 ]
 
 for _mod, _attr in _ROUTERS:
@@ -862,17 +878,33 @@ def health():
     return {'status': 'ok', 'app': settings.app_name, 'version': settings.app_version}
 
 
-# ── Error handlers ────────────────────────────────────────────────────────────
+# ── Error handlers (with French / Kinyarwanda localization) ───────────────────
 
-@app.exception_handler(404)
-async def not_found(_req: Request, _exc):
-    return JSONResponse({'detail': 'Not found'}, status_code=404)
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from core.api_i18n import lang_from_request, translate_detail
 
 
-@app.exception_handler(500)
-async def server_error(_req: Request, exc: Exception):
-    logger.error(f'500 error: {exc}')
-    return JSONResponse({'detail': 'Internal server error'}, status_code=500)
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    """Localize the `detail` of any HTTPException to the request language,
+    preserving the status code and headers (e.g. WWW-Authenticate on 401)."""
+    lang   = lang_from_request(request)
+    detail = translate_detail(exc.detail, lang)
+    return JSONResponse(
+        {'detail': detail},
+        status_code=exc.status_code,
+        headers=getattr(exc, 'headers', None),
+    )
+
+
+@app.exception_handler(Exception)
+async def server_error(request: Request, exc: Exception):
+    logger.error(f'Unhandled error: {exc}')
+    lang = lang_from_request(request)
+    return JSONResponse(
+        {'detail': translate_detail('Internal server error', lang)},
+        status_code=500,
+    )
 
 
 # ---------------------------

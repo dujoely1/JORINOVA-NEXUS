@@ -13,6 +13,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import RequireAuth from '../../components/RequireAuth'
 import AppShell    from '../../components/AppShell'
+import { useT } from '../../contexts/I18nProvider'
 
 const MODULES: Record<string, { label: string; icon: string; desc: string }> = {
   dashboard:     { label: 'Dashboard',        icon: '🏠', desc: 'System overview & KPIs' },
@@ -30,6 +31,7 @@ const NEXUS_BLUE = '#0066CC'
 const MIL_GREEN  = '#4B5320'
 
 export default function ModulePage() {
+  const t = useT()
   const params = useParams<{ key: string }>()
   const router = useRouter()
   const key    = params?.key ?? ''
@@ -45,16 +47,14 @@ export default function ModulePage() {
               {(module?.label ?? key).toUpperCase()}
             </h1>
             <p className="mt-2 text-sm text-zinc-600">
-              {module?.desc ?? 'This section will be implemented next.'}
+              {module?.desc ?? t('ph.next')}
             </p>
 
             {/* Placeholder body */}
             <div className="mt-6 rounded-lg p-4" style={{ background: '#F0F7FF', border: `1px solid ${NEXUS_BLUE}20` }}>
-              <div className="text-sm font-semibold text-zinc-900">Module under build</div>
+              <div className="text-sm font-semibold text-zinc-900">{t('ph.under_build')}</div>
               <div className="text-sm text-zinc-600 mt-1">
-                Backend models and API endpoints for this module already exist. The
-                front-end view is the next step — coming in the same visual
-                language as the rest of the system.
+                {t('ph.body')}
               </div>
             </div>
 
@@ -65,13 +65,13 @@ export default function ModulePage() {
                 className="px-4 py-2 rounded-lg text-white font-medium"
                 style={{ background: NEXUS_BLUE }}
               >
-                ← Back to dashboard
+                {t('ph.back_dashboard')}
               </button>
               <Link
                 href="/modules/training"
                 className="px-4 py-2 rounded-lg border border-zinc-300 text-zinc-700 hover:bg-zinc-50"
               >
-                Open a demo scene
+                {t('ph.open_demo')}
               </Link>
             </div>
           </div>

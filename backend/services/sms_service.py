@@ -35,7 +35,7 @@ TEMPLATES = {
             'Ref: {date}. ☎ {hospital_phone}'
         ),
         'rw': (
-            'NEXUS LAB: Muramutse {patient_name}, ibisubizo bya lab (No: {lid}) '
+            'NEXUS LAB: Mwaramutse {patient_name}, ibisubizo bya lab (No: {lid}) '
             'birateguye. Baza i {hospital_name}. Tarehe: {date}. ☎ {hospital_phone}'
         ),
         'fr': (
@@ -50,6 +50,16 @@ TEMPLATES = {
             '[{flag}]. IMMEDIATE action required. '
             'Contact: {hospital_name} Lab ☎ {hospital_phone}'
         ),
+        'fr': (
+            '🚨 NEXUS LAB CRITIQUE: Patient {patient_pid} — {test_name}: {value} {unit} '
+            '[{flag}]. Action IMMÉDIATE requise. '
+            'Contact: Labo {hospital_name} ☎ {hospital_phone}'
+        ),
+        'rw': (
+            '🚨 NEXUS LAB BIHUTIRWA: Umurwayi {patient_pid} — {test_name}: {value} {unit} '
+            '[{flag}]. Hakenewe igikorwa AKO KANYA. '
+            'Hamagara: Lab {hospital_name} ☎ {hospital_phone}'
+        ),
     },
 
     'otp_2fa': {
@@ -57,9 +67,13 @@ TEMPLATES = {
             'NEXUS ALIS-X: Your 2FA code is {otp}. '
             'Valid for 30 seconds. Do not share this code.'
         ),
+        'fr': (
+            'NEXUS ALIS-X: Votre code 2FA est {otp}. '
+            'Valable 30 secondes. Ne partagez pas ce code.'
+        ),
         'rw': (
             'NEXUS ALIS-X: Kode yawe ni {otp}. '
-            'Ikora amasegonda 30. Ntutangaze uwo kode.'
+            'Ikora amasegonda 30. Ntutangaze iyi kode.'
         ),
     },
 
@@ -69,6 +83,16 @@ TEMPLATES = {
             '({remaining} {unit} remaining, reorder level: {reorder_level}). '
             'Action needed: {hospital_name} Lab Manager.'
         ),
+        'fr': (
+            'NEXUS LAB ALERTE: Stock faible — {item_name} '
+            '({remaining} {unit} restant, seuil de réappro: {reorder_level}). '
+            'Action requise: responsable de laboratoire {hospital_name}.'
+        ),
+        'rw': (
+            'NEXUS LAB IMPURUZA: Ububiko buke — {item_name} '
+            '({remaining} {unit} bisigaye, urwego: {reorder_level}). '
+            'Hakenewe igikorwa: lab manager {hospital_name}.'
+        ),
     },
 
     'shift_reminder': {
@@ -76,9 +100,13 @@ TEMPLATES = {
             'NEXUS LAB: Reminder — your {shift_name} shift starts at {start_time} '
             'at {hospital_name}. Please confirm attendance.'
         ),
+        'fr': (
+            'NEXUS LAB: Rappel — votre service {shift_name} commence à {start_time} '
+            'à {hospital_name}. Veuillez confirmer votre présence.'
+        ),
         'rw': (
             'NEXUS LAB: Gutuza — akazi kawe ka {shift_name} gatangira saa {start_time} '
-            'i {hospital_name}.'
+            'i {hospital_name}. Emeza ko uzaza.'
         ),
     },
 
@@ -87,6 +115,14 @@ TEMPLATES = {
             'NEXUS ALIS-X: Your voice biometric enrollment has been approved. '
             'Voice commands are now enabled on your account. — {hospital_name}'
         ),
+        'fr': (
+            'NEXUS ALIS-X: Votre enrôlement biométrique vocal a été approuvé. '
+            'Les commandes vocales sont désormais activées sur votre compte. — {hospital_name}'
+        ),
+        'rw': (
+            "NEXUS ALIS-X: Kwiyandikisha kw'ijwi ryawe kwemejwe. "
+            "Amabwiriza y'ijwi ubu arakora kuri konti yawe. — {hospital_name}"
+        ),
     },
 
     'appointment_reminder': {
@@ -94,9 +130,13 @@ TEMPLATES = {
             'NEXUS LAB: Reminder — you have a lab appointment tomorrow at {time}. '
             'Bring your ID and insurance card. {hospital_name} ☎ {hospital_phone}'
         ),
+        'fr': (
+            'NEXUS LAB: Rappel — vous avez un rendez-vous de laboratoire demain à {time}. '
+            "Apportez votre pièce d'identité et votre carte d'assurance. {hospital_name} ☎ {hospital_phone}"
+        ),
         'rw': (
             'NEXUS LAB: Wibutse — ufite gahunda ya lab ejo saa {time}. '
-            'Zana indangamuntu n\'icyangombwa cya ubuzima bwawe.'
+            "Zana indangamuntu n'ikarita y'ubwishingizi. {hospital_name} ☎ {hospital_phone}"
         ),
     },
 }
@@ -131,34 +171,76 @@ async def send_sms(
     # Log to queue first (audit)
     await _queue_sms(db, phone, message, sms_type, patient_id, patient_pid)
 
-    # Try to send
+    # Try to send via the configured provider (SMS_PROVIDER = at | pindo).
+    provider    = (os.environ.get('SMS_PROVIDER', 'at') or 'at').strip().lower()
+    pindo_token = os.environ.get('PINDO_API_TOKEN', '')
     at_username = os.environ.get('AT_USERNAME', '')
     at_api_key  = os.environ.get('AT_API_KEY',  '')
 
-    if not at_username or not at_api_key:
-        log.warning('Africa\'s Talking not configured — SMS queued only: %s → %s', phone, message[:60])
-        return {
-            'status':     'queued',
-            'message_id': None,
-            'note':       'SMS queued (AT_USERNAME/AT_API_KEY not set in .env.production)',
-        }
+    # ── Pindo (Rwandan provider; REST, no extra package) ──────────────────────
+    if provider == 'pindo' and pindo_token:
+        try:
+            result = await _send_via_pindo(phone, message)
+            log.info('SMS sent via Pindo: %s → %s (id=%s)', phone, message[:40], result.get('message_id'))
+            await _mark_sent(db, phone, result.get('message_id'))
+            return {'status': 'sent', 'provider': 'pindo', 'message_id': result.get('message_id')}
+        except Exception as e:
+            log.error('Pindo SMS error: %s', e)
+            return {'status': 'failed', 'provider': 'pindo', 'error': str(e)}
 
-    try:
-        import africastalking
-        africastalking.initialize(at_username, at_api_key)
-        sms_client = africastalking.SMS
+    # ── Africa's Talking ──────────────────────────────────────────────────────
+    if at_username and at_api_key:
+        try:
+            import africastalking
+            africastalking.initialize(at_username, at_api_key)
+            sms_client = africastalking.SMS
+            result = await _send_via_at(sms_client, phone, message)
+            log.info('SMS sent via AT: %s → %s (id=%s)', phone, message[:40], result.get('messageId'))
+            await _mark_sent(db, phone, result.get('messageId'))
+            return {'status': 'sent', 'provider': 'at', 'message_id': result.get('messageId'), 'cost': result.get('cost')}
+        except ImportError:
+            log.error('africastalking not installed. Run: pip install africastalking')
+            return {'status': 'failed', 'error': 'africastalking not installed'}
+        except Exception as e:
+            log.error('SMS send error (AT): %s', e)
+            return {'status': 'failed', 'provider': 'at', 'error': str(e)}
 
-        result = await _send_via_at(sms_client, phone, message)
-        log.info('SMS sent: %s → %s (id=%s)', phone, message[:40], result.get('messageId'))
-        await _mark_sent(db, phone, result.get('messageId'))
-        return {'status': 'sent', 'message_id': result.get('messageId'), 'cost': result.get('cost')}
+    # ── Nothing configured — keep queued (never lost) ─────────────────────────
+    log.warning('No SMS provider configured — SMS queued only: %s → %s', phone, message[:60])
+    return {
+        'status':     'queued',
+        'message_id': None,
+        'note':       'SMS queued — set SMS_PROVIDER + provider keys in .env to deliver.',
+    }
 
-    except ImportError:
-        log.error('africastalking not installed. Run: pip install africastalking')
-        return {'status': 'failed', 'error': 'africastalking not installed'}
-    except Exception as e:
-        log.error('SMS send error: %s', e)
-        return {'status': 'failed', 'error': str(e)}
+
+async def _send_via_pindo(phone: str, message: str) -> dict:
+    """Send one SMS through the Pindo REST API using only the stdlib (no extra
+    dependency). Runs the blocking HTTP call in a thread."""
+    import asyncio
+    import json as _json
+    import urllib.request
+
+    token  = os.environ.get('PINDO_API_TOKEN', '')
+    url    = os.environ.get('PINDO_API_URL', 'https://api.pindo.io/v1/sms/')
+    sender = os.environ.get('SMS_SENDER_ID', 'NEXUSLAB') or 'NEXUSLAB'
+    payload = _json.dumps({'to': phone, 'text': message, 'sender': sender}).encode('utf-8')
+
+    def _post() -> dict:
+        req = urllib.request.Request(
+            url, data=payload, method='POST',
+            headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+        )
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            body = resp.read().decode('utf-8', 'replace')
+        try:
+            j = _json.loads(body)
+        except Exception:
+            j = {}
+        return {'message_id': j.get('sms_id') or j.get('id') or j.get('message_id'), 'raw': j}
+
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, _post)
 
 
 async def _send_via_at(sms_client, phone: str, message: str) -> dict:
@@ -310,10 +392,11 @@ async def notify_critical_value(
     flag: str,
     hospital_name: str,
     hospital_phone: str = '',
+    language: str = 'en',
     db=None,
 ) -> dict:
     """Alert clinician of a critical lab value — URGENT."""
-    template = TEMPLATES['critical_value']['en']
+    template = TEMPLATES['critical_value'].get(language, TEMPLATES['critical_value']['en'])
     message  = template.format(
         patient_pid=patient_pid, test_name=test_name,
         value=value, unit=unit, flag=flag,
@@ -341,9 +424,10 @@ async def notify_low_stock(
     unit: str,
     reorder_level: float,
     hospital_name: str,
+    language: str = 'en',
     db=None,
 ) -> dict:
-    template = TEMPLATES['low_stock']['en']
+    template = TEMPLATES['low_stock'].get(language, TEMPLATES['low_stock']['en'])
     message  = template.format(
         item_name=item_name, remaining=remaining, unit=unit,
         reorder_level=reorder_level, hospital_name=hospital_name,

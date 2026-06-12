@@ -32,15 +32,22 @@ router = APIRouter(prefix='/training', tags=['Training / AI Demo'])
 
 
 @router.get('/scenarios')
-def list_scenarios(_u: User = Depends(get_current_user)) -> dict:
+def list_scenarios(
+    lang: Literal['en', 'fr', 'rw'] = Query('en', description='UI language for titles/descriptions'),
+    _u: User = Depends(get_current_user),
+) -> dict:
     """List all scenarios (summary). Filter on the client by role."""
-    return {'scenarios': ts.list_scenarios()}
+    return {'scenarios': ts.list_scenarios(lang)}
 
 
 @router.get('/scenarios/{scenario_id}')
-def get_scenario(scenario_id: str, _u: User = Depends(get_current_user)) -> dict:
-    """Return the full scenario including step bodies."""
-    s = ts.get_scenario(scenario_id)
+def get_scenario(
+    scenario_id: str,
+    lang: Literal['en', 'fr', 'rw'] = Query('en', description='Narration language'),
+    _u: User = Depends(get_current_user),
+) -> dict:
+    """Return the full scenario including step bodies, localized to `lang`."""
+    s = ts.get_scenario(scenario_id, lang)
     if not s:
         raise HTTPException(404, f'Scenario "{scenario_id}" not found')
     return s
@@ -49,20 +56,25 @@ def get_scenario(scenario_id: str, _u: User = Depends(get_current_user)) -> dict
 # Public (no-auth) endpoints for kiosk / showcase use ──────────────────────────
 
 @router.get('/public/scenarios')
-def list_scenarios_public() -> dict:
+def list_scenarios_public(
+    lang: Literal['en', 'fr', 'rw'] = Query('en', description='UI language for titles/descriptions'),
+) -> dict:
     """No-auth list — intended for demo kiosks. Returns the same summary."""
-    return {'scenarios': ts.list_scenarios()}
+    return {'scenarios': ts.list_scenarios(lang)}
 
 
 @router.get('/public/scenarios/{scenario_id}')
-def get_scenario_public(scenario_id: str) -> dict:
+def get_scenario_public(
+    scenario_id: str,
+    lang: Literal['en', 'fr', 'rw'] = Query('en', description='Narration language'),
+) -> dict:
     """No-auth fetch — intended for demo kiosks. Also serves generated scenarios."""
     if scenario_id.startswith('gen_'):
         cached = tg.cache_get(scenario_id)
         if cached:
             return cached
         raise HTTPException(404, f'Generated scenario "{scenario_id}" expired or unknown')
-    s = ts.get_scenario(scenario_id)
+    s = ts.get_scenario(scenario_id, lang)
     if not s:
         raise HTTPException(404, f'Scenario "{scenario_id}" not found')
     return s
