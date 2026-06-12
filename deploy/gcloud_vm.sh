@@ -76,6 +76,7 @@ cat <<EOF
         nano backend/.env.production            # set secrets (DEBUG=false, DB_*, etc.)
         sudo docker compose --profile standard up -d --build
         sudo docker compose exec api-exposed python scripts/add_user_dujoely.py
-   4. Open  http://${IP}:3000   (login admin / Admin@2026)
+   4. Open  http://${IP}:3000   (login: admin / the ADMIN_PASSWORD you set,
+        or read the random one:  sudo docker compose logs api-exposed | grep -i password)
 ============================================================
 EOF

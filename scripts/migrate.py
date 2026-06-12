@@ -326,18 +326,23 @@ def _seed(settings):
         else:
             log.info('Hospital exists: %s', hospital.name)
 
-        # Admin user
+        # Admin user — password from ADMIN_PASSWORD env, else a random one logged once.
         admin = db.query(User).filter(User.username == 'admin').first()
         if not admin:
+            import os as _os, secrets as _secrets
+            _admin_pw = _os.environ.get('ADMIN_PASSWORD') or _secrets.token_urlsafe(12)
             admin = User(
                 username='admin', email='admin@alis-x.rw',
                 first_name='ALIS-X', last_name='Admin',
-                hashed_password=hash_password('Admin@2026'),
+                hashed_password=hash_password(_admin_pw),
                 role='super_admin', is_superuser=True, is_active=True,
                 hospital_id=hospital.id,
             )
             db.add(admin)
-            log.warning('Admin user created — CHANGE PASSWORD IMMEDIATELY: admin / Admin@2026')
+            if _os.environ.get('ADMIN_PASSWORD'):
+                log.warning('Admin user created: admin (password from ADMIN_PASSWORD env) — change it after first login.')
+            else:
+                log.warning('Admin user created with a RANDOM password: admin / %s — set ADMIN_PASSWORD in .env to control it.', _admin_pw)
         else:
             log.info('Admin user exists: %s', admin.username)
 

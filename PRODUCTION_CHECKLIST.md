@@ -55,7 +55,8 @@ nano backend/.env.production
 ```
 URL:      http://your-server-ip:8000/auth/login
 Username: admin
-Password: Admin@2026   ← CHANGE THIS IMMEDIATELY
+Password: the value of ADMIN_PASSWORD in .env  (or the random one printed once
+          in the server log on first run — grep the log for "password")
 ```
 
 ## Step 6: Change admin password

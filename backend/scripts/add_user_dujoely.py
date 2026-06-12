@@ -5,12 +5,15 @@ disturbing the admin account.
 Background: the `admin` account was installed with email dujoely1@gmail.com.
 Sharing one email across two users makes forgot-password ambiguous, so this
 script:
-  1. Restores admin to its documented credentials (admin@alis-x.rw / Admin@2026).
+  1. Restores admin (email admin@alis-x.rw) with the ADMIN_PASSWORD env value
+     (or a random one printed once).
   2. Creates/refreshes a separate `dujoely` super-admin that OWNS the email,
      so login AND the forgot-password (email OTP) flow both work for it.
 
 Re-run safely any time:   python scripts/add_user_dujoely.py
 """
+import os
+import secrets
 import sys
 from pathlib import Path
 
@@ -21,11 +24,14 @@ from core.security import hash_password
 from models.user import User
 from models.core_config import Hospital
 
-EMAIL          = 'dujoely1@gmail.com'
-USERNAME       = 'dujoely'
-PASSWORD       = 'Jorinova@2026'        # known login password (change after first login)
-ADMIN_EMAIL    = 'admin@alis-x.rw'
-ADMIN_PASSWORD = 'Admin@2026'
+EMAIL       = 'dujoely1@gmail.com'
+USERNAME    = 'dujoely'
+ADMIN_EMAIL = 'admin@alis-x.rw'
+
+# Passwords come from env (never hard-coded). If unset, a strong random one is
+# generated and printed ONCE so the operator can copy it.
+PASSWORD       = os.environ.get('OWNER_PASSWORD') or secrets.token_urlsafe(12)
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD') or secrets.token_urlsafe(12)
 
 
 def main() -> None:

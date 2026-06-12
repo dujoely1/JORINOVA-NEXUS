@@ -87,7 +87,10 @@ sudo docker compose exec api-exposed python scripts/add_user_dujoely.py
 ## 4. Open it
 - Web app:  `http://<EXTERNAL_IP>:3000`
 - API:      `http://<EXTERNAL_IP>:8000/api/v1/health`
-- Login:    `admin / Admin@2026`  or  `dujoely / Jorinova@2026`
+- Login:    user `admin` (and `dujoely`). The password is what you set in
+  `ADMIN_PASSWORD` / `OWNER_PASSWORD` in `.env.production`. If you left them blank,
+  a random password is generated and printed once in the log —
+  read it with: `sudo docker compose logs api-exposed | grep -i password`.
 
 ## 5. HTTPS (needed for the voice mic + a clean URL)
 **Easiest:** keep the `standard` profile and run a Cloudflare tunnel on the VM:

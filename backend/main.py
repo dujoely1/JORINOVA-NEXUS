@@ -57,6 +57,12 @@ logging.basicConfig(
 logger   = logging.getLogger('alis_x')
 settings = get_settings()
 
+# Loud production guard: never run with the placeholder signing key.
+if not settings.debug and str(settings.secret_key).startswith('change-this'):
+    logger.warning('SECURITY: SECRET_KEY is still the default in production — '
+                   'set a strong SECRET_KEY in .env  '
+                   '(python -c "import secrets; print(secrets.token_urlsafe(48))").')
+
 # ── Django → Jinja2 template preprocessor ────────────────────────────────────
 
 _DATE_FMT_MAP = {
@@ -279,17 +285,24 @@ async def _seed_default_data():
             db.flush()
             logger.info('Default hospital created.')
 
-        # Admin user
+        # Admin user — password from ADMIN_PASSWORD env, else a random one that
+        # is logged ONCE (never hard-coded, never committed).
         if not db.query(User).filter(User.username == 'admin').first():
+            import secrets as _secrets
+            _admin_pw = os.environ.get('ADMIN_PASSWORD') or _secrets.token_urlsafe(12)
             admin = User(
                 username='admin', email='admin@alis-x.rw',
                 first_name='ALIS-X', last_name='Admin',
-                hashed_password=hash_password('Admin@2026'),
+                hashed_password=hash_password(_admin_pw),
                 role='super_admin', is_superuser=True, is_active=True,
                 hospital_id=hospital.id,
             )
             db.add(admin)
-            logger.info('Admin user created: admin / Admin@2026')
+            if os.environ.get('ADMIN_PASSWORD'):
+                logger.info('Admin user created: admin (password from ADMIN_PASSWORD env).')
+            else:
+                logger.warning('Admin user created with a RANDOM password: admin / %s '
+                               '— set ADMIN_PASSWORD in .env to control it, then change it after first login.', _admin_pw)
 
         db.commit()
 

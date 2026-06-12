@@ -55,7 +55,8 @@ One public **HTTPS** link → every lab opens the same URL → voice works.
 ---
 
 ## Login + data for the demo
-- Admin: **`admin` / `Admin@2026`**
+- Admin: username **`admin`** — password = `ADMIN_PASSWORD` from `.env`
+  (or the random one printed once in the server log on first run).
 - Data already seeded. To re-seed a fresh DB: boot once, then
   `python scripts/seed_production_clinical.py` and `python scripts/seed_dept_demo.py`.
 

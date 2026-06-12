@@ -141,7 +141,7 @@ def _print_summary() -> None:
 ║  API      http://localhost:8000                  ║
 ║  Health   http://localhost:8000/api/v1/health    ║
 ║  Docs     http://localhost:8000/api/docs          ║
-║  Login    admin / Admin@2026 (super_admin)       ║
+║  Login    admin / (see server log for password)  ║
 ╚═════════════════════════════════════════════════╝
 """)
 
