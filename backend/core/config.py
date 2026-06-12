@@ -5,6 +5,16 @@ from typing import Any
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import field_validator
 
+# Load backend/.env into os.environ so code that reads os.environ.get(...) —
+# email (SMTP), SMS (Africa's Talking / Pindo), and the seed passwords
+# (ADMIN_PASSWORD / OWNER_PASSWORD) — sees the SAME values as the typed Settings.
+# Real environment variables still win (load_dotenv does not override them).
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+except Exception:
+    pass
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
