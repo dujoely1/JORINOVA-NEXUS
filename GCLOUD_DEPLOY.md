@@ -40,11 +40,22 @@ pre‑installed, and opens the firewall (80, 443, 3000, 8000). It prints the VM'
 (If you prefer to do it by hand, every command the script runs is listed inside it.)
 
 ## 2. Put the code on the VM
-**Option A — from GitHub (recommended):** push this repo to a private GitHub repo, then:
+The repo is **private**: `https://github.com/jorinova/JORINOVA` (branch `main` is
+pilot‑ready). Choose one:
+
+**Option A — clone from GitHub (needs a token, because the repo is private).**
+On your computer, mint a short‑lived token that can read the repo:
 ```
-gcloud compute ssh nexus-pilot --zone=europe-west1-b --command="git clone https://github.com/<you>/<repo>.git nexus"
+gh auth token            # prints a token you already have via gh
 ```
-**Option B — upload your local copy directly:**
+Then on the VM (paste the token when prompted, or inline it once):
+```
+gcloud compute ssh nexus-pilot --zone=europe-west1-b
+git clone https://<TOKEN>@github.com/jorinova/JORINOVA.git ~/nexus
+```
+(Later updates: `cd ~/nexus && git pull`.)
+
+**Option B — upload your local copy directly (no token needed).** Simplest:
 ```
 gcloud compute scp --recurse --zone=europe-west1-b "d:/JORINOVA NEXUS" nexus-pilot:~/nexus
 ```
