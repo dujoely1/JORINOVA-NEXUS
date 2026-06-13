@@ -34,6 +34,11 @@ COPY . .
 # absolute origin (e.g. mobile app or external CDN).
 ARG NEXT_PUBLIC_API_URL=""
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+# Backend the Next server proxies /api/* to. Provided at build time so the
+# rewrite destination is correct whether Next bakes rewrites at build or reads
+# them at runtime; the running container also sets this in its environment.
+ARG BACKEND_INTERNAL_URL="http://localhost:8000"
+ENV BACKEND_INTERNAL_URL=$BACKEND_INTERNAL_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build

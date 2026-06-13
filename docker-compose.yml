@@ -182,6 +182,7 @@ services:
         # Empty so the browser uses relative /api/* (nginx handles the proxy).
         # Set to your backend public URL when running without nginx.
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+        BACKEND_INTERNAL_URL: http://api:8000
     container_name: alis_web
     restart: unless-stopped
     environment:
@@ -209,7 +210,11 @@ services:
       context:    ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+        # Empty → the browser uses relative /api/* and this Next server proxies
+        # to the backend (BACKEND_INTERNAL_URL below). This makes the app work
+        # behind ANY host (VM IP, Cloudflare tunnel, domain) without rebuilding.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+        BACKEND_INTERNAL_URL: http://api-exposed:8000
     container_name: alis_web_std
     restart: unless-stopped
     environment:
