@@ -17,6 +17,7 @@ from core.config import get_settings
 from core.limiter import limit
 from core import pqc
 from models.user import User, LoginLog
+from models.two_factor_backup import TwoFactorBackupCode
 
 try:
     import pyotp
@@ -25,6 +26,53 @@ except Exception:                       # pragma: no cover
 
 # Issuer label shown in Google Authenticator / Authy.
 _TOTP_ISSUER = 'JORINOVA NEXUS'
+_BACKUP_CODE_COUNT = 10
+
+# Roles that MUST use 2FA. A user with one of these roles and no 2FA yet is
+# allowed to log in (they need a token to enrol) but the frontend forces them
+# to /security/two-factor before anything else (see `must_setup_2fa` in /me).
+_MANDATORY_2FA_ROLES = {'super_admin'}
+
+
+def _norm_code(code: str) -> str:
+    """Normalise a typed backup code: drop spaces/dashes, lowercase."""
+    return (code or '').strip().lower().replace('-', '').replace(' ', '')
+
+
+def _generate_backup_codes(db: Session, user: User, n: int = _BACKUP_CODE_COUNT) -> list[str]:
+    """Replace any existing backup codes with n fresh single-use codes.
+    Returns the PLAINTEXT codes — shown to the user exactly once."""
+    db.query(TwoFactorBackupCode).filter(TwoFactorBackupCode.user_id == user.id).delete()
+    codes: list[str] = []
+    for _ in range(n):
+        raw = secrets.token_hex(4)                  # 8 hex chars
+        codes.append(f'{raw[:4]}-{raw[4:]}')        # display form: abcd-ef12
+        db.add(TwoFactorBackupCode(user_id=user.id, code_hash=hash_password(raw)))
+    db.commit()
+    return codes
+
+
+def _consume_backup_code(db: Session, user: User, code: str) -> bool:
+    """If `code` matches an unused backup code, mark it used and return True."""
+    norm = _norm_code(code)
+    if len(norm) != 8:
+        return False
+    rows = db.query(TwoFactorBackupCode).filter(
+        TwoFactorBackupCode.user_id == user.id,
+        TwoFactorBackupCode.used == False,            # noqa: E712
+    ).all()
+    for row in rows:
+        if verify_password(norm, row.code_hash):
+            row.used = True
+            row.used_at = datetime.now(timezone.utc)
+            db.commit()
+            return True
+    return False
+
+
+def _must_setup_2fa(user: User) -> bool:
+    return (user.role in _MANDATORY_2FA_ROLES
+            and not getattr(user, 'two_factor_enabled', False))
 
 # In-memory OTP store: {email: (otp, expires_at)}
 _otp_store: dict = {}
@@ -115,7 +163,10 @@ async def login(
         if not otp:
             # 401 + a precise detail so the frontend can prompt for the 6-digit code.
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='2FA code required')
-        if pyotp is None or not pyotp.TOTP(user.totp_secret).verify(str(otp).strip(), valid_window=1):
+        totp_ok = pyotp is not None and pyotp.TOTP(user.totp_secret).verify(str(otp).strip(), valid_window=1)
+        # Fall back to a single-use backup/recovery code (for a lost device).
+        backup_ok = (not totp_ok) and _consume_backup_code(db, user, str(otp))
+        if not (totp_ok or backup_ok):
             db.add(LoginLog(
                 user_id=user.id, success=False, method='2fa',
                 ip_address=request.client.host if request else None,
@@ -153,6 +204,7 @@ def me(current_user: User = Depends(get_current_user)):
         'is_superuser':current_user.is_superuser,
         'photo_url':   getattr(current_user, 'profile_photo', None),
         'has_2fa':     getattr(current_user, 'two_factor_enabled', False),
+        'must_setup_2fa': _must_setup_2fa(current_user),
         'preferred_language': getattr(current_user, 'preferred_language', 'en'),
         'hospital_id': getattr(current_user, 'hospital_id', None),
         'employee_id': getattr(current_user, 'employee_id', None),
@@ -243,7 +295,26 @@ def twofa_enable(
         raise HTTPException(status_code=400, detail='Invalid code')
     current_user.two_factor_enabled = True
     db.commit()
-    return {'message': '2FA enabled', 'two_factor_enabled': True}
+    # Issue one-time backup codes — shown ONCE, store them safely.
+    backup_codes = _generate_backup_codes(db, current_user)
+    return {'message': '2FA enabled', 'two_factor_enabled': True, 'backup_codes': backup_codes}
+
+
+@router.post('/2fa/backup-codes')
+def twofa_regenerate_backup_codes(
+    body:         TwoFACodeIn,
+    current_user: User    = Depends(get_current_user),
+    db:           Session = Depends(get_db),
+):
+    """Regenerate backup codes (invalidates the old set). Requires a current
+    authenticator code. Returns the new plaintext codes once."""
+    if not getattr(current_user, 'two_factor_enabled', False):
+        raise HTTPException(status_code=400, detail='2FA is not enabled')
+    if pyotp is None or not current_user.totp_secret or \
+            not pyotp.TOTP(current_user.totp_secret).verify(body.code.strip(), valid_window=1):
+        raise HTTPException(status_code=400, detail='Invalid code')
+    codes = _generate_backup_codes(db, current_user)
+    return {'message': 'New backup codes generated', 'backup_codes': codes}
 
 
 @router.post('/2fa/disable')
@@ -260,6 +331,7 @@ def twofa_disable(
         raise HTTPException(status_code=400, detail='Invalid code')
     current_user.two_factor_enabled = False
     current_user.totp_secret = None
+    db.query(TwoFactorBackupCode).filter(TwoFactorBackupCode.user_id == current_user.id).delete()
     db.commit()
     return {'message': '2FA disabled', 'two_factor_enabled': False}
 

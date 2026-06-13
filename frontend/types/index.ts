@@ -11,6 +11,7 @@ export interface User {
   is_superuser: boolean
   photo_url: string | null
   has_2fa: boolean
+  must_setup_2fa?: boolean
   preferred_language: string
   hospital_id: number | null
   employee_id: string | null

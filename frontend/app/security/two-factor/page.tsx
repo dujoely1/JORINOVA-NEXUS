@@ -49,11 +49,13 @@ function Inner() {
   const [busy, setBusy]       = useState(false)
   const [msg, setMsg]         = useState<string | null>(null)
   const [err, setErr]         = useState<string | null>(null)
+  const [backupCodes, setBackupCodes] = useState<string[] | null>(null)
+  const [mustSetup, setMustSetup]     = useState(false)
 
   const loadStatus = useCallback(() => {
     fetch(`${API}/api/v1/auth/me`, { headers: authHeaders() })
       .then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`))
-      .then(d => setEnabled(!!d.has_2fa))
+      .then(d => { setEnabled(!!d.has_2fa); setMustSetup(!!d.must_setup_2fa) })
       .catch(e => setErr(String(e)))
   }, [])
   useEffect(loadStatus, [loadStatus])
@@ -75,8 +77,24 @@ function Inner() {
         method: 'POST', headers: authHeaders(true), body: JSON.stringify({ code: code.trim() }),
       })
       if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || `HTTP ${r.status}`)
+      const j = await r.json()
       setMsg('2FA is now enabled. You will be asked for a code at every login.')
-      setSetup(null); setCode(''); setEnabled(true)
+      setBackupCodes(j.backup_codes || null)
+      setSetup(null); setCode(''); setEnabled(true); setMustSetup(false)
+    } catch (e: any) { setErr(e.message || String(e)) }
+    finally { setBusy(false) }
+  }
+
+  async function regenerate() {
+    setBusy(true); setErr(null); setMsg(null)
+    try {
+      const r = await fetch(`${API}/api/v1/auth/2fa/backup-codes`, {
+        method: 'POST', headers: authHeaders(true), body: JSON.stringify({ code: code.trim() }),
+      })
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || `HTTP ${r.status}`)
+      const j = await r.json()
+      setBackupCodes(j.backup_codes || null)
+      setCode(''); setMsg('New backup codes generated — the old ones no longer work.')
     } catch (e: any) { setErr(e.message || String(e)) }
     finally { setBusy(false) }
   }
@@ -106,8 +124,42 @@ function Inner() {
         </p>
       </header>
 
+      {mustSetup && enabled === false && (
+        <div className="rounded-lg bg-amber-900/30 border border-amber-600/50 px-3 py-2 text-sm text-amber-200">
+          🔒 Your role (admin) requires two-factor authentication. Please set it up
+          now — you cannot use the rest of the system until you do.
+        </div>
+      )}
+
       {err && <div className="rounded-lg bg-rose-900/30 border border-rose-700/50 px-3 py-2 text-sm text-rose-200">⚠ {err}</div>}
       {msg && <div className="rounded-lg bg-emerald-900/30 border border-emerald-700/50 px-3 py-2 text-sm text-emerald-200">{msg}</div>}
+
+      {/* Backup codes — shown ONCE after enable / regenerate */}
+      {backupCodes && (
+        <div className="rounded-xl border border-amber-600/50 bg-amber-950/30 p-5 space-y-3">
+          <div className="text-amber-200 font-semibold">⚠ Save these backup codes now</div>
+          <p className="text-xs text-amber-100/80">
+            Each code works once. Use one to sign in if you lose your phone. They
+            are shown only this once — store them somewhere safe (password manager).
+          </p>
+          <div className="grid grid-cols-2 gap-2 font-mono text-sm text-slate-100">
+            {backupCodes.map(c => (
+              <div key={c} className="bg-slate-800 rounded px-2 py-1 text-center tracking-widest">{c}</div>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => { navigator.clipboard?.writeText(backupCodes.join('\n')); setMsg('Backup codes copied.') }}
+              className="px-3 py-1.5 rounded-lg border border-slate-600 text-slate-200 text-sm hover:bg-slate-800">
+              Copy codes
+            </button>
+            <button onClick={() => setBackupCodes(null)}
+              className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-500">
+              I’ve saved them
+            </button>
+          </div>
+        </div>
+      )}
 
       {enabled === null && <div className="text-slate-400 text-sm">Loading…</div>}
 
@@ -121,12 +173,17 @@ function Inner() {
             inputMode="numeric" maxLength={6} placeholder="123456"
             className="w-40 rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-center text-lg tracking-[0.3em] font-mono text-slate-100 outline-none focus:ring-2 focus:ring-purple-500"
           />
-          <div>
+          <div className="flex flex-wrap gap-2">
+            <button onClick={regenerate} disabled={busy || code.length < 6}
+              className="px-5 py-2.5 rounded-xl bg-sky-600 text-white font-semibold hover:bg-sky-500 disabled:opacity-50">
+              Regenerate backup codes
+            </button>
             <button onClick={disable} disabled={busy || code.length < 6}
               className="px-5 py-2.5 rounded-xl bg-rose-600 text-white font-semibold hover:bg-rose-500 disabled:opacity-50">
               Disable 2FA
             </button>
           </div>
+          <p className="text-[11px] text-slate-500">A current authenticator code is required for either action.</p>
         </div>
       )}
 

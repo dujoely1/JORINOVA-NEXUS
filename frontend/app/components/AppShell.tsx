@@ -16,7 +16,7 @@
 
 import { ReactNode, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '../contexts/AuthProvider'
 import { useI18n, useT } from '../contexts/I18nProvider'
 import { LANGUAGES, type Lang } from '../lib/i18n'
@@ -52,8 +52,17 @@ export default function AppShell({
 }) {
   const { user, logout } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
   const { lang, setLang } = useI18n()
   const t = useT()
+
+  // Mandatory 2FA: a super_admin without 2FA is forced onto the enrolment page
+  // and cannot use any other screen until it is set up.
+  useEffect(() => {
+    if (user?.must_setup_2fa && pathname !== '/security/two-factor') {
+      router.replace('/security/two-factor')
+    }
+  }, [user, pathname, router])
 
   const [now,    setNow]    = useState<Date | null>(null)
   const [online, setOnline] = useState<boolean>(true)

@@ -52,5 +52,7 @@ def create_all_tables():
         worklist, billing,
         # Sync (offline-first)
         sync_queue,
+        # Security — 2FA backup/recovery codes
+        two_factor_backup,
     )
     Base.metadata.create_all(bind=engine)
