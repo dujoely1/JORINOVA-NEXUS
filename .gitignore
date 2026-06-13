@@ -31,6 +31,8 @@ venv.bak/
 !.env.example
 !.env.*.example
 *.secret
+.secrets/
+backend/.secrets/
 secrets.json
 local_settings.py
 
