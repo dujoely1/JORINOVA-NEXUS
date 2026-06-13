@@ -85,7 +85,10 @@ numpy>=1.26                   # Array ops for OCR preprocessing
 # ── Utilities ────────────────────────────────────────────────────────────────
 python-dateutil>=2.8
 phonenumbers>=8.13             # Google libphonenumber — E.164 normalisation for all countries
-webrtcvad-wheels>=2.0.10     # webrtcvad fork with prebuilt win_amd64 wheels
+# webrtcvad-wheels: Windows-only (win_amd64) wheels — breaks Linux/Docker builds and is
+# not imported anywhere. Install separately on Windows dev only if VAD is needed:
+#   pip install webrtcvad-wheels
+# webrtcvad-wheels>=2.0.10
 
 # Pilot fixes: setup wizard email validation + rate limiting
 email-validator>=2.0

@@ -1,0 +1,42 @@
+# Build context is ./backend, so THIS file (not the repo-root .dockerignore)
+# governs what `COPY . .` in backend/Dockerfile ships into the image.
+
+# Virtualenvs (host-built; symlinks point at host paths — must never enter the image)
+venv/
+.venv/
+env/
+
+# Python caches / build artefacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Secrets and local config (provided at runtime via env_file, never baked in)
+.env
+.env.*
+!.env.example
+.secrets/
+*.secret
+
+# Local SQLite databases and data
+*.db
+*.sqlite3
+alis_x.db
+data/
+
+# Logs and media (mounted as volumes at runtime)
+logs/
+*.log
+media/
+
+# VCS / IDE / OS
+.git/
+.gitignore
+.idea/
+.vscode/
+.DS_Store
