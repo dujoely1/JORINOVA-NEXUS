@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthProvider'
 import { useI18n } from '../contexts/I18nProvider'
 import Logo from '../components/Logo'
 import { landingPathFor } from '../lib/role-routes'
+import { TwoFactorRequiredError } from '../lib/api'
 
 const NEXUS_BLUE   = '#0066CC'        // clear corporate blue (header / footer / accents)
 const NEXUS_BLUE_LT= '#E6F0FA'        // tinted blue background for the body
@@ -23,6 +24,7 @@ const STRINGS: Record<Lang, {
   forgot: string; helpFooter: string; powered: string;
   online: string; offline: string;
   idle: string; showPwd: string; hidePwd: string; loginFailed: string;
+  twoFa: string; twoFaHint: string; bad2fa: string;
 }> = {
   en: {
     welcome:    'WELCOME TO JORINOVA NEXUS ALIS-X',
@@ -41,6 +43,9 @@ const STRINGS: Record<Lang, {
     showPwd:    'Show password',
     hidePwd:    'Hide password',
     loginFailed:'Login failed',
+    twoFa:      'Authentication code',
+    twoFaHint:  'Enter the 6-digit code from your authenticator app.',
+    bad2fa:     'Invalid authentication code. Try again.',
   },
   fr: {
     welcome:    'BIENVENUE À JORINOVA NEXUS ALIS-X',
@@ -59,6 +64,9 @@ const STRINGS: Record<Lang, {
     showPwd:    'Afficher le mot de passe',
     hidePwd:    'Masquer le mot de passe',
     loginFailed:'Échec de la connexion',
+    twoFa:      'Code d’authentification',
+    twoFaHint:  'Entrez le code à 6 chiffres de votre application d’authentification.',
+    bad2fa:     'Code d’authentification invalide. Réessayez.',
   },
   rw: {
     welcome:    'MURAKAZA NEZA KURI JORINOVA NEXUS ALIS-X',
@@ -77,6 +85,9 @@ const STRINGS: Record<Lang, {
     showPwd:    'Erekana ijambo banga',
     hidePwd:    'Hisha ijambo banga',
     loginFailed:'Kwinjira byanze',
+    twoFa:      'Kode yo kwemeza',
+    twoFaHint:  'Andika kode y’imibare 6 iri muri app yawe ya authenticator.',
+    bad2fa:     'Kode yo kwemeza si yo. Ongera ugerageze.',
   },
 }
 
@@ -98,6 +109,8 @@ function LoginInner() {
   const [showPwd,    setShowPwd]    = useState(false)
   const [error,      setError]      = useState('')
   const [loading,    setLoading]    = useState(false)
+  const [needs2fa,   setNeeds2fa]   = useState(false)
+  const [otp,        setOtp]        = useState('')
   // Use the SHARED app language (I18nProvider) so the language chosen here also
   // drives the API `X-Lang` header (localized 'Invalid credentials') and every
   // page that follows (e.g. forgot-password) — not a separate local copy.
@@ -144,12 +157,18 @@ function LoginInner() {
     setError('')
     setLoading(true)
     try {
-      const tokenOut = await login(username.trim(), password)
+      const tokenOut = await login(username.trim(), password, needs2fa ? otp.trim() : undefined)
       // Role-based redirect — doctors land on their portal, RBC officials
       // on theirs, receptionists on the LIS intake, etc.
       router.replace(landingPathFor(tokenOut.role))
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t.loginFailed)
+      if (err instanceof TwoFactorRequiredError) {
+        // Password was correct; reveal the 6-digit code field (or flag a bad code).
+        setNeeds2fa(true)
+        setError(otp ? t.bad2fa : '')
+      } else {
+        setError(err instanceof Error ? err.message : t.loginFailed)
+      }
     } finally {
       setLoading(false)
     }
@@ -331,9 +350,30 @@ function LoginInner() {
               </div>
             </div>
 
+            {needs2fa && (
+              <div>
+                <label htmlFor="otp" className="block text-sm font-medium text-zinc-700 mb-1">
+                  🔐 {t.twoFa}
+                </label>
+                <input
+                  id="otp"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                  autoFocus
+                  placeholder="123456"
+                  className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-center text-lg tracking-[0.4em] font-mono text-zinc-900 outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="mt-1 text-xs text-zinc-500">{t.twoFaHint}</p>
+              </div>
+            )}
+
             <button
               type="submit"
-              disabled={loading || !username || !password}
+              disabled={loading || !username || !password || (needs2fa && otp.length < 6)}
               className="w-full rounded-lg text-white font-semibold text-sm py-2.5 transition-colors shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: loading ? '#6B7280' : NEXUS_BLUE }}
               onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = '#0052A6' }}

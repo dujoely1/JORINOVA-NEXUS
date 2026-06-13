@@ -3,8 +3,9 @@ import os
 import random
 import secrets
 import string
+from typing import Optional
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -13,8 +14,17 @@ from core.database import get_db
 from core.security import (hash_password, verify_password,
                             create_access_token, get_current_user)
 from core.config import get_settings
+from core.limiter import limit
 from core import pqc
 from models.user import User, LoginLog
+
+try:
+    import pyotp
+except Exception:                       # pragma: no cover
+    pyotp = None                        # type: ignore[assignment]
+
+# Issuer label shown in Google Authenticator / Authy.
+_TOTP_ISSUER = 'JORINOVA NEXUS'
 
 # In-memory OTP store: {email: (otp, expires_at)}
 _otp_store: dict = {}
@@ -85,9 +95,11 @@ class CreateUserIn(BaseModel):
 
 
 @router.post('/token', response_model=TokenOut)
+@limit('5/minute')
 async def login(
+    request: Request,
     form:    OAuth2PasswordRequestForm = Depends(),
-    request: Request = None,
+    otp:     Optional[str] = Form(default=None),
     db:      Session = Depends(get_db),
 ):
     user = db.query(User).filter(
@@ -98,10 +110,24 @@ async def login(
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Account inactive')
 
+    # Second factor — required when the user has 2FA enabled.
+    if getattr(user, 'two_factor_enabled', False) and user.totp_secret:
+        if not otp:
+            # 401 + a precise detail so the frontend can prompt for the 6-digit code.
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='2FA code required')
+        if pyotp is None or not pyotp.TOTP(user.totp_secret).verify(str(otp).strip(), valid_window=1):
+            db.add(LoginLog(
+                user_id=user.id, success=False, method='2fa',
+                ip_address=request.client.host if request else None,
+            ))
+            db.commit()
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid 2FA code')
+
     token = create_access_token({'sub': str(user.id), 'role': user.role})
 
     db.add(LoginLog(
-        user_id=user.id, success=True, method='password',
+        user_id=user.id, success=True,
+        method='2fa' if getattr(user, 'two_factor_enabled', False) else 'password',
         ip_address=request.client.host if request else None,
     ))
     db.commit()
@@ -159,6 +185,83 @@ def change_password(
     current_user.hashed_password = hash_password(body.new_password)
     db.commit()
     return {'message': 'Password changed successfully'}
+
+
+# ── Two-factor authentication (TOTP — Google Authenticator / Authy) ───────────
+
+class TwoFACodeIn(BaseModel):
+    code: str
+
+
+@router.post('/2fa/setup')
+def twofa_setup(
+    current_user: User    = Depends(get_current_user),
+    db:           Session = Depends(get_db),
+):
+    """Begin 2FA enrolment: create a TOTP secret (not yet active) and return the
+    otpauth:// URI to render as a QR code. Call /2fa/enable with a code to turn
+    it on. Re-running before enabling rotates the pending secret."""
+    if pyotp is None:
+        raise HTTPException(status_code=503, detail='2FA unavailable: pyotp not installed')
+    if getattr(current_user, 'two_factor_enabled', False):
+        raise HTTPException(status_code=400, detail='2FA already enabled')
+
+    secret = pyotp.random_base32()
+    current_user.totp_secret = secret
+    db.commit()
+    uri = pyotp.TOTP(secret).provisioning_uri(
+        name=current_user.email or current_user.username,
+        issuer_name=_TOTP_ISSUER,
+    )
+    # Render the otpauth URI as a scannable QR (PNG data-URI) so the frontend
+    # can just <img src=...>. Falls back to text secret if qrcode is absent.
+    qr_data_uri = None
+    try:
+        import io, base64, qrcode
+        buf = io.BytesIO()
+        qrcode.make(uri).save(buf, format='PNG')
+        qr_data_uri = 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode()
+    except Exception:
+        pass
+    # `secret` is returned once so the user can type it manually if the QR fails.
+    return {'secret': secret, 'otpauth_uri': uri, 'issuer': _TOTP_ISSUER,
+            'qr_data_uri': qr_data_uri}
+
+
+@router.post('/2fa/enable')
+def twofa_enable(
+    body:         TwoFACodeIn,
+    current_user: User    = Depends(get_current_user),
+    db:           Session = Depends(get_db),
+):
+    """Confirm a code from the authenticator app to activate 2FA."""
+    if pyotp is None:
+        raise HTTPException(status_code=503, detail='2FA unavailable: pyotp not installed')
+    if not current_user.totp_secret:
+        raise HTTPException(status_code=400, detail='Run /2fa/setup first')
+    if not pyotp.TOTP(current_user.totp_secret).verify(body.code.strip(), valid_window=1):
+        raise HTTPException(status_code=400, detail='Invalid code')
+    current_user.two_factor_enabled = True
+    db.commit()
+    return {'message': '2FA enabled', 'two_factor_enabled': True}
+
+
+@router.post('/2fa/disable')
+def twofa_disable(
+    body:         TwoFACodeIn,
+    current_user: User    = Depends(get_current_user),
+    db:           Session = Depends(get_db),
+):
+    """Turn 2FA off. Requires a current authenticator code to prove possession."""
+    if not getattr(current_user, 'two_factor_enabled', False):
+        raise HTTPException(status_code=400, detail='2FA is not enabled')
+    if pyotp is None or not current_user.totp_secret or \
+            not pyotp.TOTP(current_user.totp_secret).verify(body.code.strip(), valid_window=1):
+        raise HTTPException(status_code=400, detail='Invalid code')
+    current_user.two_factor_enabled = False
+    current_user.totp_secret = None
+    db.commit()
+    return {'message': '2FA disabled', 'two_factor_enabled': False}
 
 
 @router.post('/create-user', response_model=UserOut)

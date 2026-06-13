@@ -459,18 +459,17 @@ app.add_middleware(
 )
 
 # ── Rate Limiting (slowapi) ───────────────────────────────────────────────────
-try:
-    from slowapi import Limiter, _rate_limit_exceeded_handler
-    from slowapi.util import get_remote_address
+# The Limiter itself lives in core.limiter so routers (e.g. auth) can decorate
+# their endpoints with the SAME instance via `@limit("5/minute")`.
+from core.limiter import limiter
+if limiter is not None:
+    from slowapi import _rate_limit_exceeded_handler
     from slowapi.errors import RateLimitExceeded
-
-    limiter = Limiter(key_func=get_remote_address, default_limits=['200/minute'])
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
     logger.info('Rate limiter: active (200/min global, 5/min on login)')
-except ImportError:
+else:
     logger.warning('slowapi not installed — rate limiting disabled. Run: pip install slowapi')
-    limiter = None
 
 # ── Security headers middleware ───────────────────────────────────────────────
 from starlette.middleware.base import BaseHTTPMiddleware

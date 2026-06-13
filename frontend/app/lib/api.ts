@@ -51,10 +51,17 @@ async function request<T>(
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
+/** Thrown when the account has 2FA on and a (valid) TOTP code is still needed. */
+export class TwoFactorRequiredError extends Error {
+  constructor(msg = '2FA code required') { super(msg); this.name = 'TwoFactorRequiredError' }
+}
+
 export async function login(
-  username: string, password: string,
+  username: string, password: string, otp?: string,
 ): Promise<TokenOut> {
-  const body = new URLSearchParams({ username, password, grant_type: 'password' })
+  const fields: Record<string, string> = { username, password, grant_type: 'password' }
+  if (otp) fields.otp = otp
+  const body = new URLSearchParams(fields)
   const res = await fetch(`${API}/api/v1/auth/token`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -62,7 +69,14 @@ export async function login(
   })
   if (!res.ok) {
     const data = await res.json().catch(() => ({}))
-    throw new Error(data.detail ?? res.statusText)
+    const detail = data.detail ?? res.statusText
+    // 401 with a 2FA-specific detail → ask the user for the code instead of
+    // showing a generic "invalid credentials" error.
+    if (res.status === 401 && typeof detail === 'string' &&
+        detail.toLowerCase().includes('2fa')) {
+      throw new TwoFactorRequiredError(detail)
+    }
+    throw new Error(detail)
   }
   const data = await res.json()
   setToken(data.access_token)

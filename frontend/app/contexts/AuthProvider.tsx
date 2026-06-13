@@ -8,7 +8,7 @@ import { login as apiLogin, me as apiMe, logout as apiLogout } from '../lib/api'
 interface AuthContextType {
   user: User | null
   loading: boolean
-  login: (username: string, password: string) => Promise<TokenOut>
+  login: (username: string, password: string, otp?: string) => Promise<TokenOut>
   logout: () => void
   refreshProfile: () => Promise<void>
 }
@@ -48,8 +48,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     void refreshProfile()
   }, [refreshProfile])
 
-  const login = useCallback(async (username: string, password: string) => {
-    const tokenOut = await apiLogin(username, password)
+  const login = useCallback(async (username: string, password: string, otp?: string) => {
+    const tokenOut = await apiLogin(username, password, otp)
     await refreshProfile()
     return tokenOut
   }, [refreshProfile])
