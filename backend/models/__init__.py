@@ -48,4 +48,7 @@ from . import universal  # noqa: F401
 # Security — 2FA backup/recovery codes
 from . import two_factor_backup  # noqa: F401
 
+# Staff Security Hub — hospital device registry + dynamic attributes
+from . import device_registry  # noqa: F401
+
 

@@ -630,6 +630,8 @@ _ROUTERS = [
     ('routers.voice_assistant',  'router'),
     # Staff Mobile Hub — Android companion app backend
     ('routers.staff_mobile',     'router'),
+    # Staff Security Hub — RBAC sync, hospital device registry, biometric onboarding
+    ('routers.staff_security_hub', 'router'),
 ]
 
 for _mod, _attr in _ROUTERS:

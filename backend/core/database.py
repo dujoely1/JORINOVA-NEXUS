@@ -54,5 +54,7 @@ def create_all_tables():
         sync_queue,
         # Security — 2FA backup/recovery codes
         two_factor_backup,
+        # Staff Security Hub — hospital device registry + dynamic attributes
+        device_registry,
     )
     Base.metadata.create_all(bind=engine)
