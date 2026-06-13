@@ -170,3 +170,7 @@ logs/
 /datasets/
 backend/training/datasets/
 backend/training/benchmark.json
+
+# Windows pilot launcher artifacts
+deploy/cloudflared.exe
+deploy/_cloudflared*.log
