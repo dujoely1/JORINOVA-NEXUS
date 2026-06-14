@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "next build",
+  "installCommand": "npm install",
+  "regions": ["cdg1"],
+  "comment": "Set the Vercel Project 'Root Directory' to 'frontend'. Env vars (Project > Settings > Environment Variables): BACKEND_INTERNAL_URL=https://api.jorinova.com  and  NEXT_PUBLIC_API_URL= (leave EMPTY so the browser uses relative /api/* which next.config.ts proxies to BACKEND_INTERNAL_URL)."
+}
