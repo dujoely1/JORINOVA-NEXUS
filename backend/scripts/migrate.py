@@ -57,14 +57,17 @@ def _ensure_admin() -> None:
             ('admin', 'admin@alis-x.rw', 'ADMIN_PASSWORD'),
             ('dujoely', 'dujoely1@gmail.com', 'OWNER_PASSWORD'),
         ]
+        from core.bootstrap import resolve_seed_password
         for username, email, env_key in accounts:
             if db.query(User).filter(User.username == username).first():
                 print(f'[migrate] account "{username}" already exists — skipped.')
                 continue
-            pw = os.environ.get(env_key) or secrets.token_urlsafe(12)
-            if not os.environ.get(env_key):
-                print(f'[migrate] {env_key} not set — generated random password for '
-                      f'"{username}": {pw}  (set {env_key} to control it)')
+            # Deterministic: password from the env var; production fails fast if
+            # it is missing (no silent random generation).
+            pw, generated = resolve_seed_password(env_key)
+            if generated:
+                print(f'[migrate] [DEV MODE] {env_key} not set — TEMPORARY random password for '
+                      f'"{username}": {pw}  (set {env_key}; production would fail fast instead)')
             db.add(User(
                 username=username, email=email, first_name=username.capitalize(),
                 last_name='', hashed_password=hash_password(pw),

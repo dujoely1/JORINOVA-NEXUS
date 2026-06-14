@@ -57,11 +57,19 @@ logging.basicConfig(
 logger   = logging.getLogger('alis_x')
 settings = get_settings()
 
-# Loud production guard: never run with the placeholder signing key.
-if not settings.debug and str(settings.secret_key).startswith('change-this'):
-    logger.warning('SECURITY: SECRET_KEY is still the default in production — '
-                   'set a strong SECRET_KEY in .env  '
-                   '(python -c "import secrets; print(secrets.token_urlsafe(48))").')
+# Production guard: FAIL FAST on a default/placeholder signing key. A weak
+# SECRET_KEY lets anyone forge JWTs, so in production this is fatal, not a warning.
+_weak_key = (str(settings.secret_key).startswith('change-this')
+             or str(settings.secret_key).startswith('alis-x-change-this'))
+if _weak_key:
+    if settings.debug:
+        logger.warning('SECURITY: SECRET_KEY is the default — OK for dev, but set a strong '
+                       'SECRET_KEY before production (python -c "import secrets; print(secrets.token_urlsafe(48))").')
+    else:
+        raise RuntimeError(
+            'SECRET_KEY is the insecure default in a production run (DEBUG=false). '
+            'Set a strong SECRET_KEY in .env before starting '
+            '(python -c "import secrets; print(secrets.token_urlsafe(48))").')
 
 # ── Django → Jinja2 template preprocessor ────────────────────────────────────
 
@@ -285,11 +293,13 @@ async def _seed_default_data():
             db.flush()
             logger.info('Default hospital created.')
 
-        # Admin user — password from ADMIN_PASSWORD env, else a random one that
-        # is logged ONCE (never hard-coded, never committed).
+        # Admin user — DETERMINISTIC: the password comes ONLY from ADMIN_PASSWORD.
+        # We resolve the password ONLY when the admin must be created (idempotent),
+        # so existing deployments are never forced to set it. In production a
+        # missing ADMIN_PASSWORD fails fast instead of inventing a random one.
         if not db.query(User).filter(User.username == 'admin').first():
-            import secrets as _secrets
-            _admin_pw = os.environ.get('ADMIN_PASSWORD') or _secrets.token_urlsafe(12)
+            from core.bootstrap import resolve_seed_password
+            _admin_pw, _generated = resolve_seed_password('ADMIN_PASSWORD')
             admin = User(
                 username='admin', email='admin@alis-x.rw',
                 first_name='ALIS-X', last_name='Admin',
@@ -298,11 +308,12 @@ async def _seed_default_data():
                 hospital_id=hospital.id,
             )
             db.add(admin)
-            if os.environ.get('ADMIN_PASSWORD'):
-                logger.info('Admin user created: admin (password from ADMIN_PASSWORD env).')
+            if _generated:
+                logger.warning('[DEV MODE] Admin created with a TEMPORARY random password: '
+                               'admin / %s — set ADMIN_PASSWORD and change it. This NEVER '
+                               'happens in production (it would fail fast instead).', _admin_pw)
             else:
-                logger.warning('Admin user created with a RANDOM password: admin / %s '
-                               '— set ADMIN_PASSWORD in .env to control it, then change it after first login.', _admin_pw)
+                logger.info('Admin user created: admin (password from ADMIN_PASSWORD env).')
 
         db.commit()
 

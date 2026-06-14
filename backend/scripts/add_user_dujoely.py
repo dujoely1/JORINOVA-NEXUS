@@ -28,10 +28,11 @@ EMAIL       = 'dujoely1@gmail.com'
 USERNAME    = 'dujoely'
 ADMIN_EMAIL = 'admin@alis-x.rw'
 
-# Passwords come from env (never hard-coded). If unset, a strong random one is
-# generated and printed ONCE so the operator can copy it.
-PASSWORD       = os.environ.get('OWNER_PASSWORD') or secrets.token_urlsafe(12)
-ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD') or secrets.token_urlsafe(12)
+# Passwords come ONLY from env (deterministic). In production a missing variable
+# fails fast; a temporary random password is allowed solely in dev mode.
+from core.bootstrap import resolve_seed_password
+PASSWORD, _owner_generated       = resolve_seed_password('OWNER_PASSWORD')
+ADMIN_PASSWORD, _admin_generated = resolve_seed_password('ADMIN_PASSWORD')
 
 
 def main() -> None:
@@ -48,7 +49,8 @@ def main() -> None:
                 admin.email = ADMIN_EMAIL
             admin.hashed_password = hash_password(ADMIN_PASSWORD)
             admin.is_active = True
-            print(f'admin restored: admin / {ADMIN_PASSWORD}  (email {admin.email})')
+            _shown = f' / {ADMIN_PASSWORD}' if _admin_generated else ' (from ADMIN_PASSWORD env)'
+            print(f'admin restored: admin{_shown}  (email {admin.email})')
 
         # 2) Owner account — matched by username only (never hijack by email).
         user = db.query(User).filter(User.username == USERNAME).first()
@@ -74,7 +76,8 @@ def main() -> None:
             action = 'created'
 
         db.commit()
-        print(f'OK — owner account {action}: {USERNAME} / {PASSWORD}  <{EMAIL}>  role={user.role}')
+        _opw = f' / {PASSWORD}' if _owner_generated else ' (from OWNER_PASSWORD env)'
+        print(f'OK — owner account {action}: {USERNAME}{_opw}  <{EMAIL}>  role={user.role}')
     except Exception as e:
         db.rollback()
         print(f'FAILED: {e}')

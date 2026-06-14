@@ -26,7 +26,14 @@ from core.security import get_current_user, hash_password
 from models.user import User
 from models.device_registry import HospitalDevice, EntityAttribute
 
-router = APIRouter(prefix='/security-hub', tags=['Staff Security Hub'])
+# Router-level JWT guard: EVERY route here requires a valid Bearer token, so no
+# security-hub endpoint can ever be accidentally left public (defence in depth on
+# top of the per-route get_current_user dependencies).
+router = APIRouter(
+    prefix='/security-hub',
+    tags=['Staff Security Hub'],
+    dependencies=[Depends(get_current_user)],
+)
 
 MEDIA_ROOT = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'media', 'staff_photos')
 
