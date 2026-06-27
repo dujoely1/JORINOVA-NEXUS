@@ -1,0 +1,109 @@
+# ════════════════════════════════════════════════════════════════════════════
+# JORINOVA NEXUS ALIS-X — Render Blueprint (free tier)
+# ════════════════════════════════════════════════════════════════════════════
+# One-click deploy of the FULL system to https://render.com — always-on,
+# independent of any local machine (survives your PC being off; the backend
+# auto-starts and auto-restarts in the cloud).
+#
+#   • jorinova-nexus-db   PostgreSQL (managed, data persists)
+#   • jorinova-nexus-api  FastAPI backend (Docker — has poppler/libpq for PDF+OCR)
+#   • jorinova-nexus-web  Next.js frontend (proxies /api/* to the backend)
+#
+# HOW TO DEPLOY (≈5 min, see deploy/RENDER_DEPLOY.md for screenshots):
+#   1. Push this repo to GitHub (branch with this file).
+#   2. render.com → New → Blueprint → pick this repo → Apply.
+#   3. When prompted, set ADMIN_PASSWORD (your super-admin login password).
+#   4. Wait for all three to go green → open the jorinova-nexus-web URL.
+#
+# NOTE ON URLS: the web service bakes the backend URL at build time. This file
+# assumes the API gets https://jorinova-nexus-api.onrender.com. If Render adds a
+# suffix (name already taken), update BACKEND_INTERNAL_URL on the web service and
+# redeploy it. Free Postgres on Render expires ~30 days after creation — fine as
+# a free pilot; move to Google Cloud (deploy/gcloud_vm.sh) for permanent paid use.
+# ════════════════════════════════════════════════════════════════════════════
+
+databases:
+  - name: jorinova-nexus-db
+    databaseName: alis_x
+    user: alis_x_user
+    plan: free
+    region: frankfurt
+
+services:
+  # ── Backend API (Docker: bundles poppler + libpq for PDF/OCR) ──────────────
+  - type: web
+    name: jorinova-nexus-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    rootDir: backend
+    # Bind to Render's assigned $PORT (the Dockerfile CMD hardcodes 8000).
+    # uvicorn is always present (gunicorn lives only in requirements-prod.txt);
+    # 1 worker keeps memory within the free 512 MB.
+    dockerCommand: /bin/sh -c "uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1"
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: DEBUG
+        value: "false"
+      - key: SECRET_KEY
+        generateValue: true            # strong random key, persisted across deploys
+      - key: ADMIN_PASSWORD
+        sync: false                    # YOU set this at deploy → super-admin "admin" login
+      # PostgreSQL — the app builds its URL from these parts (core/config.py)
+      - key: DB_ENGINE
+        value: postgresql
+      - key: DB_HOST
+        fromDatabase: { name: jorinova-nexus-db, property: host }
+      - key: DB_PORT
+        fromDatabase: { name: jorinova-nexus-db, property: port }
+      - key: DB_NAME
+        fromDatabase: { name: jorinova-nexus-db, property: database }
+      - key: DB_USER
+        fromDatabase: { name: jorinova-nexus-db, property: user }
+      - key: DB_PASSWORD
+        fromDatabase: { name: jorinova-nexus-db, property: password }
+      # CORS origins (web uses same-origin proxy, so this mainly matters for the
+      # mobile app / direct API calls). Adjust if your web URL differs.
+      - key: ALLOWED_HOSTS
+        value: "https://jorinova-nexus-web.onrender.com"
+      # Public web URL — used to build the login link in staff-credential SMS.
+      - key: PUBLIC_APP_URL
+        value: "https://jorinova-nexus-web.onrender.com"
+      # ── Optional delivery (leave unset to keep SMS/email queued only) ────────
+      - key: SMS_PROVIDER
+        sync: false
+      - key: PINDO_API_TOKEN
+        sync: false
+      - key: AT_USERNAME
+        sync: false
+      - key: AT_API_KEY
+        sync: false
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+
+  # ── Frontend (native Node so build-time env bakes the rewrite target) ──────
+  - type: web
+    name: jorinova-nexus-web
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # Empty → the browser uses relative /api/*, which next.config.ts proxies to
+      # BACKEND_INTERNAL_URL (so there are NO CORS issues; same-origin only).
+      - key: NEXT_PUBLIC_API_URL
+        value: ""
+      # The backend the Next server proxies /api/* and /media/* to. Baked at
+      # build by next.config.ts rewrites(). Must match the API service URL above.
+      - key: BACKEND_INTERNAL_URL
+        value: "https://jorinova-nexus-api.onrender.com"

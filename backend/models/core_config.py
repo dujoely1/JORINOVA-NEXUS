@@ -13,12 +13,16 @@ class Hospital(Base, TimestampMixin):
 
     id:            Mapped[int]           = mapped_column(Integer, primary_key=True)
     name:          Mapped[str]           = mapped_column(String(200), unique=True, index=True)
+    lab_code:      Mapped[Optional[str]] = mapped_column(String(40), unique=True, index=True, nullable=True)  # abbreviation, used as system ID
     address:       Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    country:       Mapped[Optional[str]] = mapped_column(String(80), nullable=True)
+    city:          Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     district:      Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     province:      Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     phone:         Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     email:         Mapped[Optional[str]] = mapped_column(String(254), nullable=True)
-    hospital_type: Mapped[str]           = mapped_column(String(20), default='public')
+    logo_url:      Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # data-URL or stored path
+    hospital_type: Mapped[str]           = mapped_column(String(20), default='public')  # public|private|reference_lab|blood_bank|other
     has_lab:       Mapped[bool]          = mapped_column(Boolean, default=True)
     rbc_code:      Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     is_active:     Mapped[bool]          = mapped_column(Boolean, default=True)

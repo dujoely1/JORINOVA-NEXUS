@@ -125,6 +125,36 @@ TEMPLATES = {
         ),
     },
 
+    'staff_credentials': {
+        'en': (
+            'NEXUS ALIS-X {hospital_name}: Hi {full_name}. Login user: {username} '
+            'pass: {temp_password}. Sign in: {login_url} — change your password after first login.'
+        ),
+        'fr': (
+            'NEXUS ALIS-X {hospital_name}: Bonjour {full_name}. Identifiant: {username} '
+            'mot de passe: {temp_password}. Connexion: {login_url} — changez-le après la 1re connexion.'
+        ),
+        'rw': (
+            'NEXUS ALIS-X {hospital_name}: Muraho {full_name}. Izina: {username} '
+            'ijambobanga: {temp_password}. Injira: {login_url} — uhindure ijambobanga bwa mbere winjiye.'
+        ),
+    },
+
+    'install_summary': {
+        'en': (
+            'NEXUS ALIS-X: Install complete for {hospital_name} (code {lab_code}). '
+            'Staff: {staff}, Analysers: {analysers}, Devices: {devices}.'
+        ),
+        'fr': (
+            'NEXUS ALIS-X: Installation terminée pour {hospital_name} (code {lab_code}). '
+            'Personnel: {staff}, Analyseurs: {analysers}, Appareils: {devices}.'
+        ),
+        'rw': (
+            'NEXUS ALIS-X: Iyinjiza ryarangiye kuri {hospital_name} (kode {lab_code}). '
+            'Abakozi: {staff}, Imashini: {analysers}, Ibikoresho: {devices}.'
+        ),
+    },
+
     'appointment_reminder': {
         'en': (
             'NEXUS LAB: Reminder — you have a lab appointment tomorrow at {time}. '
@@ -433,6 +463,44 @@ async def notify_low_stock(
         reorder_level=reorder_level, hospital_name=hospital_name,
     )
     return await send_sms(manager_phone, message, 'LOW_STOCK', db=db)
+
+
+async def send_staff_credentials(
+    phone: str,
+    full_name: str,
+    username: str,
+    temp_password: str,
+    hospital_name: str,
+    login_url: str = '',
+    language: str = 'en',
+    db=None,
+) -> dict:
+    """Send a newly-registered staff member their first-login credentials."""
+    template = TEMPLATES['staff_credentials'].get(language, TEMPLATES['staff_credentials']['en'])
+    message  = template.format(
+        full_name=full_name, username=username, temp_password=temp_password,
+        hospital_name=hospital_name, login_url=login_url or 'your ALIS-X portal',
+    )
+    return await send_sms(phone, message, 'STAFF_CREDENTIALS', db=db)
+
+
+async def send_install_summary(
+    phone: str,
+    hospital_name: str,
+    lab_code: str,
+    staff: int,
+    analysers: int,
+    devices: int,
+    language: str = 'en',
+    db=None,
+) -> dict:
+    """Send the administrator a short install summary after setup completes."""
+    template = TEMPLATES['install_summary'].get(language, TEMPLATES['install_summary']['en'])
+    message  = template.format(
+        hospital_name=hospital_name, lab_code=lab_code or '—',
+        staff=staff, analysers=analysers, devices=devices,
+    )
+    return await send_sms(phone, message, 'INSTALL_SUMMARY', db=db)
 
 
 async def send_shift_reminder(
