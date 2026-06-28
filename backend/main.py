@@ -141,11 +141,14 @@ async def _seed_default_data():
         # We resolve the password ONLY when the admin must be created (idempotent),
         # so existing deployments are never forced to set it. In production a
         # missing ADMIN_PASSWORD fails fast instead of inventing a random one.
-        if not db.query(User).filter(User.username == 'admin').first():
+        import os as _os
+        _admin_email = (_os.environ.get('ADMIN_EMAIL') or 'admin@alis-x.rw').strip()
+        _existing_admin = db.query(User).filter(User.username == 'admin').first()
+        if not _existing_admin:
             from core.bootstrap import resolve_seed_password
             _admin_pw, _generated = resolve_seed_password('ADMIN_PASSWORD')
             admin = User(
-                username='admin', email='admin@alis-x.rw',
+                username='admin', email=_admin_email,
                 first_name='ALIS-X', last_name='Admin',
                 hashed_password=hash_password(_admin_pw),
                 role='super_admin', is_superuser=True, is_active=True,
@@ -157,7 +160,17 @@ async def _seed_default_data():
                                'admin / %s — set ADMIN_PASSWORD and change it. This NEVER '
                                'happens in production (it would fail fast instead).', _admin_pw)
             else:
-                logger.info('Admin user created: admin (password from ADMIN_PASSWORD env).')
+                logger.info('Admin user created: admin <%s> (password from ADMIN_PASSWORD env).', _admin_email)
+        elif _os.environ.get('ADMIN_EMAIL') and _existing_admin.email != _admin_email:
+            # Keep the admin contact in sync with ADMIN_EMAIL (no manual DB edit
+            # needed — set ADMIN_EMAIL in the env and redeploy). Skips if another
+            # user already owns that email (unique constraint).
+            _clash = db.query(User).filter(User.email == _admin_email, User.id != _existing_admin.id).first()
+            if _clash:
+                logger.warning('ADMIN_EMAIL %s already used by another user — admin email unchanged.', _admin_email)
+            else:
+                _existing_admin.email = _admin_email
+                logger.info('Admin email updated to %s from ADMIN_EMAIL env.', _admin_email)
 
         db.commit()
 
