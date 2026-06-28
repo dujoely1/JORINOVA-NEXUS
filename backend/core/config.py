@@ -83,6 +83,15 @@ class Settings(BaseSettings):
 
     @property
     def database_url(self) -> str:
+        # A full connection string (Neon / Render external / Supabase) wins —
+        # paste it into DATABASE_URL. Normalised to the psycopg2 driver; query
+        # params such as ?sslmode=require are preserved (Neon needs SSL).
+        env_url = os.environ.get('DATABASE_URL', '').strip()
+        if env_url:
+            for prefix in ('postgresql+psycopg2://', 'postgresql://', 'postgres://'):
+                if env_url.startswith(prefix):
+                    return 'postgresql+psycopg2://' + env_url[len(prefix):]
+            return env_url
         if self.db_engine == 'postgresql':
             from urllib.parse import quote_plus
             pw = quote_plus(self.db_password)   # safely encode @, /, # etc.
