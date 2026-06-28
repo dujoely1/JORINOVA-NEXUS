@@ -46,8 +46,8 @@ router = APIRouter(prefix='/staff-mobile', tags=['Staff Mobile Hub'])
 log = logging.getLogger('alis_x.staff_mobile')
 
 ADMIN_ROLES = {'super_admin', 'it_admin', 'lab_manager'}
-MEDIA_DIR = Path(__file__).resolve().parent.parent.parent / 'media'
-MEDIA_DIR.mkdir(exist_ok=True)
+MEDIA_DIR = Path(__file__).resolve().parent.parent / 'media'
+MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

@@ -349,9 +349,11 @@ app.add_middleware(SecurityHeadersMiddleware)
 
 FRONTEND_DIR = Path(__file__).parent.parent / 'frontend'
 
-# Media files (staff photos, uploads)
-MEDIA_DIR = Path(__file__).parent.parent / 'media'
-MEDIA_DIR.mkdir(exist_ok=True)
+# Media files (staff photos, uploads). Lives at <backend>/media — the dir the
+# Dockerfile creates and chowns (writable by the non-root app user). Using one
+# extra .parent pointed at the container root (/media, root-owned) → upload 500s.
+MEDIA_DIR = Path(__file__).parent / 'media'
+MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 app.mount('/media', StaticFiles(directory=str(MEDIA_DIR)), name='media')
 
 # ── API Routers (register all — graceful import) ─────────────────────────────

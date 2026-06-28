@@ -260,7 +260,7 @@ async def upload_staff_photo(
     import os, uuid, shutil
     from pathlib import Path
 
-    upload_dir = Path(__file__).parent.parent.parent / 'media' / 'staff_photos'
+    upload_dir = Path(__file__).parent.parent / 'media' / 'staff_photos'
     upload_dir.mkdir(parents=True, exist_ok=True)
 
     ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else 'jpg'
