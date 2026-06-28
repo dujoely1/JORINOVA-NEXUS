@@ -40,7 +40,7 @@ services:
     # Bind to Render's assigned $PORT (the Dockerfile CMD hardcodes 8000).
     # uvicorn is always present (gunicorn lives only in requirements-prod.txt);
     # 1 worker keeps memory within the free 512 MB.
-    dockerCommand: /bin/sh -c "uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1"
+    dockerCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1
     healthCheckPath: /api/v1/health
     autoDeploy: true
     envVars:
