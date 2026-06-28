@@ -14,8 +14,8 @@ import retrofit2.converter.gson.GsonConverterFactory
  */
 object ApiClient {
 
-    // TODO: set this to your tunnel / domain. MUST be HTTPS (camera + secure ctx).
-    const val BASE_URL = "https://your-pilot-url/api/v1/"
+    // Live always-on backend (Render). MUST be HTTPS (camera + secure ctx).
+    const val BASE_URL = "https://jorinova-nexus-api.onrender.com/api/v1/"
 
     private const val PREFS = "nexus_secure"
     private const val KEY_TOKEN = "jwt"
