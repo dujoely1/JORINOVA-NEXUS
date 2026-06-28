@@ -50,25 +50,13 @@ services:
         generateValue: true            # strong random key, persisted across deploys
       - key: ADMIN_PASSWORD
         sync: false                    # YOU set this at deploy → super-admin "admin" login
-      # PostgreSQL — the app builds its URL from these parts (core/config.py)
-      - key: DB_ENGINE
-        value: postgresql
-      - key: DB_HOST
-        fromDatabase: { name: jorinova-nexus-db, property: host }
-      - key: DB_PORT
-        fromDatabase: { name: jorinova-nexus-db, property: port }
-      - key: DB_NAME
-        fromDatabase: { name: jorinova-nexus-db, property: database }
-      - key: DB_USER
-        fromDatabase: { name: jorinova-nexus-db, property: user }
-      - key: DB_PASSWORD
-        fromDatabase: { name: jorinova-nexus-db, property: password }
-      # Paste a Neon (or other) Postgres connection string here to use it INSTEAD
-      # of the free Render DB above — it takes priority. Free Render Postgres is
-      # deleted ~30 days after creation; Neon's free DB does not expire. Format:
-      #   postgresql://user:password@ep-xxx.region.aws.neon.tech/dbname?sslmode=require
+      # PostgreSQL — Render injects the full connection string automatically.
+      # The app reads DATABASE_URL directly (core/config.py), so no separate
+      # DB_HOST/PORT/NAME/USER/PASSWORD are needed.
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: jorinova-nexus-db
+          property: connectionString
       # CORS origins (web uses same-origin proxy, so this mainly matters for the
       # mobile app / direct API calls). Adjust if your web URL differs.
       - key: ALLOWED_HOSTS
