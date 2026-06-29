@@ -54,13 +54,14 @@ services:
       # (no manual DB edit). Password reset / notifications go here.
       - key: ADMIN_EMAIL
         value: "ug2320335@ines.ac.rw"
-      # PostgreSQL — Render injects the full connection string automatically.
-      # The app reads DATABASE_URL directly (core/config.py), so no separate
-      # DB_HOST/PORT/NAME/USER/PASSWORD are needed.
+      # PostgreSQL connection string (the app reads DATABASE_URL directly).
+      # Use a PERMANENT free database: paste your NEON connection string here at
+      # blueprint Sync (or in the service Environment). sync:false = you set it,
+      # it is NOT stored in the repo. Format:
+      #   postgresql://user:password@ep-xxx.region.aws.neon.tech/dbname?sslmode=require
+      # (Leaving it empty falls back to ephemeral SQLite, so always set it.)
       - key: DATABASE_URL
-        fromDatabase:
-          name: jorinova-nexus-db
-          property: connectionString
+        sync: false
       # CORS origins (web uses same-origin proxy, so this mainly matters for the
       # mobile app / direct API calls). Adjust if your web URL differs.
       - key: ALLOWED_HOSTS
