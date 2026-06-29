@@ -12,6 +12,7 @@
 import { useEffect, useState } from 'react'
 import RequireAuth from '../../components/RequireAuth'
 import AppShell from '../../components/AppShell'
+import BillingCreator from '../../components/BillingCreator'
 import { useT } from '../../contexts/I18nProvider'
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
@@ -56,6 +57,12 @@ function Inner() {
   const [record,  setRecord]  = useState<BillingRecord | null>(null)
   const [err,     setErr]     = useState<string | null>(null)
   const [busy,    setBusy]    = useState(false)
+  const [showCreator, setShowCreator] = useState(false)
+
+  const refreshSummary = () => {
+    fetch(`${API}/api/v1/billing/summary/today`, { headers: authHeaders() })
+      .then(r => r.ok ? r.json() : null).then(d => d && setSummary(d)).catch(() => {})
+  }
 
   useEffect(() => {
     fetch(`${API}/api/v1/billing/summary/today`, { headers: authHeaders() })
@@ -64,16 +71,22 @@ function Inner() {
       .catch(e => setErr(String(e)))
   }, [])
 
-  async function lookup(e: React.FormEvent) {
-    e.preventDefault()
-    setBusy(true); setErr(null); setRecord(null)
+  async function loadRecord(id: string) {
+    if (!id) return
+    setBusy(true); setErr(null)
     try {
-      const r = await fetch(`${API}/api/v1/billing/record/${labId}`, { headers: authHeaders() })
+      const r = await fetch(`${API}/api/v1/billing/record/${id}`, { headers: authHeaders() })
       if (!r.ok) throw new Error(`HTTP ${r.status}`)
       setRecord(await r.json())
     } catch (e: any) {
       setErr(String(e.message || e))
     } finally { setBusy(false) }
+  }
+
+  async function lookup(e: React.FormEvent) {
+    e.preventDefault()
+    setRecord(null)
+    await loadRecord(labId)
   }
 
   const fmt = (n: number) => n.toLocaleString() + ' RWF'
@@ -129,6 +142,10 @@ function Inner() {
             <button disabled={busy || !labId} className="px-4 py-2 rounded-lg bg-sky-600 text-white font-semibold text-sm disabled:opacity-50">
               {busy ? t('bill.looking') : t('bill.lookup')}
             </button>
+            <button type="button" disabled={!labId} onClick={() => setShowCreator(true)}
+              className="px-4 py-2 rounded-lg bg-emerald-600 text-white font-semibold text-sm disabled:opacity-50 whitespace-nowrap">
+              ⚡ Generate bill
+            </button>
           </form>
           {err && <div className="mt-3 text-xs text-rose-300">⚠ {err}</div>}
 
@@ -167,6 +184,14 @@ function Inner() {
           )}
         </section>
       </div>
+
+      {showCreator && labId && !Number.isNaN(Number(labId)) && (
+        <BillingCreator
+          labId={Number(labId)}
+          onClose={() => setShowCreator(false)}
+          onCreated={() => { refreshSummary(); void loadRecord(labId) }}
+        />
+      )}
     </>
   )
 }

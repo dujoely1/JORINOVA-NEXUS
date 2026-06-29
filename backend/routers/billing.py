@@ -307,15 +307,15 @@ def get_autobill_items(
 
 @router.get('/billing/search-items')
 def search_billing_items(
-    q:    str     = Query('', min_length=1, description='Search string'),
-    limit:int     = Query(20, ge=1, le=100),
+    q:    str     = Query('', description='Search string (empty = all, alphabetical)'),
+    limit:int     = Query(50, ge=1, le=500),
     db:   Session = Depends(get_db),
     user: User    = Depends(get_current_user),
 ) -> list:
     """
-    Typeahead search for billing items.
-    Searches test_catalog by name or code.  Returns items with prices.
-    Used by the "Other" add-on field in the billing modal.
+    Search/browse billing items. Empty q returns the full active catalogue
+    ordered alphabetically (for manual billing: suggested-from-tests first,
+    then everything else by name). Searches test_catalog by name/code/short_name.
     """
     from models.core_config import TestCatalog, LaboratoryDepartment
     from sqlalchemy import or_
