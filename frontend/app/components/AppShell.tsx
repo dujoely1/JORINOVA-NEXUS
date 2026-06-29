@@ -200,9 +200,12 @@ export default function AppShell({
               <>
                 <div className="hidden sm:block text-right leading-tight">
                   <div className="text-xs font-semibold">{user.full_name || user.username}</div>
-                  <div className="text-[10px] text-blue-100">{(user.role || '').replace('_', ' ')}</div>
+                  <div className="text-[10px] text-blue-100">
+                    {(user.role || '').replace(/_/g, ' ')}
+                    {user.department ? ` · ${user.department}` : ''}
+                  </div>
                 </div>
-                <Avatar src={user.photo_url} name={user.full_name || user.username} size={34} />
+                <Avatar src={user.photo_url} name={user.full_name || user.username} role={user.role} size={34} />
                 <button
                   onClick={() => { logout(); router.push('/login') }}
                   title={t('shell.sign_out')}
