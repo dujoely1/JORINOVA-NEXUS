@@ -110,6 +110,7 @@ const D = {
   'nav.biochem':        { en: 'Biochemistry', fr: 'Biochimie',    rw: 'Biyokimi' },
   'nav.micro':          { en: 'Microbiology', fr: 'Microbiologie',rw: 'Mikorobiyoloji' },
   'nav.serology':       { en: 'Serology',     fr: 'Sérologie',    rw: 'Serolojiya' },
+  'nav.reception':      { en: 'Reception & Phlebotomy', fr: 'Réception & Prélèvement', rw: 'Kwakira & Gufata Ingero' },
   'nav.blood_bank':     { en: 'Blood Bank',   fr: 'Banque de sang',rw: 'Banki y’amaraso' },
   'nav.anapath':        { en: 'Anat. Pathology', fr: 'Anat. pathologique', rw: 'Patolojiya' },
   'nav.toxicology':     { en: 'Toxicology',   fr: 'Toxicologie',  rw: 'Ubwoba bw’uburozi' },

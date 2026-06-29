@@ -34,6 +34,7 @@ const NAV: readonly NavItem[] = [
   // ── Main ────────────────────────────────────────────────────────────────
   { href: '/dashboard',             icon: '🏠', labelKey: 'nav.dashboard',  roles: ['*'], groupKey: 'nav.group.main' },
   { href: '/modules/patients',      icon: '👤', labelKey: 'nav.patients',   roles: ['*'], groupKey: 'nav.group.main' },
+  { href: '/modules/reception',     icon: '🩺', labelKey: 'nav.reception',  roles: ['receptionist', 'lab_technician', 'lab_manager', 'super_admin'], groupKey: 'nav.group.main' },
   { href: '/modules/laboratory',    icon: '🧪', labelKey: 'nav.laboratory', roles: ['lab_manager', 'scientist', 'lab_technician', 'pathologist', 'super_admin'], groupKey: 'nav.group.main' },
 
   // ── Clinical ────────────────────────────────────────────────────────────
