@@ -44,7 +44,9 @@ async function request<T>(
   })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? res.statusText)
+    const err = new Error(body.detail ?? res.statusText) as Error & { status?: number }
+    err.status = res.status                 // let callers distinguish 401 from 5xx/network
+    throw err
   }
   return res.json()
 }
