@@ -50,7 +50,7 @@ def create_all_tables():
         # New clinical models
         hematology, coagulation, serology, urinalysis,
         quality, staffhub, audit, surveillance,
-        notifications,
+        notifications, anapath,
         voice_biometric,
         # Worklist preparation & billing
         worklist, billing,

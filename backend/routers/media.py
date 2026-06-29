@@ -38,3 +38,13 @@ def get_history_image(hid: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail='Not found')
     return Response(content=h.data, media_type=h.content_type or 'image/jpeg',
                     headers={'Cache-Control': 'public, max-age=86400'})
+
+
+@router.get('/anapath-image/{img_id}')
+def get_anapath_image(img_id: int, db: Session = Depends(get_db)):
+    from models.anapath import AnapathImage
+    r = db.query(AnapathImage).filter(AnapathImage.id == img_id).first()
+    if not r or not r.data:
+        raise HTTPException(status_code=404, detail='Not found')
+    return Response(content=r.data, media_type=r.content_type or 'image/jpeg',
+                    headers={'Cache-Control': 'public, max-age=86400'})

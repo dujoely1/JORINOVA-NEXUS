@@ -9,6 +9,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import RequireAuth from '../../components/RequireAuth'
 import AppShell from '../../components/AppShell'
+import AnapathImagePanel from '../../components/AnapathImagePanel'
 import { useT } from '../../contexts/I18nProvider'
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
@@ -74,7 +75,7 @@ function Inner() {
         {tab === 'histology' && <HistoTab />}
         {tab === 'cytology'  && <CytoTab />}
         {tab === 'ihc'       && <IHCTab />}
-        {tab === 'image'     && <ImageTab />}
+        {tab === 'image'     && <><AnapathImagePanel /><ImageTab /></>}
       </div>
     </>
   )

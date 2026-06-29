@@ -24,7 +24,7 @@ Endpoints:
 from __future__ import annotations
 from typing import Optional
 from datetime import date as date_t, datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from pydantic import BaseModel
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
@@ -32,7 +32,7 @@ from sqlalchemy.orm import Session
 from core.database import get_db
 from core.security import get_current_user
 from models.user import User
-from models.anapath import HistopathologyReport, CytologyResult, IHCResult, ImageAnalysisResult
+from models.anapath import HistopathologyReport, CytologyResult, IHCResult, ImageAnalysisResult, AnapathImage
 from services import book_service
 
 router = APIRouter(prefix='/anapath', tags=['Anatomical Pathology'])
@@ -380,3 +380,67 @@ def pathologist_decision(
     book_service.lock_for_validation(r, user.id)
     db.commit(); db.refresh(r)
     return r
+
+
+# ── Anapath stored images — microscopy / macroscopy / imaging / upload ────────
+# Per-patient image cadre: upload a file, or capture from a connected camera /
+# digital macroscopy / imaging machine. Bytes persist in the DB; served via
+# /api/v1/public/anapath-image/{id}.
+
+@router.post('/images', status_code=201)
+async def upload_anapath_image(
+    patient_id: Optional[int] = Query(None),
+    accession:  Optional[str] = Query(None),
+    image_type: str           = Query('upload'),   # microscopy|macroscopy|imaging|upload
+    caption:    Optional[str] = Query(None),
+    file:       UploadFile    = File(...),
+    db:         Session       = Depends(get_db),
+    user:       User          = Depends(get_current_user),
+):
+    import hashlib, os
+    if not (file.content_type or '').startswith('image/'):
+        raise HTTPException(400, 'File must be an image')
+    content = await file.read()
+    max_mb = float(os.environ.get('MAX_UPLOAD_MB', '10') or 10)
+    if len(content) > max_mb * 1024 * 1024:
+        raise HTTPException(400, f'Image must be < {max_mb:g} MB')
+    if not content:
+        raise HTTPException(400, 'Empty file')
+    img = AnapathImage(
+        patient_id=patient_id, accession=accession,
+        image_type=(image_type or 'upload'), caption=caption,
+        data=content, content_type=file.content_type or 'image/jpeg',
+        checksum=hashlib.sha256(content).hexdigest(), uploaded_by_id=user.id,
+    )
+    db.add(img); db.commit(); db.refresh(img)
+    return {'id': img.id, 'url': f'/api/v1/public/anapath-image/{img.id}',
+            'image_type': img.image_type, 'caption': img.caption}
+
+
+@router.get('/images')
+def list_anapath_images(
+    patient_id: Optional[int] = Query(None),
+    accession:  Optional[str] = Query(None),
+    db: Session = Depends(get_db), _u: User = Depends(get_current_user),
+):
+    q = db.query(AnapathImage)
+    if patient_id is not None:
+        q = q.filter(AnapathImage.patient_id == patient_id)
+    if accession:
+        q = q.filter(AnapathImage.accession == accession)
+    rows = q.order_by(desc(AnapathImage.id)).limit(100).all()
+    return [{
+        'id': r.id, 'url': f'/api/v1/public/anapath-image/{r.id}',
+        'image_type': r.image_type, 'caption': r.caption,
+        'patient_id': r.patient_id, 'accession': r.accession,
+        'created_at': r.created_at.isoformat() if r.created_at else None,
+    } for r in rows]
+
+
+@router.delete('/images/{img_id}')
+def delete_anapath_image(img_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    r = db.query(AnapathImage).filter(AnapathImage.id == img_id).first()
+    if not r:
+        raise HTTPException(404, 'Not found')
+    db.delete(r); db.commit()
+    return {'status': 'deleted'}

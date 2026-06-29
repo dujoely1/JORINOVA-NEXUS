@@ -19,7 +19,7 @@ services.book_service.
 from __future__ import annotations
 from typing import Optional
 from datetime import datetime
-from sqlalchemy import String, Boolean, Integer, Float, ForeignKey, Text, DateTime, func
+from sqlalchemy import String, Boolean, Integer, Float, ForeignKey, Text, DateTime, LargeBinary, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from core.database import Base
 from .base import TimestampMixin
@@ -208,3 +208,21 @@ class ImageAnalysisResult(Base, TimestampMixin):
     patient      = relationship('Patient')
     histology    = relationship('HistopathologyReport')
     validated_by = relationship('User', foreign_keys=[validated_by_id])
+
+
+class AnapathImage(Base):
+    """Stored pathology image bytes (microscopy / macroscopy / imaging / upload),
+    tied to a patient and/or accession. Persists in the DB (no external storage);
+    served via /api/v1/public/anapath-image/{id}."""
+    __tablename__ = 'anapath_images'
+
+    id:             Mapped[int]           = mapped_column(Integer, primary_key=True)
+    patient_id:     Mapped[Optional[int]] = mapped_column(Integer, index=True, nullable=True)
+    accession:      Mapped[Optional[str]] = mapped_column(String(40), index=True, nullable=True)
+    image_type:     Mapped[str]           = mapped_column(String(20), default='upload')  # microscopy|macroscopy|imaging|upload
+    caption:        Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    data:           Mapped[bytes]         = mapped_column(LargeBinary)
+    content_type:   Mapped[str]           = mapped_column(String(50), default='image/jpeg')
+    checksum:       Mapped[str]           = mapped_column(String(64), default='')
+    uploaded_by_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    created_at:     Mapped[datetime]      = mapped_column(DateTime(timezone=True), server_default=func.now())
