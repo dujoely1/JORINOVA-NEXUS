@@ -53,7 +53,7 @@ services:
       # Admin contact email — auto-applied to the "admin" account on startup
       # (no manual DB edit). Password reset / notifications go here.
       - key: ADMIN_EMAIL
-        value: "ug2320335@ines.ac.rw"
+        value: "dujoely1@gmail.com"
       # Break-glass: set a value to reset the admin password on next deploy, then
       # clear it. Lets you recover login without email codes or a direct DB edit.
       - key: ADMIN_RESET_PASSWORD
