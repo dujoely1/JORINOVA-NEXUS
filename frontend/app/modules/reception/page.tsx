@@ -23,8 +23,24 @@ type Visit = {
   id: number; visit_no: string; visit_type: string; status: string
   patient_name?: string; pid?: string; age?: string; sex?: string
   ward?: string; tests_ordered?: string; urgency?: string; created_at?: string
+  clinical_indication?: string
 }
 type Tab = 'reception' | 'phlebotomy'
+
+// High-risk communicable diseases / outbreak keywords (EN/FR/RW). If a visit's
+// clinical indication or tests mention any of these, reception is warned to apply
+// isolation precautions and notify surveillance/IPC.
+const HIGH_RISK = [
+  'ebola', 'marburg', 'lassa', 'hemorrhagic', 'haemorrhagic', 'vhf', 'cholera', 'kolera',
+  'measles', 'iseru', 'mpox', 'monkeypox', 'covid', 'sars', 'mers', 'meningitis', 'umugiga',
+  'yellow fever', 'plague', 'anthrax', 'rabies', 'marara', 'diphtheria', 'pertussis',
+  'typhoid', 'tuberculosis', 'mdr-tb', 'xdr-tb', 'dengue', 'zika', 'chikungunya', 'avian',
+  'h5n1', 'h1n1', 'polio', 'outbreak', 'icyorezo',
+]
+function riskHits(text?: string): string[] {
+  const t = ` ${(text || '').toLowerCase()} `
+  return HIGH_RISK.filter(k => t.includes(k))
+}
 
 export default function ReceptionPage() {
   return (
@@ -114,6 +130,13 @@ function Inner() {
                 <select className={inp} value={f.urgency} onChange={e => setF({ ...f, urgency: e.target.value })}><option value="routine">Routine</option><option value="urgent">Urgent</option><option value="stat">STAT</option></select>
                 <input className={inp + ' sm:col-span-3'} placeholder="Clinical indication" value={f.clinical_indication} onChange={e => setF({ ...f, clinical_indication: e.target.value })} />
               </div>
+              {riskHits(`${f.clinical_indication} ${f.tests_ordered}`).length > 0 && (
+                <div className="mt-3 rounded-lg bg-rose-900/40 border border-rose-500 px-3 py-2.5 text-sm text-rose-50 flex items-start gap-2">
+                  <span className="text-lg leading-none">⚠️</span>
+                  <span><b>HIGH COMMUNICABLE DISEASE / OUTBREAK</b> — “{riskHits(`${f.clinical_indication} ${f.tests_ordered}`).join(', ')}”.
+                  Apply <b>isolation precautions + PPE</b> and notify <b>surveillance / IPC</b> immediately.</span>
+                </div>
+              )}
               <button onClick={register} disabled={busy} className="mt-3 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold disabled:opacity-50">+ Register visit</button>
             </section>
 
@@ -134,7 +157,7 @@ function Inner() {
                   {pending.map(v => (
                     <tr key={v.id} className="border-t border-slate-800">
                       <td className="px-2 py-1.5 font-mono text-slate-200">{v.visit_no}</td>
-                      <td className="px-2 py-1.5">{v.patient_name || v.pid || '—'}</td>
+                      <td className="px-2 py-1.5">{riskHits(`${v.clinical_indication} ${v.tests_ordered}`).length > 0 && <span title="High communicable disease / outbreak — isolation precautions">⚠️ </span>}{v.patient_name || v.pid || '—'}</td>
                       <td className="px-2 py-1.5">{v.visit_type}</td>
                       <td className="px-2 py-1.5 text-slate-400 truncate max-w-[200px]">{v.tests_ordered || '—'}</td>
                       <td className="px-2 py-1.5 text-right"><button onClick={() => collect(v.id)} disabled={busy} className="px-2.5 py-1 rounded bg-emerald-600 text-white text-xs font-semibold disabled:opacity-50">✓ Sample collected</button></td>

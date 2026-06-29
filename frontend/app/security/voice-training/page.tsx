@@ -49,6 +49,7 @@ function Inner() {
   const [submitted, setSubmitted] = useState(false)
   const [busy, setBusy]       = useState(false)
   const [err, setErr]         = useState<string | null>(null)
+  const [level, setLevel]     = useState(0)   // live mic level 0..1 (voice activity)
   const recRef = useRef<MediaRecorder | null>(null)
 
   const loadStatus = useCallback(() => {
@@ -84,6 +85,23 @@ function Inner() {
     recRef.current = rec
     rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data) }
     const stopped = new Promise<void>(res => { rec.onstop = () => res() })
+    // Live mic-level meter so the user SEES their voice is being captured.
+    let ac: AudioContext | null = null, raf = 0
+    try {
+      ac = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const an = ac.createAnalyser(); an.fftSize = 256
+      ac.createMediaStreamSource(stream).connect(an)
+      const data = new Uint8Array(an.frequencyBinCount)
+      const tick = () => {
+        an.getByteTimeDomainData(data)
+        let sum = 0
+        for (let i = 0; i < data.length; i++) { const x = (data[i] - 128) / 128; sum += x * x }
+        setLevel(Math.min(1, Math.sqrt(sum / data.length) * 3))
+        raf = requestAnimationFrame(tick)
+      }
+      tick()
+    } catch { /* meter optional */ }
+
     rec.start()
     setRecording(idx)
     // Record ~4s then auto-stop.
@@ -91,6 +109,9 @@ function Inner() {
     try { rec.stop() } catch { /* noop */ }
     await stopped
     stream.getTracks().forEach(tk => tk.stop())
+    if (raf) cancelAnimationFrame(raf)
+    if (ac) { try { await ac.close() } catch {} }
+    setLevel(0)
     setRecording(null)
 
     const blob = new Blob(chunks, { type: 'audio/webm' })
@@ -128,6 +149,21 @@ function Inner() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 py-6 space-y-5">
+      {/* Live "you're speaking" indicator while recording */}
+      {recording !== null && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-full bg-rose-600 text-white px-5 py-3 shadow-2xl">
+          <span className="h-3 w-3 rounded-full bg-white animate-ping" />
+          <span className="font-semibold text-sm">🔴 Recording — speak now…</span>
+          <span className="flex items-end gap-0.5 h-6">
+            {[0, 1, 2, 3, 4, 5, 6].map(i => {
+              const active = level * 7 > i
+              return <span key={i} className="w-1.5 rounded-sm bg-white transition-all"
+                           style={{ height: `${active ? 8 + level * 16 + i * 1.5 : 4}px`, opacity: active ? 1 : 0.35 }} />
+            })}
+          </span>
+        </div>
+      )}
+
       <header>
         <h1 className="text-2xl font-extrabold tracking-wide text-purple-200" style={{ textShadow: '0 0 20px rgba(168,85,247,0.30)' }}>
           🎙 {t('vt.title')}
