@@ -22,6 +22,7 @@ import { useI18n, useT } from '../contexts/I18nProvider'
 import { LANGUAGES, type Lang } from '../lib/i18n'
 import Logo from './Logo'
 import Avatar from './Avatar'
+import ProfilePhotoEditor from './ProfilePhotoEditor'
 import Sidebar from './Sidebar'
 import ModuleToolbar from './ModuleToolbar'
 
@@ -50,7 +51,7 @@ export default function AppShell({
   theme?:        'light' | 'dark'
   showSidebar?:  boolean
 }) {
-  const { user, logout } = useAuth()
+  const { user, logout, refreshProfile } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
   const { lang, setLang } = useI18n()
@@ -68,6 +69,7 @@ export default function AppShell({
   const [online, setOnline] = useState<boolean>(true)
   const [navOpen, setNavOpen] = useState<boolean>(false)
   const [langOpen, setLangOpen] = useState<boolean>(false)
+  const [photoOpen, setPhotoOpen] = useState<boolean>(false)
 
   // ── Live clock + online status (SSR-safe) ─────────────────────────────
   useEffect(() => {
@@ -205,7 +207,9 @@ export default function AppShell({
                     {user.department ? ` · ${user.department}` : ''}
                   </div>
                 </div>
-                <Avatar src={user.photo_url} name={user.full_name || user.username} role={user.role} size={34} />
+                <button onClick={() => setPhotoOpen(true)} title="Profile photo" className="rounded-full hover:ring-2 hover:ring-white/60 transition">
+                  <Avatar src={user.photo_url} name={user.full_name || user.username} role={user.role} size={34} />
+                </button>
                 <button
                   onClick={() => { logout(); router.push('/login') }}
                   title={t('shell.sign_out')}
@@ -255,6 +259,16 @@ export default function AppShell({
           <span className="text-blue-100">Powered by JORINOVA NEXUS ALIS-X · {t('shell.idle_logout')}</span>
         </div>
       </footer>
+
+      {photoOpen && user && (
+        <ProfilePhotoEditor
+          uid={user.id}
+          currentPhoto={user.photo_url}
+          name={user.full_name || user.username}
+          onClose={() => setPhotoOpen(false)}
+          onChanged={() => { void refreshProfile() }}
+        />
+      )}
     </div>
   )
 }

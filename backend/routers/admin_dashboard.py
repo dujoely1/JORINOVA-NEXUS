@@ -287,6 +287,21 @@ async def upload_staff_photo(
     return {'status': 'uploaded', 'photo_url': photo_url, 'filename': filename, 'checksum': cs}
 
 
+@router.delete('/users/{uid}/photo')
+def delete_staff_photo(uid: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Remove a staff photo. User can remove their own; admin can remove for any user."""
+    if user.id != uid and user.role not in ADMIN_ROLES:
+        raise HTTPException(403, 'Can only remove your own photo')
+    target_user = db.query(User).filter(User.id == uid).first()
+    if not target_user:
+        raise HTTPException(404, 'User not found')
+    from models.user import UserPhoto
+    db.query(UserPhoto).filter(UserPhoto.user_id == uid).delete()
+    target_user.profile_photo = None
+    db.commit()
+    return {'status': 'removed'}
+
+
 @router.get('/users/{uid}/photo')
 def get_staff_photo(uid: int, db: Session = Depends(get_db), _u: User = Depends(get_current_user)):
     u = db.query(User).filter(User.id==uid).first()
