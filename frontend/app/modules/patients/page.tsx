@@ -78,6 +78,14 @@ function PatientsInner() {
     const headers: HeadersInit = tok ? { Authorization: `Bearer ${tok}` } : {}
     fetch(`${API}/api/v1/patients/?limit=200`, { headers })
       .then(async r => {
+        if (r.status === 401) {
+          // Stale/expired session — clear the token and bounce to login cleanly
+          // (avoids the recurring raw "HTTP 401" on PID/Name/NID/LID search).
+          document.cookie = 'access_token=; path=/; max-age=0; SameSite=Lax'
+          try { localStorage.removeItem('access_token') } catch {}
+          window.location.href = '/login?reason=expired'
+          throw new Error('Session expired')
+        }
         if (!r.ok) throw new Error(`HTTP ${r.status}`)
         return r.json()
       })
