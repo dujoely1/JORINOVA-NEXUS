@@ -719,3 +719,152 @@ def _next_seq(db, table_name) -> str:
         return str((r or 0) + 1).zfill(4)
     except Exception:
         return '0001'
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  Quarantine · Apheresis · Component production
+# ══════════════════════════════════════════════════════════════════════════════
+
+_COMPONENT_VOL = {'PRBC': 250, 'FFP': 250, 'PLT': 50, 'CRYO': 30, 'WB': 450, 'GRAN': 200, 'ALB': 100}
+
+
+@router.get('/blood-bank/quarantine')
+def list_quarantine(db: Session = Depends(get_db), user: User = Depends(get_current_user)) -> list:
+    """Units awaiting screening/release."""
+    from models.blood_bank import BloodBag
+    bags = db.query(BloodBag).filter(BloodBag.status == 'quarantine').order_by(BloodBag.collection_date).all()
+    return [_bag_dict(b) for b in bags]
+
+
+@router.post('/blood-bank/bags/{bag_number}/release')
+def release_bag(
+    bag_number: str,
+    screening_passed: bool = Query(True),
+    notes: Optional[str] = Query(None),
+    db: Session = Depends(get_db), user: User = Depends(get_current_user),
+) -> dict:
+    """Release a unit from quarantine: passed → available, failed → discarded."""
+    from models.blood_bank import BloodBag
+    bag = db.query(BloodBag).filter(BloodBag.bag_number == bag_number).first()
+    if not bag:
+        raise HTTPException(404, 'Bag not found')
+    if bag.status != 'quarantine':
+        raise HTTPException(400, f'Bag is not in quarantine (status={bag.status})')
+    bag.status = 'available' if screening_passed else 'discarded'
+    tag = f'screening {"PASSED→available" if screening_passed else "FAILED→discarded"} by {user.username}'
+    bag.notes = ((bag.notes or '') + f' | {tag}' + (f': {notes}' if notes else '')).strip(' |')
+    db.commit()
+    return _bag_dict(bag)
+
+
+class ApheresisIn(BaseModel):
+    donor_id:       Optional[int] = None
+    machine:        Optional[str] = None
+    procedure_type: str = 'PLATELETPHERESIS'
+    component:      str = 'PLT'
+    blood_group:    str
+    volume_ml:      int = 200
+    duration_min:   Optional[int] = None
+    collection_date: str
+    notes:          Optional[str] = None
+
+
+@router.post('/blood-bank/apheresis')
+def create_apheresis(body: ApheresisIn, db: Session = Depends(get_db), user: User = Depends(get_current_user)) -> dict:
+    """Record an apheresis (machine) collection and create the resulting unit (quarantine)."""
+    from models.blood_bank import ApheresisCollection, BloodBag, Donor
+    coll = date.fromisoformat(body.collection_date)
+    comp = (body.component or 'PLT').upper()
+    shelf = SHELF_LIFE.get(comp, 5)
+    bag = BloodBag(
+        bag_number=f'APH{coll.strftime("%Y%m%d")}-{_next_seq(db, "blood_bags")}',
+        donor_id=body.donor_id, component=comp, blood_group=body.blood_group.upper(),
+        volume_ml=body.volume_ml, status='quarantine', collection_date=coll,
+        expiry_date=coll + timedelta(days=shelf), notes=f'Apheresis · {body.procedure_type}',
+    )
+    db.add(bag); db.flush()
+    rec = ApheresisCollection(
+        collection_no=f'APH-{coll.year}-{_next_seq(db, "apheresis_collections")}',
+        donor_id=body.donor_id, machine=body.machine, procedure_type=body.procedure_type,
+        component=comp, blood_group=body.blood_group.upper(), volume_ml=body.volume_ml,
+        duration_min=body.duration_min, bag_id=bag.id, operator_id=user.id, notes=body.notes,
+    )
+    db.add(rec)
+    if body.donor_id:
+        donor = db.query(Donor).filter(Donor.id == body.donor_id).first()
+        if donor:
+            donor.last_donation = coll
+            donor.total_donations = (donor.total_donations or 0) + 1
+            donor.deferral_until = coll + timedelta(days=14)  # apheresis: shorter deferral
+    db.commit(); db.refresh(rec)
+    return {'collection_no': rec.collection_no, 'bag_number': bag.bag_number, 'component': comp, 'status': 'quarantine'}
+
+
+@router.get('/blood-bank/apheresis')
+def list_apheresis(db: Session = Depends(get_db), user: User = Depends(get_current_user)) -> list:
+    from models.blood_bank import ApheresisCollection
+    rows = db.query(ApheresisCollection).order_by(ApheresisCollection.id.desc()).limit(100).all()
+    return [{
+        'id': r.id, 'collection_no': r.collection_no, 'machine': r.machine,
+        'procedure_type': r.procedure_type, 'component': r.component, 'blood_group': r.blood_group,
+        'volume_ml': r.volume_ml, 'duration_min': r.duration_min, 'donor_id': r.donor_id,
+    } for r in rows]
+
+
+class ProductionIn(BaseModel):
+    source_bag_number: str
+    components:        list[str]            # e.g. ['PRBC','FFP','PLT']
+    method:            str = 'centrifugation'
+
+
+@router.post('/blood-bank/production')
+def create_production(body: ProductionIn, db: Session = Depends(get_db), user: User = Depends(get_current_user)) -> dict:
+    """Split a Whole Blood unit into components (each created in quarantine)."""
+    import json
+    from models.blood_bank import BloodBag, ComponentProduction
+    src = db.query(BloodBag).filter(BloodBag.bag_number == body.source_bag_number).first()
+    if not src:
+        raise HTTPException(404, 'Source unit not found')
+    if (src.component or '').upper() != 'WB':
+        raise HTTPException(400, 'Source must be a Whole Blood (WB) unit')
+    if src.status not in ('quarantine', 'available'):
+        raise HTTPException(400, f'Source unit not processable (status={src.status})')
+    if not body.components:
+        raise HTTPException(400, 'Specify at least one component')
+
+    produced = []
+    for raw in body.components:
+        comp = (raw or '').upper()
+        if comp == 'WB':
+            continue
+        shelf = SHELF_LIFE.get(comp, 42)
+        bag = BloodBag(
+            bag_number=f'CMP{src.collection_date.strftime("%Y%m%d")}-{_next_seq(db, "blood_bags")}',
+            donor_id=src.donor_id, component=comp, blood_group=src.blood_group,
+            volume_ml=_COMPONENT_VOL.get(comp, 200), status='quarantine',
+            collection_date=src.collection_date, expiry_date=src.collection_date + timedelta(days=shelf),
+            is_irradiated=src.is_irradiated, is_leukoreduced=src.is_leukoreduced,
+            notes=f'Produced from {src.bag_number}',
+        )
+        db.add(bag); db.flush()
+        produced.append({'component': comp, 'bag_number': bag.bag_number})
+
+    src.status = 'discarded'
+    src.notes = ((src.notes or '') + ' | split into components').strip(' |')
+    rec = ComponentProduction(
+        source_bag_id=src.id, source_bag_number=src.bag_number, method=body.method,
+        produced_json=json.dumps(produced), produced_by_id=user.id,
+    )
+    db.add(rec); db.commit()
+    return {'source': src.bag_number, 'produced': produced}
+
+
+@router.get('/blood-bank/production')
+def list_production(db: Session = Depends(get_db), user: User = Depends(get_current_user)) -> list:
+    import json
+    from models.blood_bank import ComponentProduction
+    rows = db.query(ComponentProduction).order_by(ComponentProduction.id.desc()).limit(100).all()
+    return [{
+        'id': r.id, 'source_bag_number': r.source_bag_number, 'method': r.method,
+        'produced': json.loads(r.produced_json or '[]'),
+    } for r in rows]

@@ -142,3 +142,36 @@ class BloodRequest(Base, TimestampMixin):
 
     patient      = relationship('Patient')
     requested_by = relationship('User', foreign_keys=[requested_by_id])
+
+
+class ApheresisCollection(Base, TimestampMixin):
+    """Apheresis (machine) collection session — plateletpheresis / plasmapheresis /
+    RBC / multicomponent. Records the procedure and links to the bag produced."""
+    __tablename__ = 'apheresis_collections'
+
+    id:             Mapped[int]           = mapped_column(Integer, primary_key=True)
+    collection_no:  Mapped[str]           = mapped_column(String(25), unique=True, index=True)
+    donor_id:       Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('donors.id'), nullable=True)
+    machine:        Mapped[Optional[str]] = mapped_column(String(60), nullable=True)   # e.g. Trima / Amicus / Spectra
+    procedure_type: Mapped[str]           = mapped_column(String(30), default='PLATELETPHERESIS')
+    # PLATELETPHERESIS|PLASMAPHERESIS|RBC_APHERESIS|MULTICOMPONENT|GRANULOCYTE
+    component:      Mapped[str]           = mapped_column(String(6), default='PLT')   # PLT|FFP|PRBC|GRAN
+    blood_group:    Mapped[str]           = mapped_column(String(4), default='')
+    volume_ml:      Mapped[int]           = mapped_column(Integer, default=200)
+    duration_min:   Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    bag_id:         Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('blood_bags.id'), nullable=True)
+    operator_id:    Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('users.id'), nullable=True)
+    notes:          Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+
+class ComponentProduction(Base, TimestampMixin):
+    """Component production — split a whole-blood unit into components
+    (PRBC + FFP + PLT/CRYO). Records the source unit and produced bags."""
+    __tablename__ = 'component_production'
+
+    id:               Mapped[int]           = mapped_column(Integer, primary_key=True)
+    source_bag_id:    Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('blood_bags.id'), nullable=True)
+    source_bag_number:Mapped[Optional[str]] = mapped_column(String(25), nullable=True)
+    method:           Mapped[str]           = mapped_column(String(40), default='manual')   # centrifugation method
+    produced_json:    Mapped[Optional[str]] = mapped_column(Text, nullable=True)   # JSON list of produced bags
+    produced_by_id:   Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('users.id'), nullable=True)

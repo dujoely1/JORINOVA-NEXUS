@@ -17,6 +17,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import RequireAuth from '../../components/RequireAuth'
 import AppShell from '../../components/AppShell'
+import BloodBankOps from '../../components/BloodBankOps'
 import { useT } from '../../contexts/I18nProvider'
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
@@ -46,7 +47,7 @@ function authHeaders(): HeadersInit {
   return t ? { Authorization: `Bearer ${t}` } : {}
 }
 
-type Tab = 'overview' | 'inventory' | 'requests' | 'donors' | 'haemovigilance'
+type Tab = 'overview' | 'inventory' | 'requests' | 'donors' | 'haemovigilance' | 'production'
 
 export default function BloodBankPage() {
   return (
@@ -75,6 +76,7 @@ function BloodBankInner() {
               ['inventory',      t('bb.tab.stock'),    '📦'],
               ['requests',       t('bb.tab.requests'), '📝'],
               ['donors',         t('bb.tab.donors'),   '👤'],
+              ['production',      'Production',          '🧪'],
               ['haemovigilance', t('bb.tab.hv'),       '🚨'],
             ] as const).map(([k,l,i]) => {
               const on = tab === k
@@ -95,6 +97,7 @@ function BloodBankInner() {
         {tab === 'inventory'      && <InventoryTab />}
         {tab === 'requests'       && <RequestsTab />}
         {tab === 'donors'         && <DonorsTab />}
+        {tab === 'production'     && <BloodBankOps />}
         {tab === 'haemovigilance' && <HVTab />}
       </div>
     </>
