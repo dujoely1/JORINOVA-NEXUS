@@ -868,3 +868,58 @@ def list_production(db: Session = Depends(get_db), user: User = Depends(get_curr
         'id': r.id, 'source_bag_number': r.source_bag_number, 'method': r.method,
         'produced': json.loads(r.produced_json or '[]'),
     } for r in rows]
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  Immunoserology / TTI screening (Blood Bank only)
+# ══════════════════════════════════════════════════════════════════════════════
+
+class ScreeningIn(BaseModel):
+    bag_number:      str
+    hiv:             str = 'NR'   # NR|R|ND
+    hbsag:           str = 'NR'
+    hcv:             str = 'NR'
+    syphilis:        str = 'NR'
+    malaria:         str = 'NR'
+    abo_confirm:     Optional[str] = None
+    rh_confirm:      Optional[str] = None
+    antibody_screen: str = 'NEG'  # NEG|POS|ND
+    notes:           Optional[str] = None
+
+
+@router.post('/blood-bank/screening')
+def screen_unit(body: ScreeningIn, db: Session = Depends(get_db), user: User = Depends(get_current_user)) -> dict:
+    """Record TTI / immunoserology screening for a unit. All non-reactive + negative
+    antibody screen → PASS (release from quarantine); any reactive/positive → FAIL (discard)."""
+    from models.blood_bank import BloodBag, UnitScreening
+    bag = db.query(BloodBag).filter(BloodBag.bag_number == body.bag_number).first()
+    if not bag:
+        raise HTTPException(404, 'Bag not found')
+    reactive = any(getattr(body, t) == 'R' for t in ('hiv', 'hbsag', 'hcv', 'syphilis', 'malaria'))
+    result = 'FAIL' if (reactive or body.antibody_screen == 'POS') else 'PASS'
+    rec = UnitScreening(
+        bag_id=bag.id, bag_number=bag.bag_number,
+        hiv=body.hiv, hbsag=body.hbsag, hcv=body.hcv, syphilis=body.syphilis, malaria=body.malaria,
+        abo_confirm=body.abo_confirm, rh_confirm=body.rh_confirm,
+        antibody_screen=body.antibody_screen, result=result, screened_by_id=user.id, notes=body.notes,
+    )
+    db.add(rec)
+    if bag.status == 'quarantine':
+        bag.status = 'available' if result == 'PASS' else 'discarded'
+        bag.notes = ((bag.notes or '') + f' | TTI {result} by {user.username}').strip(' |')
+    db.commit()
+    return {'bag_number': bag.bag_number, 'result': result, 'status': bag.status}
+
+
+@router.get('/blood-bank/screening')
+def list_screening(bag_number: Optional[str] = Query(None), db: Session = Depends(get_db), user: User = Depends(get_current_user)) -> list:
+    from models.blood_bank import UnitScreening
+    q = db.query(UnitScreening)
+    if bag_number:
+        q = q.filter(UnitScreening.bag_number == bag_number)
+    rows = q.order_by(UnitScreening.id.desc()).limit(100).all()
+    return [{
+        'id': r.id, 'bag_number': r.bag_number, 'result': r.result,
+        'hiv': r.hiv, 'hbsag': r.hbsag, 'hcv': r.hcv, 'syphilis': r.syphilis, 'malaria': r.malaria,
+        'antibody_screen': r.antibody_screen, 'abo_confirm': r.abo_confirm, 'rh_confirm': r.rh_confirm,
+    } for r in rows]

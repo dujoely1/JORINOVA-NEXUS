@@ -54,6 +54,18 @@ export default function BloodBankOps() {
     } catch (e: any) { setErr(String(e.message || e)) } finally { setBusy(false) }
   }
 
+  // Immunoserology / TTI screening form
+  const [sf, setSf] = useState({ bag_number: '', hiv: 'NR', hbsag: 'NR', hcv: 'NR', syphilis: 'NR', malaria: 'NR', antibody_screen: 'NEG' })
+  async function submitScreen() {
+    if (!sf.bag_number) { setErr('Pick a unit to screen'); return }
+    setBusy(true); setErr('')
+    try {
+      const r = await fetch(`${API}/api/v1/blood-bank/screening`, { method: 'POST', headers: authHeader({ 'Content-Type': 'application/json' }), body: JSON.stringify(sf) })
+      if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error(d.detail || `HTTP ${r.status}`) }
+      setSf(s => ({ ...s, bag_number: '' })); await load()
+    } catch (e: any) { setErr(String(e.message || e)) } finally { setBusy(false) }
+  }
+
   // Apheresis form
   const [af, setAf] = useState({ machine: '', procedure_type: 'PLATELETPHERESIS', component: 'PLT', blood_group: 'O+', volume_ml: 200, donor_id: '', collection_date: today() })
   async function submitAph() {
@@ -109,6 +121,33 @@ export default function BloodBankOps() {
             </tbody>
           </table>
         </div>
+      </section>
+
+      {/* Immunoserology / TTI screening */}
+      <section className="rounded-xl border border-teal-700/40 bg-slate-900/60 p-4">
+        <h3 className="text-sm font-bold text-teal-200 mb-3">🧬 Immunoserology — TTI screening (releases / discards the unit)</h3>
+        <div className="grid sm:grid-cols-4 gap-2">
+          <select className={inp} value={sf.bag_number} onChange={e => setSf({ ...sf, bag_number: e.target.value })}>
+            <option value="">Select quarantine unit…</option>
+            {quar.map(b => <option key={b.bag_number} value={b.bag_number}>{b.bag_number} · {b.component} {b.blood_group}</option>)}
+          </select>
+          {(['hiv', 'hbsag', 'hcv', 'syphilis', 'malaria'] as const).map(k => (
+            <label key={k} className="flex items-center gap-1 text-xs text-slate-300">
+              <span className="uppercase w-16">{k}</span>
+              <select className={inp + ' flex-1'} value={sf[k]} onChange={e => setSf({ ...sf, [k]: e.target.value })}>
+                <option value="NR">NR</option><option value="R">R</option><option value="ND">ND</option>
+              </select>
+            </label>
+          ))}
+          <label className="flex items-center gap-1 text-xs text-slate-300">
+            <span className="w-16">Ab screen</span>
+            <select className={inp + ' flex-1'} value={sf.antibody_screen} onChange={e => setSf({ ...sf, antibody_screen: e.target.value })}>
+              <option value="NEG">NEG</option><option value="POS">POS</option><option value="ND">ND</option>
+            </select>
+          </label>
+          <button onClick={submitScreen} disabled={busy || !sf.bag_number} className="px-3 py-1.5 rounded-lg bg-teal-600 text-white text-sm font-semibold disabled:opacity-50">Submit screening</button>
+        </div>
+        <p className="mt-2 text-[11px] text-slate-500">All non-reactive + negative antibody → unit released to available. Any reactive/positive → discarded.</p>
       </section>
 
       {/* Apheresis */}

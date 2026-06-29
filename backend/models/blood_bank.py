@@ -175,3 +175,25 @@ class ComponentProduction(Base, TimestampMixin):
     method:           Mapped[str]           = mapped_column(String(40), default='manual')   # centrifugation method
     produced_json:    Mapped[Optional[str]] = mapped_column(Text, nullable=True)   # JSON list of produced bags
     produced_by_id:   Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('users.id'), nullable=True)
+
+
+class UnitScreening(Base, TimestampMixin):
+    """Blood Bank immunoserology / TTI screening of a donated unit. All-non-reactive
+    + negative antibody screen → unit may be released from quarantine; any reactive
+    → discarded. (Immunoserology lives inside Blood Bank, not the general serology lab.)"""
+    __tablename__ = 'unit_screening'
+
+    id:            Mapped[int]           = mapped_column(Integer, primary_key=True)
+    bag_id:        Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('blood_bags.id'), nullable=True)
+    bag_number:    Mapped[Optional[str]] = mapped_column(String(25), index=True, nullable=True)
+    hiv:           Mapped[str]           = mapped_column(String(3), default='NR')   # NR|R|ND
+    hbsag:         Mapped[str]           = mapped_column(String(3), default='NR')
+    hcv:           Mapped[str]           = mapped_column(String(3), default='NR')
+    syphilis:      Mapped[str]           = mapped_column(String(3), default='NR')
+    malaria:       Mapped[str]           = mapped_column(String(3), default='NR')
+    abo_confirm:   Mapped[Optional[str]] = mapped_column(String(4), nullable=True)
+    rh_confirm:    Mapped[Optional[str]] = mapped_column(String(4), nullable=True)
+    antibody_screen: Mapped[str]         = mapped_column(String(4), default='NEG')  # NEG|POS|ND
+    result:        Mapped[str]           = mapped_column(String(4), default='PASS')  # PASS|FAIL
+    screened_by_id:Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('users.id'), nullable=True)
+    notes:         Mapped[Optional[str]] = mapped_column(Text, nullable=True)
