@@ -375,6 +375,7 @@ _ROUTERS = [
     # Core
     ('routers.sync',            'router'),   # first: ping has no auth
     ('routers.setup',           'router'),   # public — first-run init wizard
+    ('routers.media',           'router'),   # public — serves DB-stored avatars
     ('routers.auth',            'router'),
     ('routers.patients',        'router'),
     ('routers.laboratory',      'router'),

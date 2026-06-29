@@ -1,6 +1,6 @@
 """User / Staff model."""
 from typing import Optional
-from sqlalchemy import String, Boolean, Integer, ForeignKey, Text
+from sqlalchemy import String, Boolean, Integer, ForeignKey, Text, LargeBinary, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from core.database import Base
 from .base import TimestampMixin
@@ -55,3 +55,17 @@ class LoginLog(Base):
     timestamp   = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship('User', back_populates='login_logs')
+
+
+class UserPhoto(Base):
+    """Profile photo bytes stored in the database — persists across redeploys
+    with NO external storage account (Render free disk is ephemeral). Small,
+    client-resized images; served publicly via /api/v1/public/users/{id}/avatar."""
+    __tablename__ = 'user_photos'
+
+    id:           Mapped[int]           = mapped_column(Integer, primary_key=True)
+    user_id:      Mapped[int]           = mapped_column(Integer, ForeignKey('users.id', ondelete='CASCADE'), unique=True, index=True)
+    data:         Mapped[bytes]         = mapped_column(LargeBinary)
+    content_type: Mapped[str]           = mapped_column(String(50), default='image/jpeg')
+    checksum:     Mapped[str]           = mapped_column(String(64), default='')
+    updated_at                          = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

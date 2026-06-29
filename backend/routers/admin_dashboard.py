@@ -265,13 +265,26 @@ async def upload_staff_photo(
     ext = file.filename.rsplit('.', 1)[-1].lower() if file.filename and '.' in file.filename else 'jpg'
     filename = f'staff_{uid}_{uuid.uuid4().hex[:8]}.{ext}'
 
-    # Persist via the storage layer (Cloudinary if configured, else local disk).
-    from services.media_storage import save_image, checksum
-    photo_url = save_image(content, filename, 'staff_photos')
+    from services.media_storage import is_cloud, save_image, checksum
+    cs = checksum(content)
+    if is_cloud():
+        # Cloudinary (optional upgrade) — returns a permanent CDN URL.
+        photo_url = save_image(content, filename, 'staff_photos')
+    else:
+        # Default: store bytes in the DB so photos persist across redeploys with
+        # NO external account. Served publicly via /api/v1/public/users/{id}/avatar.
+        from models.user import UserPhoto
+        ct = file.content_type or 'image/jpeg'
+        rec = db.query(UserPhoto).filter(UserPhoto.user_id == uid).first()
+        if rec:
+            rec.data, rec.content_type, rec.checksum = content, ct, cs
+        else:
+            db.add(UserPhoto(user_id=uid, data=content, content_type=ct, checksum=cs))
+        photo_url = f'/api/v1/public/users/{uid}/avatar?v={cs[:8]}'   # ?v busts cache on change
     target_user.profile_photo = photo_url
     db.commit()
 
-    return {'status': 'uploaded', 'photo_url': photo_url, 'filename': filename, 'checksum': checksum(content)}
+    return {'status': 'uploaded', 'photo_url': photo_url, 'filename': filename, 'checksum': cs}
 
 
 @router.get('/users/{uid}/photo')
