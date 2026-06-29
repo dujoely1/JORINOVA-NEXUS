@@ -47,6 +47,8 @@ export default function ProfilePhotoEditor({ uid, currentPhoto, name, onClose, o
   const [err, setErr]   = useState<string | null>(null)
   const [drag, setDrag] = useState(false)
   const [full, setFull] = useState(false)
+  const [history, setHistory] = useState<{ id: number; url: string; created_at: string | null }[]>([])
+  const [locked, setLocked] = useState(false)
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const fileRef   = useRef<HTMLInputElement>(null)
@@ -60,6 +62,26 @@ export default function ProfilePhotoEditor({ uid, currentPhoto, name, onClose, o
   }, [])
 
   useEffect(() => () => stopCamera(), [stopCamera])
+
+  const loadHistory = useCallback(async () => {
+    try {
+      const r = await fetch(`${API}/api/v1/admin/users/${uid}/photo-history`, { headers: authHeader() })
+      if (!r.ok) return
+      const d = await r.json()
+      setHistory(d.history || [])
+      setLocked(!!d.locked)
+    } catch { /* ignore */ }
+  }, [uid])
+  useEffect(() => { void loadHistory() }, [loadHistory])
+
+  async function restore(hid: number) {
+    setBusy(true); setErr(null)
+    try {
+      const r = await fetch(`${API}/api/v1/admin/users/${uid}/photo-history/${hid}/restore`, { method: 'POST', headers: authHeader() })
+      if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error(d.detail || `HTTP ${r.status}`) }
+      onChanged(); onClose()
+    } catch (e: any) { setErr(String(e.message || e)) } finally { setBusy(false) }
+  }
 
   // Load a File / data-URL into an <img> and switch to edit mode.
   const loadSrc = useCallback((src: string) => {
@@ -198,14 +220,34 @@ export default function ProfilePhotoEditor({ uid, currentPhoto, name, onClose, o
               <div className="text-slate-300">Drag &amp; drop an image here</div>
               <div className="text-slate-500 text-xs mt-0.5">JPG · PNG · WEBP</div>
             </div>
+            {locked && (
+              <div className="mt-3 rounded-lg bg-amber-900/30 border border-amber-700/50 px-3 py-2 text-xs text-amber-200">
+                🔒 Your profile photo is locked by an administrator. Contact an admin to change it.
+              </div>
+            )}
             <div className="mt-4 grid grid-cols-2 gap-2">
-              <button onClick={() => fileRef.current?.click()} className="px-3 py-2 rounded-lg bg-sky-600 text-white text-sm font-semibold hover:bg-sky-500">📁 Upload</button>
-              <button onClick={startCamera} className="px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-500">📷 Camera</button>
+              <button onClick={() => fileRef.current?.click()} disabled={locked} className="px-3 py-2 rounded-lg bg-sky-600 text-white text-sm font-semibold hover:bg-sky-500 disabled:opacity-40">📁 Upload</button>
+              <button onClick={startCamera} disabled={locked} className="px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-500 disabled:opacity-40">📷 Camera</button>
               {photoSrc && <button onClick={() => setFull(true)} className="px-3 py-2 rounded-lg bg-slate-700 text-slate-100 text-sm hover:bg-slate-600">🔍 View</button>}
               {photoSrc && <button onClick={download} className="px-3 py-2 rounded-lg bg-slate-700 text-slate-100 text-sm hover:bg-slate-600">⬇ Download</button>}
-              {photoSrc && <button onClick={remove} disabled={busy} className="col-span-2 px-3 py-2 rounded-lg bg-rose-700/80 text-white text-sm font-semibold hover:bg-rose-700 disabled:opacity-50">🗑 Remove photo</button>}
+              {photoSrc && <button onClick={remove} disabled={busy || locked} className="col-span-2 px-3 py-2 rounded-lg bg-rose-700/80 text-white text-sm font-semibold hover:bg-rose-700 disabled:opacity-40">🗑 Remove photo</button>}
             </div>
             <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={e => onFile(e.target.files?.[0])} />
+
+            {history.length > 0 && (
+              <div className="mt-4">
+                <div className="text-[11px] uppercase tracking-wider text-slate-400 mb-1.5">Previous photos — tap to restore</div>
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {history.map(h => (
+                    <button key={h.id} onClick={() => !locked && restore(h.id)} disabled={busy || locked} title={h.created_at || ''}
+                      className="shrink-0 rounded-lg overflow-hidden ring-1 ring-slate-600 hover:ring-sky-400 disabled:opacity-40">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={h.url.startsWith('/') ? `${API}${h.url}` : h.url} alt="previous" className="h-14 w-14 object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         )}
 

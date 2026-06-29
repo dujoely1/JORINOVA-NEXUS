@@ -69,3 +69,17 @@ class UserPhoto(Base):
     content_type: Mapped[str]           = mapped_column(String(50), default='image/jpeg')
     checksum:     Mapped[str]           = mapped_column(String(64), default='')
     updated_at                          = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class ProfilePhotoHistory(Base):
+    """Every saved profile photo version — enables admin history view + restore.
+    Each upload archives the previous current photo here before overwriting."""
+    __tablename__ = 'profile_photo_history'
+
+    id:            Mapped[int]           = mapped_column(Integer, primary_key=True)
+    user_id:       Mapped[int]           = mapped_column(Integer, ForeignKey('users.id', ondelete='CASCADE'), index=True)
+    data:          Mapped[bytes]         = mapped_column(LargeBinary)
+    content_type:  Mapped[str]           = mapped_column(String(50), default='image/jpeg')
+    checksum:      Mapped[str]           = mapped_column(String(64), default='')
+    changed_by_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    created_at                           = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)

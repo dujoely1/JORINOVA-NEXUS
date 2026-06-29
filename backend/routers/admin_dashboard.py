@@ -13,9 +13,21 @@ from core.database import get_db
 from core.security import get_current_user
 from models.user import User
 
+from routers.audit import log_action
+
 router = APIRouter(prefix='/admin', tags=['Admin'])
 
 ADMIN_ROLES = {'super_admin', 'it_admin', 'lab_manager'}
+
+
+def _profile_locked(db: Session, uid: int) -> bool:
+    """Whether an admin has locked this user's profile photo edits."""
+    from models.device_registry import EntityAttribute
+    a = (db.query(EntityAttribute)
+         .filter(EntityAttribute.entity_type == 'user',
+                 EntityAttribute.entity_id == uid,
+                 EntityAttribute.key == 'profile_locked').first())
+    return bool(a and (a.value or '').lower() == 'true')
 
 
 def require_admin(user: User = Depends(get_current_user)):
@@ -251,6 +263,10 @@ async def upload_staff_photo(
     target_user = db.query(User).filter(User.id==uid).first()
     if not target_user: raise HTTPException(404, 'User not found')
 
+    # Locked profiles can only be changed by an admin.
+    if _profile_locked(db, uid) and user.role not in ADMIN_ROLES:
+        raise HTTPException(423, 'Profile photo is locked by an administrator')
+
     # Validate file type (configurable max size via MAX_UPLOAD_MB, default 5 MB)
     import os, uuid
     if not (file.content_type or '').startswith('image/'):
@@ -273,15 +289,19 @@ async def upload_staff_photo(
     else:
         # Default: store bytes in the DB so photos persist across redeploys with
         # NO external account. Served publicly via /api/v1/public/users/{id}/avatar.
-        from models.user import UserPhoto
+        from models.user import UserPhoto, ProfilePhotoHistory
         ct = file.content_type or 'image/jpeg'
         rec = db.query(UserPhoto).filter(UserPhoto.user_id == uid).first()
         if rec:
+            # Archive the previous version so an admin can restore it later.
+            db.add(ProfilePhotoHistory(user_id=uid, data=rec.data, content_type=rec.content_type,
+                                       checksum=rec.checksum, changed_by_id=user.id))
             rec.data, rec.content_type, rec.checksum = content, ct, cs
         else:
             db.add(UserPhoto(user_id=uid, data=content, content_type=ct, checksum=cs))
         photo_url = f'/api/v1/public/users/{uid}/avatar?v={cs[:8]}'   # ?v busts cache on change
     target_user.profile_photo = photo_url
+    log_action(db, 'profile_photo', 'UPDATE', entity_id=str(uid), user=user, metadata={'checksum': cs})
     db.commit()
 
     return {'status': 'uploaded', 'photo_url': photo_url, 'filename': filename, 'checksum': cs}
@@ -295,9 +315,16 @@ def delete_staff_photo(uid: int, db: Session = Depends(get_db), user: User = Dep
     target_user = db.query(User).filter(User.id == uid).first()
     if not target_user:
         raise HTTPException(404, 'User not found')
-    from models.user import UserPhoto
+    if _profile_locked(db, uid) and user.role not in ADMIN_ROLES:
+        raise HTTPException(423, 'Profile photo is locked by an administrator')
+    from models.user import UserPhoto, ProfilePhotoHistory
+    cur = db.query(UserPhoto).filter(UserPhoto.user_id == uid).first()
+    if cur:
+        db.add(ProfilePhotoHistory(user_id=uid, data=cur.data, content_type=cur.content_type,
+                                   checksum=cur.checksum, changed_by_id=user.id))
     db.query(UserPhoto).filter(UserPhoto.user_id == uid).delete()
     target_user.profile_photo = None
+    log_action(db, 'profile_photo', 'DELETE', entity_id=str(uid), user=user)
     db.commit()
     return {'status': 'removed'}
 
@@ -307,6 +334,75 @@ def get_staff_photo(uid: int, db: Session = Depends(get_db), _u: User = Depends(
     u = db.query(User).filter(User.id==uid).first()
     if not u: raise HTTPException(404, 'User not found')
     return {'photo_url': getattr(u, 'photo_url', None)}
+
+
+# ── Profile photo history / restore / lock (admin governance) ──────
+
+@router.get('/users/{uid}/photo-history')
+def photo_history(uid: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """List archived photo versions (newest first). Self or admin."""
+    if user.id != uid and user.role not in ADMIN_ROLES:
+        raise HTTPException(403, 'Forbidden')
+    from models.user import ProfilePhotoHistory
+    rows = (db.query(ProfilePhotoHistory)
+            .filter(ProfilePhotoHistory.user_id == uid)
+            .order_by(desc(ProfilePhotoHistory.id)).limit(30).all())
+    return {
+        'locked': _profile_locked(db, uid),
+        'history': [{
+            'id': h.id,
+            'url': f'/api/v1/public/photo-history/{h.id}',
+            'checksum': h.checksum,
+            'changed_by_id': h.changed_by_id,
+            'created_at': h.created_at.isoformat() if h.created_at else None,
+        } for h in rows],
+    }
+
+
+@router.post('/users/{uid}/photo-history/{hid}/restore')
+def restore_photo(uid: int, hid: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Restore a previous photo version as the current one. Self or admin."""
+    if user.id != uid and user.role not in ADMIN_ROLES:
+        raise HTTPException(403, 'Forbidden')
+    if _profile_locked(db, uid) and user.role not in ADMIN_ROLES:
+        raise HTTPException(423, 'Profile photo is locked by an administrator')
+    from models.user import UserPhoto, ProfilePhotoHistory
+    h = db.query(ProfilePhotoHistory).filter(ProfilePhotoHistory.id == hid, ProfilePhotoHistory.user_id == uid).first()
+    if not h:
+        raise HTTPException(404, 'History entry not found')
+    target_user = db.query(User).filter(User.id == uid).first()
+    cur = db.query(UserPhoto).filter(UserPhoto.user_id == uid).first()
+    if cur:
+        db.add(ProfilePhotoHistory(user_id=uid, data=cur.data, content_type=cur.content_type,
+                                   checksum=cur.checksum, changed_by_id=user.id))
+        cur.data, cur.content_type, cur.checksum = h.data, h.content_type, h.checksum
+    else:
+        db.add(UserPhoto(user_id=uid, data=h.data, content_type=h.content_type, checksum=h.checksum))
+    photo_url = f'/api/v1/public/users/{uid}/avatar?v={(h.checksum or "")[:8]}'
+    if target_user:
+        target_user.profile_photo = photo_url
+    log_action(db, 'profile_photo', 'RESTORE', entity_id=str(uid), user=user, metadata={'history_id': hid})
+    db.commit()
+    return {'status': 'restored', 'photo_url': photo_url}
+
+
+@router.post('/users/{uid}/profile-lock')
+def set_profile_lock(uid: int, locked: bool = True, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Admin: lock/unlock a user's profile photo edits."""
+    if user.role not in ADMIN_ROLES:
+        raise HTTPException(403, 'Admins only')
+    from models.device_registry import EntityAttribute
+    a = (db.query(EntityAttribute)
+         .filter(EntityAttribute.entity_type == 'user', EntityAttribute.entity_id == uid,
+                 EntityAttribute.key == 'profile_locked').first())
+    if a:
+        a.value = 'true' if locked else 'false'
+    else:
+        db.add(EntityAttribute(entity_type='user', entity_id=uid, key='profile_locked',
+                               value='true' if locked else 'false', value_type='bool'))
+    log_action(db, 'profile_photo', 'LOCK' if locked else 'UNLOCK', entity_id=str(uid), user=user)
+    db.commit()
+    return {'status': 'locked' if locked else 'unlocked'}
 
 
 # ── Module health check ───────────────────────────────────────────

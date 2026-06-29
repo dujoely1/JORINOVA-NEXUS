@@ -14,7 +14,7 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from core.database import get_db
-from models.user import UserPhoto
+from models.user import UserPhoto, ProfilePhotoHistory
 
 router = APIRouter(prefix='/public', tags=['Public Media'])
 
@@ -29,3 +29,12 @@ def get_avatar(uid: int, db: Session = Depends(get_db)):
         media_type=photo.content_type or 'image/jpeg',
         headers={'Cache-Control': 'public, max-age=3600'},   # cache; ?v=checksum busts it on change
     )
+
+
+@router.get('/photo-history/{hid}')
+def get_history_image(hid: int, db: Session = Depends(get_db)):
+    h = db.query(ProfilePhotoHistory).filter(ProfilePhotoHistory.id == hid).first()
+    if not h or not h.data:
+        raise HTTPException(status_code=404, detail='Not found')
+    return Response(content=h.data, media_type=h.content_type or 'image/jpeg',
+                    headers={'Cache-Control': 'public, max-age=86400'})
