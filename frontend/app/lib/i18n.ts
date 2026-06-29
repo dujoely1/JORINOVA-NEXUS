@@ -125,6 +125,7 @@ const D = {
   'nav.help':           { en: 'Help & Support', fr: 'Aide & Support', rw: 'Ubufasha' },
   'nav.notifications':  { en: 'Notifications',fr: 'Notifications',rw: 'Imenyesha' },
   'nav.settings':       { en: 'Settings',     fr: 'Paramètres',   rw: 'Igenamiterere' },
+  'nav.voice_training': { en: 'Voice Training', fr: 'Formation vocale', rw: "Imyitozo y'ijwi" },
   'nav.admin':          { en: 'Admin console',fr: 'Console admin',rw: 'Ubuyobozi' },
   'nav.audit':          { en: 'Audit',        fr: 'Audit',        rw: 'Igenzura' },
   'nav.ai_nexus':       { en: 'AI Nexus',     fr: 'IA Nexus',     rw: 'AI Nexus' },

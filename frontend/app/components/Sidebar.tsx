@@ -63,6 +63,7 @@ const NAV: readonly NavItem[] = [
   { href: '/modules/help-support',  icon: '🎓', labelKey: 'nav.help',          roles: ['*'], groupKey: 'nav.group.support' },
   { href: '/modules/notifications', icon: '🔔', labelKey: 'nav.notifications', roles: ['*'], groupKey: 'nav.group.support' },
   { href: '/modules/settings',      icon: '⚙️', labelKey: 'nav.settings',      roles: ['*'], groupKey: 'nav.group.support' },
+  { href: '/security/voice-training', icon: '🎙️', labelKey: 'nav.voice_training', roles: ['*'], groupKey: 'nav.group.support' },
 
   // ── Admin ───────────────────────────────────────────────────────────────
   { href: '/admin',                 icon: '🛡️', labelKey: 'nav.admin',    roles: ['lab_manager', 'it_admin', 'super_admin'], groupKey: 'nav.group.admin' },
