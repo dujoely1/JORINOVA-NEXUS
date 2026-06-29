@@ -377,6 +377,7 @@ _ROUTERS = [
     ('routers.setup',           'router'),   # public — first-run init wizard
     ('routers.media',           'router'),   # public — serves DB-stored avatars
     ('routers.auth',            'router'),
+    ('routers.qr_login',        'router'),   # QR / phone approval login
     ('routers.patients',        'router'),
     ('routers.laboratory',      'router'),
     ('routers.ai_nexus',        'router'),

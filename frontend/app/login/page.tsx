@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useAuth } from '../contexts/AuthProvider'
 import { useI18n } from '../contexts/I18nProvider'
 import Logo from '../components/Logo'
+import QrLoginPanel from '../components/QrLoginPanel'
 import { landingPathFor } from '../lib/role-routes'
 import { TwoFactorRequiredError } from '../lib/api'
 
@@ -120,6 +121,7 @@ function LoginInner() {
   // mismatch because the SSR HTML and the first client render disagree.)
   const [now,        setNow]        = useState<Date | null>(null)
   const [online,     setOnline]     = useState<boolean>(true)
+  const [qrMode,     setQrMode]     = useState<boolean>(false)
 
   const { login } = useAuth()
   const router = useRouter()
@@ -391,8 +393,23 @@ function LoginInner() {
                 {t.forgot}
               </Link>
             </div>
+
+            <div className="pt-3 border-t border-zinc-200 text-center">
+              <button type="button" onClick={() => setQrMode(true)}
+                      className="text-sm font-semibold hover:underline" style={{ color: NEXUS_BLUE }}>
+                📱 Sign in with phone (QR)
+              </button>
+            </div>
           </form>
         </div>
+
+        {qrMode && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setQrMode(false)}>
+            <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
+              <QrLoginPanel onCancel={() => setQrMode(false)} />
+            </div>
+          </div>
+        )}
       </main>
 
       {/* ── FOOTER ─────────────────────────────────────────────────────────── */}
