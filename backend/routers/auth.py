@@ -71,6 +71,11 @@ def _consume_backup_code(db: Session, user: User, code: str) -> bool:
 
 
 def _must_setup_2fa(user: User) -> bool:
+    # FORCE_2FA=false disables the mandatory 2FA-enrolment gate → pure
+    # email/username + password login (no code). Default keeps it on.
+    import os
+    if os.environ.get('FORCE_2FA', 'true').strip().lower() in ('false', '0', 'no', 'off'):
+        return False
     return (user.role in _MANDATORY_2FA_ROLES
             and not getattr(user, 'two_factor_enabled', False))
 

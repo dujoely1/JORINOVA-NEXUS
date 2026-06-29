@@ -172,6 +172,20 @@ async def _seed_default_data():
                 _existing_admin.email = _admin_email
                 logger.info('Admin email updated to %s from ADMIN_EMAIL env.', _admin_email)
 
+        # Break-glass admin recovery: if ADMIN_RESET_PASSWORD is set, reset the
+        # admin password (and unlock + disable 2FA) on startup — no DB edit / no
+        # email code needed. REMOVE the env var after logging in.
+        _reset_pw = _os.environ.get('ADMIN_RESET_PASSWORD', '').strip()
+        if _reset_pw:
+            _adm = db.query(User).filter(User.username == 'admin').first()
+            if _adm:
+                _adm.hashed_password   = hash_password(_reset_pw)
+                _adm.login_attempts    = 0
+                _adm.is_active         = True
+                _adm.two_factor_enabled = False
+                logger.warning('ADMIN_RESET_PASSWORD applied — admin password reset. '
+                               'REMOVE this env var now so it does not reset on every deploy.')
+
         db.commit()
 
         # Seed inventory if empty

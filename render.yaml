@@ -54,6 +54,13 @@ services:
       # (no manual DB edit). Password reset / notifications go here.
       - key: ADMIN_EMAIL
         value: "ug2320335@ines.ac.rw"
+      # Break-glass: set a value to reset the admin password on next deploy, then
+      # clear it. Lets you recover login without email codes or a direct DB edit.
+      - key: ADMIN_RESET_PASSWORD
+        sync: false
+      # FORCE_2FA=false → login is email/username + password only (no 2FA code).
+      - key: FORCE_2FA
+        value: "false"
       # PostgreSQL connection string (the app reads DATABASE_URL directly).
       # Use a PERMANENT free database: paste your NEON connection string here at
       # blueprint Sync (or in the service Environment). sync:false = you set it,
