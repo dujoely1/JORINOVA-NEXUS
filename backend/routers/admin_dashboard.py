@@ -251,30 +251,27 @@ async def upload_staff_photo(
     target_user = db.query(User).filter(User.id==uid).first()
     if not target_user: raise HTTPException(404, 'User not found')
 
-    # Validate file type
-    if not file.content_type.startswith('image/'):
+    # Validate file type (configurable max size via MAX_UPLOAD_MB, default 5 MB)
+    import os, uuid
+    if not (file.content_type or '').startswith('image/'):
         raise HTTPException(400, 'File must be an image (JPEG, PNG, WebP)')
-    if file.size and file.size > 2 * 1024 * 1024:  # 2MB limit
-        raise HTTPException(400, 'Image must be < 2MB')
+    max_mb = float(os.environ.get('MAX_UPLOAD_MB', '5') or 5)
+    content = await file.read()
+    if len(content) > max_mb * 1024 * 1024:
+        raise HTTPException(400, f'Image must be < {max_mb:g} MB')
+    if not content:
+        raise HTTPException(400, 'Empty file')
 
-    import os, uuid, shutil
-    from pathlib import Path
-
-    upload_dir = Path(__file__).parent.parent / 'media' / 'staff_photos'
-    upload_dir.mkdir(parents=True, exist_ok=True)
-
-    ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else 'jpg'
+    ext = file.filename.rsplit('.', 1)[-1].lower() if file.filename and '.' in file.filename else 'jpg'
     filename = f'staff_{uid}_{uuid.uuid4().hex[:8]}.{ext}'
-    filepath = upload_dir / filename
 
-    with filepath.open('wb') as f:
-        shutil.copyfileobj(file.file, f)
-
-    photo_url = f'/media/staff_photos/{filename}'
+    # Persist via the storage layer (Cloudinary if configured, else local disk).
+    from services.media_storage import save_image, checksum
+    photo_url = save_image(content, filename, 'staff_photos')
     target_user.profile_photo = photo_url
     db.commit()
 
-    return {'status': 'uploaded', 'photo_url': photo_url, 'filename': filename}
+    return {'status': 'uploaded', 'photo_url': photo_url, 'filename': filename, 'checksum': checksum(content)}
 
 
 @router.get('/users/{uid}/photo')

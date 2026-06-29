@@ -68,6 +68,13 @@ services:
       # Public web URL — used to build the login link in staff-credential SMS.
       - key: PUBLIC_APP_URL
         value: "https://jorinova-nexus-web.onrender.com"
+      # Persistent image storage for profile photos (so they survive redeploys).
+      # Paste your Cloudinary URL: cloudinary://<api_key>:<api_secret>@<cloud_name>
+      - key: CLOUDINARY_URL
+        sync: false
+      # Max profile-photo upload size in MB (configurable).
+      - key: MAX_UPLOAD_MB
+        value: "5"
       # ── Optional delivery (leave unset to keep SMS/email queued only) ────────
       - key: SMS_PROVIDER
         sync: false

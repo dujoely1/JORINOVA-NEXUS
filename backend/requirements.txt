@@ -74,6 +74,7 @@ openpyxl>=3.1                 # Excel .xlsx reading
 # ── Image processing ──────────────────────────────────────────────────────────
 Pillow>=10.0                  # Image manipulation (already used by vision)
 numpy>=1.26                   # Array ops for OCR preprocessing
+cloudinary>=1.40             # Persistent image storage (profile photos) — set CLOUDINARY_URL
 
 # ── Language detection ────────────────────────────────────────────────────────
 # langdetect>=1.0.9           # Offline text language detection
