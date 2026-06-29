@@ -314,6 +314,12 @@ function UsersTab() {
   const [showInactive, setShowInactive] = useState(false)
   const [busy,    setBusy]    = useState<number | null>(null)
   const [err,     setErr]     = useState<string | null>(null)
+  // Add-user form (ongoing staff management — works any time after installation)
+  const emptyForm = { first_name: '', last_name: '', username: '', email: '', password: '', role: 'lab_technician', department: '' }
+  const [showAdd, setShowAdd] = useState(false)
+  const [adding,  setAdding]  = useState(false)
+  const [msg,     setMsg]     = useState<string | null>(null)
+  const [form,    setForm]    = useState(emptyForm)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -351,6 +357,28 @@ function UsersTab() {
       setErr(t('adm.err.role', { e: e.message || e }))
     } finally {
       setBusy(null)
+    }
+  }
+
+  async function createUser(e: React.FormEvent) {
+    e.preventDefault()
+    setAdding(true); setErr(null); setMsg(null)
+    try {
+      const r = await fetch(`${API}/api/v1/auth/create-user`, {
+        method: 'POST',
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(form),
+      })
+      if (!r.ok) {
+        const d = await r.json().catch(() => ({}))
+        throw new Error(typeof d.detail === 'string' ? d.detail : `HTTP ${r.status}`)
+      }
+      setMsg(`User "${form.username}" created.`)
+      setForm(emptyForm); setShowAdd(false); load()
+    } catch (e: any) {
+      setErr(String(e.message || e))
+    } finally {
+      setAdding(false)
     }
   }
 
@@ -400,10 +428,43 @@ function UsersTab() {
         >
           {t('common.refresh')}
         </button>
+        <button
+          onClick={() => { setShowAdd(s => !s); setMsg(null); setErr(null) }}
+          className="px-3 py-2 text-xs rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-500"
+        >
+          {showAdd ? '✕ Close' : '+ Add User'}
+        </button>
         <span className="text-xs text-slate-400 font-mono px-1">
           {filtered.length}/{rows.length}
         </span>
       </div>
+
+      {msg && <div className="rounded-lg bg-emerald-900/30 border border-emerald-700/50 px-4 py-2 text-sm text-emerald-200">{msg}</div>}
+
+      {/* Add-user form — add staff any time after installation (admin / lab manager) */}
+      {showAdd && (
+        <form onSubmit={createUser} className="rounded-xl bg-slate-900/60 border border-slate-700/60 p-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <Inp label="First name" value={form.first_name} onChange={v => setForm(f => ({ ...f, first_name: v }))} />
+          <Inp label="Last name"  value={form.last_name}  onChange={v => setForm(f => ({ ...f, last_name: v }))} />
+          <Inp label="Department" value={form.department} onChange={v => setForm(f => ({ ...f, department: v }))} />
+          <Inp label="Username *" value={form.username}   onChange={v => setForm(f => ({ ...f, username: v }))} required />
+          <Inp label="Email"      value={form.email}      onChange={v => setForm(f => ({ ...f, email: v }))} type="email" />
+          <Inp label="Password *" value={form.password}   onChange={v => setForm(f => ({ ...f, password: v }))} type="password" required />
+          <label className="block">
+            <span className="block text-[11px] uppercase tracking-wider text-slate-400 mb-1">Role</span>
+            <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
+              className="w-full bg-slate-800/80 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-100">
+              {ROLE_OPTIONS.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </label>
+          <div className="flex items-end sm:col-span-2 lg:col-span-2">
+            <button type="submit" disabled={adding || !form.username.trim() || !form.password.trim()}
+              className="px-4 py-2 text-sm rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-500 disabled:opacity-50">
+              {adding ? 'Adding…' : 'Create user'}
+            </button>
+          </div>
+        </form>
+      )}
 
       {/* Table */}
       <div className="rounded-xl border border-slate-700/60 bg-slate-900/60 overflow-hidden">
@@ -849,5 +910,19 @@ function QuickAction({ href, icon, label, desc }: { href: string; icon: string; 
       <div className="font-semibold text-sm text-slate-100 group-hover:text-purple-200">{label}</div>
       <div className="text-[11px] text-slate-400 mt-0.5">{desc}</div>
     </Link>
+  )
+}
+
+function Inp({ label, value, onChange, type = 'text', required }: {
+  label: string; value: string; onChange: (v: string) => void; type?: string; required?: boolean
+}) {
+  return (
+    <label className="block">
+      <span className="block text-[11px] uppercase tracking-wider text-slate-400 mb-1">{label}</span>
+      <input
+        type={type} value={value} onChange={e => onChange(e.target.value)} required={required}
+        className="w-full bg-slate-800/80 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-sky-400 outline-none"
+      />
+    </label>
   )
 }

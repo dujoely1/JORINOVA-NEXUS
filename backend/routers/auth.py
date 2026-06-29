@@ -342,15 +342,23 @@ def create_user(
     current_user: User    = Depends(get_current_user),
     db:           Session = Depends(get_db),
 ):
-    if current_user.role not in ('super_admin', 'it_admin'):
+    # Admin, IT admin AND lab manager can add staff after installation.
+    if current_user.role not in ('super_admin', 'it_admin', 'lab_manager'):
         raise HTTPException(status_code=403, detail='Insufficient permissions')
+    # A lab manager cannot mint privileged accounts (no privilege escalation).
+    if current_user.role == 'lab_manager' and body.role in ('super_admin', 'it_admin'):
+        raise HTTPException(status_code=403, detail='Lab managers cannot create admin accounts')
     if db.query(User).filter(User.username == body.username).first():
         raise HTTPException(status_code=400, detail='Username already exists')
+    if body.email and db.query(User).filter(User.email == body.email).first():
+        raise HTTPException(status_code=400, detail='Email already exists')
     user = User(
         username=body.username, email=body.email,
         hashed_password=hash_password(body.password),
         first_name=body.first_name, last_name=body.last_name,
         role=body.role, department=body.department,
+        is_active=True,
+        hospital_id=current_user.hospital_id,   # new staff join the creator's facility
     )
     db.add(user)
     db.commit()
