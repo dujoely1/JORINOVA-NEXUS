@@ -287,6 +287,8 @@ export default function InstallPage() {
   // License & security
   const [licenseKey, setLicenseKey]       = useState('')
   const [licenseOk, setLicenseOk]         = useState(false)
+  const [licenseMsg, setLicenseMsg]       = useState('')
+  const [validating, setValidating]       = useState(false)
   const [adminName, setAdminName]         = useState('')
   const [adminPhone, setAdminPhone]       = useState('')
   const [adminEmail, setAdminEmail]       = useState('')
@@ -364,6 +366,21 @@ export default function InstallPage() {
   const adminParts = adminName.trim().split(/\s+/).filter(Boolean)
   const licenseStepValid =
     adminName.trim().length > 1 && adminEmail.trim().includes('@') && pwd.length >= 8 && pwd === pwd2
+
+  async function validateLicense() {
+    const key = licenseKey.trim()
+    if (!key) return
+    setValidating(true); setLicenseMsg('')
+    try {
+      const r = await fetch(`${API}/api/v1/license/validate`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key }),
+      })
+      const d = await r.json()
+      if (d.valid) { setLicenseOk(true); setLicenseMsg(`✓ ${d.customer || 'Valid'}${d.expires ? ` · expires ${d.expires}` : ''}`) }
+      else { setLicenseOk(false); setLicenseMsg(`✗ ${d.reason || 'Invalid key'}`) }
+    } catch { setLicenseOk(false); setLicenseMsg('✗ Could not reach the server') }
+    finally { setValidating(false) }
+  }
 
   async function submit() {
     setError(null); setSubmitting(true)
@@ -551,14 +568,17 @@ export default function InstallPage() {
             <>
               <SectionTitle title={t.license} sub={t.licenseSub} />
               <div className="grid sm:grid-cols-2 gap-4">
-                <div className="sm:col-span-2 flex gap-2 items-end">
-                  <Field label={t.licenseKey} value={licenseKey} onChange={v => { setLicenseKey(v); setLicenseOk(false) }}
-                    placeholder="ALIS-XXXX-XXXX-XXXX-XXXX" className="flex-1" />
-                  <button onClick={() => setLicenseOk(licenseKey.trim().length >= 4)}
-                    className="px-4 py-2 rounded-lg text-white font-semibold shadow-sm whitespace-nowrap"
-                    style={{ background: licenseOk ? '#16A34A' : NEXUS_BLUE }}>
-                    {licenseOk ? `✓ ${t.validated}` : t.validate}
-                  </button>
+                <div className="sm:col-span-2">
+                  <div className="flex gap-2 items-end">
+                    <Field label={t.licenseKey} value={licenseKey} onChange={v => { setLicenseKey(v.toUpperCase()); setLicenseOk(false); setLicenseMsg('') }}
+                      placeholder="ALIS-XXXX-XXXX-XXXX-XXXX" className="flex-1" />
+                    <button onClick={validateLicense} disabled={validating || !licenseKey.trim()}
+                      className="px-4 py-2 rounded-lg text-white font-semibold shadow-sm whitespace-nowrap disabled:opacity-50"
+                      style={{ background: licenseOk ? '#16A34A' : NEXUS_BLUE }}>
+                      {validating ? '…' : licenseOk ? `✓ ${t.validated}` : t.validate}
+                    </button>
+                  </div>
+                  {licenseMsg && <span className="text-xs" style={{ color: licenseOk ? '#16A34A' : '#DC2626' }}>{licenseMsg}</span>}
                 </div>
                 <Field label={t.adminName} value={adminName} onChange={setAdminName} required req={t.required} className="sm:col-span-2" />
                 <Field label={t.adminPhone} value={adminPhone} onChange={setAdminPhone} placeholder="+250 788 123 456" />

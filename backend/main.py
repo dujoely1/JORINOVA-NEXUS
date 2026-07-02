@@ -389,6 +389,7 @@ _ROUTERS = [
     # Core
     ('routers.sync',            'router'),   # first: ping has no auth
     ('routers.setup',           'router'),   # public — first-run init wizard
+    ('routers.license',         'router'),   # public /validate — installer license check
     ('routers.media',           'router'),   # public — serves DB-stored avatars
     ('routers.auth',            'router'),
     ('routers.qr_login',        'router'),   # QR / phone approval login

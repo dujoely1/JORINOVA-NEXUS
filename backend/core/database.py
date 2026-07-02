@@ -60,6 +60,8 @@ def create_all_tables():
         two_factor_backup,
         # Staff Security Hub — hospital device registry + dynamic attributes
         device_registry,
+        # License / activation keys
+        license,
     )
     Base.metadata.create_all(bind=engine)
     _add_missing_columns()
