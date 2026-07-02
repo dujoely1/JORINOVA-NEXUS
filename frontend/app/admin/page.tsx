@@ -807,6 +807,72 @@ function SecurityLink({ href, icon, title, desc }: { href: string; icon: string;
 
 // ── System tab ─────────────────────────────────────────────────────────────
 
+function LicenseCard() {
+  const [customer, setCustomer] = useState('')
+  const [email, setEmail]       = useState('')
+  const [months, setMonths]     = useState(12)
+  const [busy, setBusy]         = useState(false)
+  const [err, setErr]           = useState('')
+  const [result, setResult]     = useState<{ key: string; expires?: string; emailed?: boolean } | null>(null)
+  const [keys, setKeys]         = useState<Array<{ id: number; key: string; customer: string; email?: string; expires?: string; revoked: boolean }>>([])
+
+  const load = useCallback(() => {
+    fetch(`${API}/api/v1/license/list`, { headers: authHeaders() }).then(r => r.ok ? r.json() : []).then(setKeys).catch(() => {})
+  }, [])
+  useEffect(() => { load() }, [load])
+
+  async function gen() {
+    if (!customer.trim()) { setErr('Enter the customer / facility name'); return }
+    setBusy(true); setErr(''); setResult(null)
+    try {
+      const r = await fetch(`${API}/api/v1/license/generate`, {
+        method: 'POST', headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ customer, email: email || null, months: Number(months) }),
+      })
+      if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error(d.detail || `HTTP ${r.status}`) }
+      const d = await r.json(); setResult(d); setCustomer(''); setEmail(''); load()
+    } catch (e: any) { setErr(String(e.message || e)) } finally { setBusy(false) }
+  }
+  async function revoke(id: number) {
+    if (!confirm('Revoke this key?')) return
+    await fetch(`${API}/api/v1/license/${id}/revoke`, { method: 'POST', headers: authHeaders() }); load()
+  }
+
+  const inp = 'bg-slate-800/80 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500'
+  return (
+    <Card title="License / activation keys" accent="#D4A017">
+      {err && <div className="rounded bg-rose-900/30 border border-rose-700/50 px-2 py-1 text-xs text-rose-200">{err}</div>}
+      <div className="grid sm:grid-cols-4 gap-2">
+        <input className={inp + ' sm:col-span-2'} placeholder="Customer / facility name" value={customer} onChange={e => setCustomer(e.target.value)} />
+        <input className={inp} placeholder="Email (optional)" value={email} onChange={e => setEmail(e.target.value)} />
+        <select className={inp} value={months} onChange={e => setMonths(Number(e.target.value))}>
+          {[3, 6, 12, 24, 36].map(m => <option key={m} value={m}>{m} mo</option>)}
+        </select>
+      </div>
+      <button onClick={gen} disabled={busy} className="mt-2 px-3 py-2 rounded-lg bg-amber-600 text-white text-sm font-semibold hover:bg-amber-500 disabled:opacity-50">
+        {busy ? 'Generating…' : '🔑 Generate key'}
+      </button>
+      {result && (
+        <div className="mt-2 rounded-lg bg-emerald-900/25 border border-emerald-700/50 px-3 py-2">
+          <div className="font-mono text-emerald-200 text-base tracking-wider select-all">{result.key}</div>
+          <div className="text-[11px] text-slate-400">Expires {result.expires} · {result.emailed ? 'emailed ✓' : 'not emailed (configure SMTP or copy manually)'}</div>
+        </div>
+      )}
+      {keys.length > 0 && (
+        <div className="mt-3 max-h-40 overflow-y-auto space-y-1">
+          {keys.map(k => (
+            <div key={k.id} className="flex items-center justify-between text-xs border-b border-slate-800 py-1">
+              <span className={`font-mono ${k.revoked ? 'line-through text-slate-500' : 'text-slate-200'}`}>{k.key}</span>
+              <span className="text-slate-500 flex-1 px-2 truncate">{k.customer}{k.expires ? ` · ${k.expires}` : ''}</span>
+              {!k.revoked && <button onClick={() => revoke(k.id)} className="text-rose-400 hover:text-rose-300">revoke</button>}
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  )
+}
+
 function SystemTab() {
   const t = useT()
   const [stats, setStats] = useState<SystemStats | null>(null)
@@ -826,6 +892,8 @@ function SystemTab() {
         <Row k={t('adm.r.status')}      v={<span className="text-emerald-300 font-semibold uppercase">{stats?.system.status ?? t('adm.operational')}</span>} />
         <Row k={t('adm.r.server_date')} v={<span className="font-mono">{stats?.system.date ?? '—'}</span>} />
       </Card>
+
+      <div className="lg:col-span-2"><LicenseCard /></div>
 
       <Card title={t('adm.c.workload')} accent="#0F766E">
         <Row k={t('adm.r.lab_requests')} v={stats?.lab.today_requests ?? 0} />
