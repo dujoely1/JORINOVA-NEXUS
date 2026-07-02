@@ -92,10 +92,15 @@ services:
         sync: false
       - key: AT_API_KEY
         sync: false
+      # SMTP (Gmail) — host/user/port are not secret, so they auto-apply. Only the
+      # Gmail App Password is sync:false (you paste it at Sync). Enables real email:
+      # license keys, forgot-password codes, staff credentials, install summary.
       - key: EMAIL_HOST
-        sync: false
+        value: "smtp.gmail.com"
+      - key: EMAIL_PORT
+        value: "587"
       - key: EMAIL_HOST_USER
-        sync: false
+        value: "dujoely1@gmail.com"
       - key: EMAIL_HOST_PASSWORD
         sync: false
 
