@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AuthProvider } from "./contexts/AuthProvider";
 import { I18nProvider } from "./contexts/I18nProvider";
+import PWARegister from "./components/PWARegister";
 
 // NOTE: fonts use a system stack defined in globals.css (--font-geist-sans /
 // --font-geist-mono) instead of next/font/google. This keeps the app fully
@@ -11,7 +12,13 @@ import { I18nProvider } from "./contexts/I18nProvider";
 export const metadata: Metadata = {
   title: "JORINOVA NEXUS · ALIS-X",
   description: "Offline-first hybrid AI laboratory information system",
-  icons: { icon: "/next.svg" },
+  icons: { icon: "/next.svg", apple: "/logo/jorinova-nexus.png" },
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "ALIS-X", statusBarStyle: "black-translucent" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0066CC",
 };
 
 export default function RootLayout({
@@ -23,7 +30,7 @@ export default function RootLayout({
     <html lang="en" className="h-full antialiased">
       <AuthProvider>
         <I18nProvider>
-          <body className="min-h-full flex flex-col">{children}</body>
+          <body className="min-h-full flex flex-col"><PWARegister />{children}</body>
         </I18nProvider>
       </AuthProvider>
     </html>

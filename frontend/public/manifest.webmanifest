@@ -1,0 +1,15 @@
+{
+  "name": "JORINOVA NEXUS ALIS-X",
+  "short_name": "ALIS-X",
+  "description": "Offline-first hybrid AI laboratory information system",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a1b2e",
+  "theme_color": "#0066CC",
+  "icons": [
+    { "src": "/logo/jorinova-nexus.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/logo/jorinova-nexus.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
