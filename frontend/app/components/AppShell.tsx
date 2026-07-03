@@ -71,18 +71,15 @@ export default function AppShell({
   const [langOpen, setLangOpen] = useState<boolean>(false)
   const [photoOpen, setPhotoOpen] = useState<boolean>(false)
 
-  // Focus / full-screen mode: hide the left menu so a module fills the screen.
-  // Persisted so the choice sticks across pages; a header toggle + a floating
-  // button bring the menu back only when the user wants it.
+  // Full-screen work area: opening a module auto-hides the left menu so the
+  // module fills the screen edge to edge; the dashboard keeps its menu. The
+  // header ⛶ and the floating ☰ button bring the menu back for the current
+  // page (until the next navigation re-applies the per-route default).
   const [sidebarHidden, setSidebarHidden] = useState<boolean>(false)
   useEffect(() => {
-    setSidebarHidden(localStorage.getItem('sidebar_hidden') === '1')
-  }, [])
-  const toggleSidebar = () => setSidebarHidden(v => {
-    const n = !v
-    try { localStorage.setItem('sidebar_hidden', n ? '1' : '0') } catch {}
-    return n
-  })
+    setSidebarHidden(pathname !== '/dashboard')
+  }, [pathname])
+  const toggleSidebar = () => setSidebarHidden(v => !v)
 
   // ── Live clock + online status (SSR-safe) ─────────────────────────────
   useEffect(() => {
