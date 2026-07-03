@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Keep trailing slashes intact so proxied API calls are NOT 308-redirected.
+  // Without this, a fetch to `/api/v1/patients/?…` is redirected by Next to the
+  // slash-less `/api/v1/patients`, which FastAPI then 307-redirects to an
+  // ABSOLUTE backend URL (http://localhost:8000/…). That hop is cross-origin,
+  // so the browser strips the Authorization header → backend sees no token
+  // → 401 → the page wipes the session and bounces to /login. Preserving the
+  // slash lets the request hit FastAPI's `/patients/` route directly (no
+  // redirect, no cross-origin hop, token kept).
+  skipTrailingSlashRedirect: true,
   // Allow ngrok / localtunnel / cloudflared subdomains through Next's host-check.
   allowedDevOrigins: [
     '*.trycloudflare.com',

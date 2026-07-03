@@ -71,6 +71,19 @@ export default function AppShell({
   const [langOpen, setLangOpen] = useState<boolean>(false)
   const [photoOpen, setPhotoOpen] = useState<boolean>(false)
 
+  // Focus / full-screen mode: hide the left menu so a module fills the screen.
+  // Persisted so the choice sticks across pages; a header toggle + a floating
+  // button bring the menu back only when the user wants it.
+  const [sidebarHidden, setSidebarHidden] = useState<boolean>(false)
+  useEffect(() => {
+    setSidebarHidden(localStorage.getItem('sidebar_hidden') === '1')
+  }, [])
+  const toggleSidebar = () => setSidebarHidden(v => {
+    const n = !v
+    try { localStorage.setItem('sidebar_hidden', n ? '1' : '0') } catch {}
+    return n
+  })
+
   // ── Live clock + online status (SSR-safe) ─────────────────────────────
   useEffect(() => {
     setNow(new Date())
@@ -141,6 +154,16 @@ export default function AppShell({
                 aria-label="Toggle navigation"
               >
                 ☰
+              </button>
+            )}
+            {showSidebar && (
+              <button
+                onClick={toggleSidebar}
+                className="hidden md:inline-flex p-1.5 rounded-md hover:bg-white/15 text-lg leading-none"
+                aria-label={sidebarHidden ? 'Show menu' : 'Full screen (hide menu)'}
+                title={sidebarHidden ? 'Show menu' : 'Full screen (hide menu)'}
+              >
+                {sidebarHidden ? '☰' : '⛶'}
               </button>
             )}
             <Link href="/dashboard" className="flex items-center gap-2.5 hover:opacity-90 transition-opacity">
@@ -225,7 +248,7 @@ export default function AppShell({
 
       {/* ── BODY: sidebar + content ─────────────────────────────────────── */}
       <div className="flex-1 flex">
-        {showSidebar && (
+        {showSidebar && !sidebarHidden && (
           <>
             <Sidebar
               role={user?.role}
@@ -243,6 +266,20 @@ export default function AppShell({
         )}
         <main className="flex-1 min-w-0">{children}</main>
       </div>
+
+      {/* Floating "show menu" button — appears only in full-screen mode so the
+          user can bring the left menu back whenever they want. */}
+      {showSidebar && sidebarHidden && (
+        <button
+          onClick={toggleSidebar}
+          className="hidden md:flex fixed bottom-4 left-4 z-40 items-center gap-1.5 px-3 py-2 rounded-full bg-slate-900/90 text-slate-100 border border-slate-600 shadow-lg hover:bg-slate-800 print:hidden"
+          title="Show menu"
+          aria-label="Show menu"
+        >
+          <span className="text-base leading-none">☰</span>
+          <span className="text-xs font-medium">Menu</span>
+        </button>
+      )}
 
       {/* ── FLOATING MODULE TOOLBAR (mic + image AI + label) ───────────── */}
       {user && <ModuleToolbar />}

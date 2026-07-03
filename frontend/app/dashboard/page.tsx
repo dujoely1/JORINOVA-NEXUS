@@ -23,7 +23,7 @@ import { useT } from '../contexts/I18nProvider'
 import type { TKey } from '../lib/i18n'
 import RequireAuth from '../components/RequireAuth'
 import AppShell from '../components/AppShell'
-import Logo from '../components/Logo'
+import QuickPatientBar from '../components/QuickPatientBar'
 import VoiceMic from '../components/VoiceMic'
 
 const API         = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
@@ -216,7 +216,6 @@ function DashboardInner() {
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-7 text-center space-y-3">
           <div className="flex flex-col items-center gap-3">
-            <Logo size={88} className="ring-2 ring-sky-400/40 shadow-xl" />
             <div className="flex items-center justify-center gap-3 flex-wrap">
               <h1
                 className="text-2xl sm:text-3xl font-extrabold tracking-wide"
@@ -260,6 +259,9 @@ function DashboardInner() {
       </section>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 space-y-8">
+
+        {/* ── Quick patient workspace (replaces the old centre logo) ─────── */}
+        <QuickPatientBar />
 
         {/* ── KPI tiles ──────────────────────────────────────────────────── */}
         <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">

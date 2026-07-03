@@ -17,12 +17,14 @@ import { useState } from 'react'
 import VoiceMic from './VoiceMic'
 import ImageUploadModal from './ImageUploadModal'
 import LabelModal       from './LabelModal'
+import QuickPatientBar  from './QuickPatientBar'
 import { useT } from '../contexts/I18nProvider'
 
 export default function ModuleToolbar() {
   const t = useT()
   const [showImage, setShowImage] = useState(false)
   const [showLabel, setShowLabel] = useState(false)
+  const [showSearch, setShowSearch] = useState(false)
 
   return (
     <>
@@ -35,6 +37,16 @@ export default function ModuleToolbar() {
         <div className="bg-slate-900/90 backdrop-blur rounded-2xl p-2 border border-slate-700/60 shadow-xl">
           <VoiceMic />
         </div>
+
+        {/* Quick patient search — same workspace as the dashboard, on every page */}
+        <button
+          onClick={() => setShowSearch(true)}
+          title="Quick patient search"
+          className="inline-flex items-center justify-center h-11 w-11 rounded-full border border-sky-400/60 bg-sky-500/20 text-sky-100 hover:bg-sky-500/40 hover:scale-105 transition-all shadow-lg backdrop-blur"
+          aria-label="Quick patient search"
+        >
+          <span className="text-xl">🔍</span>
+        </button>
 
         {/* Image upload */}
         <button
@@ -59,6 +71,16 @@ export default function ModuleToolbar() {
 
       {showImage && <ImageUploadModal onClose={() => setShowImage(false)} />}
       {showLabel && <LabelModal       onClose={() => setShowLabel(false)} />}
+
+      {/* Quick patient search overlay — reuses the dashboard workspace */}
+      {showSearch && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-sm p-4 pt-16 print:hidden"
+             onClick={() => setShowSearch(false)}>
+          <div className="w-full max-w-3xl" onClick={e => e.stopPropagation()}>
+            <QuickPatientBar onClose={() => setShowSearch(false)} />
+          </div>
+        </div>
+      )}
     </>
   )
 }

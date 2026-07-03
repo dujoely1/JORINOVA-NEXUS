@@ -117,7 +117,7 @@ const D = {
   'nav.molecular':      { en: 'TB / Molecular', fr: 'TB / Moléculaire', rw: 'TB / Moleculer' },
   'nav.quality':        { en: 'Quality / LJ', fr: 'Qualité / LJ', rw: 'Ubuziranenge / LJ' },
   'nav.surveillance':   { en: 'Surveillance', fr: 'Surveillance', rw: 'Ibyitabirwa' },
-  'nav.inventory':      { en: 'Inventory',    fr: 'Inventaire',   rw: 'Ububiko' },
+  'nav.inventory':      { en: 'Smart Inventory', fr: 'Inventaire intelligent', rw: 'Ububiko bw’ubwenge' },
   'nav.billing':        { en: 'Billing & MoMo', fr: 'Facturation & MoMo', rw: 'Ifatura & MoMo' },
   'nav.staffhub':       { en: 'StaffHub',     fr: 'StaffHub',     rw: 'Abakozi' },
   'nav.connectivity':   { en: 'Connectivity', fr: 'Connectivité', rw: 'Guhuza' },

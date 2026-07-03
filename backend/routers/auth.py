@@ -100,6 +100,25 @@ def _app_base_url() -> str:
 router = APIRouter(prefix='/auth', tags=['Authentication'])
 
 
+def _device_name_from_ua(ua: str) -> str:
+    """Best-effort friendly device name from a User-Agent string."""
+    ua = ua or ''
+    low = ua.lower()
+    if 'android' in low:              os_ = 'Android'
+    elif 'iphone' in low:             os_ = 'iPhone'
+    elif 'ipad' in low:               os_ = 'iPad'
+    elif 'windows' in low:            os_ = 'Windows'
+    elif 'mac os' in low or 'macintosh' in low: os_ = 'Mac'
+    elif 'linux' in low:              os_ = 'Linux'
+    else:                             os_ = 'Device'
+    if 'edg/' in low:                 br = 'Edge'
+    elif 'chrome/' in low:            br = 'Chrome'
+    elif 'firefox/' in low:           br = 'Firefox'
+    elif 'safari/' in low:            br = 'Safari'
+    else:                             br = ''
+    return f'{os_} · {br}'.rstrip(' ·') if br else os_
+
+
 class TokenOut(BaseModel):
     access_token: str
     token_type:   str = 'bearer'
@@ -179,7 +198,29 @@ async def login(
             db.commit()
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid 2FA code')
 
-    token = create_access_token({'sub': str(user.id), 'role': user.role})
+    # Revocable trusted-device registry: bind this session to the client's device
+    # id (sent as the X-Device-Id header) and (re)trust it on a successful full
+    # login. get_current_user rejects tokens whose device has been revoked.
+    token_data: dict = {'sub': str(user.id), 'role': user.role}
+    device_id = (request.headers.get('X-Device-Id') or '').strip()[:64] if request else ''
+    if device_id:
+        from models.trusted_device import TrustedDevice
+        ua = (request.headers.get('User-Agent') or '')[:300]
+        dev = db.query(TrustedDevice).filter(
+            TrustedDevice.user_id == user.id, TrustedDevice.device_id == device_id
+        ).first()
+        if dev is None:
+            dev = TrustedDevice(user_id=user.id, device_id=device_id)
+            db.add(dev)
+        dev.device_name  = _device_name_from_ua(ua)
+        dev.user_agent   = ua
+        dev.ip_address   = request.client.host if request and request.client else None
+        dev.revoked      = False            # a fresh full login re-trusts the device
+        dev.revoked_at   = None
+        dev.last_seen_at = datetime.now(timezone.utc)
+        db.flush()
+        token_data['did'] = device_id
+    token = create_access_token(token_data)
 
     db.add(LoginLog(
         user_id=user.id, success=True,
@@ -626,3 +667,71 @@ def verify_otp_reset(body: VerifyOTPIn, db: Session = Depends(get_db)):
     import logging
     logging.getLogger('auth.otp').info(f'Password reset successful for {user.username}')
     return {'message': 'Password reset successful. Please log in with your new password.'}
+
+
+# ── Trusted-device registry ───────────────────────────────────────────────────
+
+def _device_out(d, current_did: str | None) -> dict:
+    return {
+        'id':           d.id,
+        'device_name':  d.device_name or 'Unknown device',
+        'user_agent':   d.user_agent,
+        'ip_address':   d.ip_address,
+        'revoked':      d.revoked,
+        'last_seen_at': d.last_seen_at.isoformat() if d.last_seen_at else None,
+        'created_at':   d.created_at.isoformat() if d.created_at else None,
+        'current':      bool(current_did) and d.device_id == current_did,
+    }
+
+
+@router.get('/devices')
+def list_devices(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """List the caller's trusted devices (admins see everyone's)."""
+    from models.trusted_device import TrustedDevice
+    current_did = (request.headers.get('X-Device-Id') or '').strip() or None
+    q = db.query(TrustedDevice)
+    if not current_user.is_superuser:
+        q = q.filter(TrustedDevice.user_id == current_user.id)
+    rows = q.order_by(TrustedDevice.last_seen_at.desc()).all()
+    return [_device_out(d, current_did) for d in rows]
+
+
+@router.post('/devices/{device_pk}/revoke')
+def revoke_device(
+    device_pk: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Revoke a device — its session is rejected on the next request."""
+    from models.trusted_device import TrustedDevice
+    dev = db.query(TrustedDevice).filter(TrustedDevice.id == device_pk).first()
+    if not dev:
+        raise HTTPException(status_code=404, detail='Device not found')
+    if dev.user_id != current_user.id and not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail='Not permitted')
+    dev.revoked = True
+    dev.revoked_at = datetime.now(timezone.utc)
+    db.commit()
+    return {'message': 'Device revoked', 'id': dev.id}
+
+
+@router.delete('/devices/{device_pk}')
+def delete_device(
+    device_pk: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Remove a device from the registry entirely."""
+    from models.trusted_device import TrustedDevice
+    dev = db.query(TrustedDevice).filter(TrustedDevice.id == device_pk).first()
+    if not dev:
+        raise HTTPException(status_code=404, detail='Device not found')
+    if dev.user_id != current_user.id and not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail='Not permitted')
+    db.delete(dev)
+    db.commit()
+    return {'message': 'Device removed', 'id': device_pk}
