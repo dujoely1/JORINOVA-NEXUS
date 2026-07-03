@@ -35,15 +35,6 @@ const GOLD_DK     = '#A6800F'
 // Module navigation is provided by the left sidebar (role-filtered); the
 // dashboard no longer duplicates it, to keep the home screen uncluttered.
 
-const TRAINING_SCENES = [
-  { id: 'iot_analyzer_intake_demo',   title: 'IoT analyzer ingestion',  tag: 'Vendor-neutral',  icon: '⚡' },
-  { id: 'lis_mapping_walkthrough',    title: 'OCR + LIS auto-mapping',  tag: 'OCR',             icon: '📄' },
-  { id: 'specimen_intake_stat',       title: 'STAT specimen intake',    tag: 'Workflow',        icon: '🩺' },
-  { id: 'critical_value_validation',  title: 'Critical CBC validation', tag: 'Auto-archive',    icon: '⚠️' },
-  { id: 'medgenome_pcr_demo',         title: 'GeneXpert MTB / Rif',     tag: 'Genomic',         icon: '🧬' },
-  { id: 'blood_bank_crossmatch_demo', title: 'Blood-bank crossmatch',   tag: 'Traceability',    icon: '🩸' },
-  { id: 'momo_billing_demo',          title: 'MoMo payment + release',  tag: 'Billing',         icon: '💳' },
-] as const
 
 
 // ── Types ───────────────────────────────────────────────────────────────────
@@ -245,37 +236,6 @@ function DashboardInner() {
           </form>
         </section>
 
-        {/* ── Demo scene grid ───────────────────────────────────────────── */}
-        <section>
-          <div className="flex items-baseline justify-between mb-3">
-            <h2 className="text-sm font-bold tracking-wide text-sky-300">
-              {t('dash.demos.title')}
-            </h2>
-            <Link href="/modules/training" className="text-xs font-medium hover:underline text-sky-300">
-              {t('dash.demos.all')}
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {TRAINING_SCENES.map(s => (
-              <Link
-                key={s.id}
-                href={`/modules/training/${s.id}?demo=1`}
-                className="group rounded-xl bg-slate-900/60 backdrop-blur border border-slate-700/60 p-3 transition-all hover:border-sky-400/60 hover:bg-slate-900/80"
-                style={{ boxShadow: '0 0 14px rgba(56,189,248,0.05)' }}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-2xl">{s.icon}</div>
-                  <span className="text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded-full"
-                        style={{ background: 'rgba(166,201,122,0.15)', color: '#C9E2A0', border: '1px solid rgba(166,201,122,0.30)' }}>
-                    {s.tag}
-                  </span>
-                </div>
-                <div className="text-sm font-semibold text-slate-100 group-hover:text-sky-300">{s.title}</div>
-                <div className="text-[11px] text-slate-400 mt-1">Say &quot;Jorinova start&quot; to run</div>
-              </Link>
-            ))}
-          </div>
-        </section>
 
         {/* Module navigation lives in the left sidebar — not duplicated here. */}
 
