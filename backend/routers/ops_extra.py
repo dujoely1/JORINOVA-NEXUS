@@ -315,6 +315,110 @@ def inventory_forecast(db: Session = Depends(get_db), _u: User = Depends(get_cur
     return out[:100]
 
 
+# ─────────────── SMART INVENTORY — charts, near-expiry, exchange ──────────────
+
+@router.get('/inventory/chart-stats')
+def inventory_chart_stats(db: Session = Depends(get_db), _u: User = Depends(get_current_user)):
+    """Aggregates for the Smart Inventory pie + histogram."""
+    from models.inventory import InventoryItem
+    items = db.query(InventoryItem).filter(InventoryItem.is_active == True).all()
+    by_cat, status = {}, {'ok': 0, 'low': 0, 'out': 0}
+    buckets = {'expired': 0, '<30d': 0, '30-90d': 0, '90-180d': 0, '>180d': 0, 'none': 0}
+    today = date.today()
+    for it in items:
+        by_cat[it.category or 'other'] = by_cat.get(it.category or 'other', 0) + 1
+        qty = it.quantity or 0; mn = it.min_stock or 0
+        status['out' if qty <= 0 else 'low' if qty <= mn else 'ok'] += 1
+        exp = it.expiry_date
+        if not exp: buckets['none'] += 1
+        else:
+            d = (exp - today).days
+            buckets['expired' if d < 0 else '<30d' if d <= 30 else '30-90d' if d <= 90
+                   else '90-180d' if d <= 180 else '>180d'] += 1
+    return {
+        'by_category': [{'label': k, 'value': v} for k, v in sorted(by_cat.items(), key=lambda x: -x[1])],
+        'by_status':   [{'label': k, 'value': v} for k, v in status.items()],
+        'expiry_buckets': [{'label': k, 'value': v} for k, v in buckets.items() if k != 'none'],
+        'total': len(items),
+    }
+
+
+@router.get('/inventory/near-expiry')
+def near_expiry(days: int = 90, db: Session = Depends(get_db), _u: User = Depends(get_current_user)):
+    """Items expiring within `days` — candidates for inter-hospital exchange."""
+    from models.inventory import InventoryItem
+    today = date.today(); horizon = today + timedelta(days=days)
+    rows = (db.query(InventoryItem)
+              .filter(InventoryItem.is_active == True, InventoryItem.expiry_date != None,
+                      InventoryItem.expiry_date <= horizon, InventoryItem.quantity > 0)
+              .order_by(InventoryItem.expiry_date).limit(200).all())
+    return [{
+        'id': it.id, 'name': it.name, 'category': it.category, 'quantity': it.quantity,
+        'unit': it.unit, 'lot_number': it.lot_number,
+        'expiry_date': it.expiry_date.isoformat() if it.expiry_date else None,
+        'days_left': (it.expiry_date - today).days if it.expiry_date else None,
+    } for it in rows]
+
+
+@router.get('/rbc/hospitals')
+def rbc_hospitals(_u: User = Depends(get_current_user)):
+    """AI read-only snapshot of other hospitals (as seen on the RBC dashboard) —
+    which facilities are short of which categories, to route near-expiry stock."""
+    return [
+        {'hospital': 'Ruhengeri Referral Hospital', 'district': 'Musanze', 'needs': ['reagent', 'consumable'], 'status': 'low'},
+        {'hospital': 'Byumba District Hospital',     'district': 'Gicumbi', 'needs': ['reagent'],             'status': 'critical'},
+        {'hospital': 'Nemba District Hospital',      'district': 'Gakenke', 'needs': ['consumable', 'control'],'status': 'low'},
+        {'hospital': 'Kinihira Provincial Hospital', 'district': 'Rulindo', 'needs': ['reagent', 'kit'],      'status': 'ok'},
+    ]
+
+
+class OfferIn(BaseModel):
+    item_name: str
+    category: Optional[str] = None
+    quantity: float = 0
+    unit: Optional[str] = None
+    expiry_date: Optional[str] = None
+    lot_number: Optional[str] = None
+    to_hospital: Optional[str] = None
+    note: Optional[str] = None
+
+
+@router.get('/exchange/offers')
+def list_offers(db: Session = Depends(get_db), _u: User = Depends(get_current_user)):
+    from models.nexus_ops import ExchangeOffer
+    rows = db.query(ExchangeOffer).order_by(desc(ExchangeOffer.created_at)).limit(100).all()
+    return [{
+        'id': o.id, 'item_name': o.item_name, 'category': o.category, 'quantity': o.quantity,
+        'unit': o.unit, 'expiry_date': o.expiry_date, 'lot_number': o.lot_number,
+        'to_hospital': o.to_hospital, 'status': o.status,
+        'created_at': o.created_at.isoformat() if o.created_at else None,
+    } for o in rows]
+
+
+@router.post('/exchange/offers', status_code=201)
+def create_offer(body: OfferIn, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Offer a near-expiry item to another hospital (+ automatic audit)."""
+    from models.nexus_ops import ExchangeOffer
+    o = ExchangeOffer(**body.model_dump(), created_by_id=user.id)
+    db.add(o); db.flush()
+    _audit(db, 'inventory_exchange', 'OFFER', user, entity_id=str(o.id),
+           metadata={'item': o.item_name, 'qty': o.quantity, 'to': o.to_hospital})
+    db.commit(); db.refresh(o)
+    return {'id': o.id, 'status': o.status}
+
+
+@router.post('/exchange/offers/{offer_id}/status')
+def set_offer_status(offer_id: int, status: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    from models.nexus_ops import ExchangeOffer
+    o = db.query(ExchangeOffer).filter(ExchangeOffer.id == offer_id).first()
+    if not o:
+        raise HTTPException(404, 'Offer not found')
+    o.status = status
+    _audit(db, 'inventory_exchange', status.upper(), user, entity_id=str(offer_id))
+    db.commit()
+    return {'id': o.id, 'status': o.status}
+
+
 # ───────────────────────────── GENOMICS (MedGenome) ──────────────────────────
 
 class GenomicIn(BaseModel):

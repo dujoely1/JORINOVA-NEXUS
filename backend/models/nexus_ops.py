@@ -46,6 +46,23 @@ class ReflexSuggestion(Base):
     created_at     = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+class ExchangeOffer(Base):
+    """A near-expiry stock item offered to another hospital (inter-facility exchange)."""
+    __tablename__ = 'exchange_offers'
+    id:            Mapped[int]           = mapped_column(Integer, primary_key=True)
+    item_name:     Mapped[str]           = mapped_column(String(200))
+    category:      Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
+    quantity:      Mapped[float]         = mapped_column(default=0)
+    unit:          Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    expiry_date:   Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    lot_number:    Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    to_hospital:   Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
+    status:        Mapped[str]           = mapped_column(String(15), default='offered', index=True)  # offered|accepted|sent|declined
+    note:          Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    created_by_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('users.id'), nullable=True)
+    created_at     = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 class IncomingOrder(Base):
     """A test order received from an external clinic system (interoperability intake)."""
     __tablename__ = 'incoming_orders'
