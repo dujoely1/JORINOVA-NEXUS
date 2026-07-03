@@ -6,7 +6,7 @@
  *   and the UI keeps its session; see AuthProvider retry).
  * Bump CACHE to invalidate old caches on the next visit.
  */
-const CACHE = 'nexus-v3';
+const CACHE = 'nexus-v4';
 const CORE = ['/', '/login', '/dashboard', '/offline.html', '/manifest.webmanifest', '/logo/jorinova-nexus.png'];
 
 self.addEventListener('install', (e) => {
