@@ -54,6 +54,18 @@ def get_current_user(token: str = Depends(oauth2), db: Session = Depends(get_db)
     user = db.query(User).filter(User.id == int(user_id), User.is_active == True).first()
     if not user:
         raise HTTPException(status_code=401, detail='User not found or inactive')
+
+    # Revocable trusted devices: if this token was issued to a named device and
+    # that device has since been revoked, reject the token so the phone/browser
+    # must sign in again.
+    did = payload.get('did')
+    if did:
+        from models.trusted_device import TrustedDevice
+        dev = db.query(TrustedDevice).filter(
+            TrustedDevice.user_id == user.id, TrustedDevice.device_id == did
+        ).first()
+        if dev and dev.revoked:
+            raise HTTPException(status_code=401, detail='Device access revoked — please sign in again')
     return user
 
 

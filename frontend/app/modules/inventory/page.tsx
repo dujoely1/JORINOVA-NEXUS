@@ -14,6 +14,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import RequireAuth from '../../components/RequireAuth'
 import AppShell from '../../components/AppShell'
+import InventoryCharts from '../../components/InventoryCharts'
+import InventoryExchange from '../../components/InventoryExchange'
 import { useT } from '../../contexts/I18nProvider'
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
@@ -106,6 +108,10 @@ function InventoryInner() {
           <Kpi label={t('inv.kpi.expiring')}  value={stats?.expiring_30_days ?? '—'} accent="#A855F7" />
           <Kpi label={t('inv.kpi.value')}     value={stats ? stats.total_value_rwf.toLocaleString() : '—'} accent="#0066CC" />
         </div>
+
+        {/* Smart Inventory — charts + inter-hospital exchange */}
+        <InventoryCharts />
+        <InventoryExchange />
 
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-2 rounded-xl bg-slate-900/60 border border-slate-700/60 p-3">

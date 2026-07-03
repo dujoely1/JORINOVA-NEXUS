@@ -56,8 +56,11 @@ def create_all_tables():
         worklist, billing,
         # Sync (offline-first)
         sync_queue,
-        # Security — 2FA backup/recovery codes
+        # Security — 2FA backup/recovery codes + revocable trusted devices
         two_factor_backup,
+        trusted_device,
+        # Nexus ops — genomics, AI reflex suggestions, incoming clinic orders
+        nexus_ops,
         # Staff Security Hub — hospital device registry + dynamic attributes
         device_registry,
         # License / activation keys

@@ -22,6 +22,8 @@ class Patient(Base, TimestampMixin):
     phone:        Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     email:        Mapped[Optional[str]] = mapped_column(String(254), nullable=True)
     address:      Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    district:     Mapped[Optional[str]] = mapped_column(String(80), nullable=True, index=True)  # for outbreak clustering
+    ward:         Mapped[Optional[str]] = mapped_column(String(60), nullable=True)              # referring ward (IPD)
     national_id:  Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
     insurance_no: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     insurance_provider: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)

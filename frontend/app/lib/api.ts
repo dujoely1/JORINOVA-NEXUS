@@ -29,6 +29,19 @@ function clearToken() {
   localStorage.removeItem('access_token')
 }
 
+/** Stable per-browser/-phone id for the revocable trusted-device registry.
+ *  Generated once and kept in localStorage; sent as the X-Device-Id header so
+ *  the backend can bind the session to this device and let it be revoked. */
+export function getDeviceId(): string {
+  if (typeof window === 'undefined') return ''
+  let id = localStorage.getItem('device_id')
+  if (!id) {
+    id = (crypto?.randomUUID?.() ?? `dev-${Date.now()}-${Math.random().toString(36).slice(2)}`)
+    localStorage.setItem('device_id', id)
+  }
+  return id
+}
+
 /** Low-level — already adds the Authorization header. */
 async function request<T>(
   path: string, opts: RequestInit = {},
@@ -38,6 +51,7 @@ async function request<T>(
     ...opts,
     headers: {
       'Content-Type': 'application/json',
+      'X-Device-Id': getDeviceId(),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(opts.headers ?? {}),
     },
@@ -66,7 +80,7 @@ export async function login(
   const body = new URLSearchParams(fields)
   const res = await fetch(`${API}/api/v1/auth/token`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Device-Id': getDeviceId() },
     body,
   })
   if (!res.ok) {

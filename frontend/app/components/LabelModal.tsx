@@ -84,6 +84,28 @@ function code39SVG(rawText: string, opts: { barUnit?: number; height?: number } 
 
 // ── Component ───────────────────────────────────────────────────────────────
 
+// Map a test / panel name to its laboratory department so the label colour
+// follows the test automatically (instead of every test keeping one colour).
+const TEST_DEPT: ReadonlyArray<readonly [RegExp, keyof typeof DEPT_THEMES]> = [
+  [/\b(cbc|fbc|h[ae]?mogram|haemo|\bhb\b|platelet|\bwbc\b|\besr\b|malaria|blood\s?film|\bpbs\b|reticulocyte)\b/i, 'HEM'],
+  [/\b(pt\b|aptt|\binr\b|fibrinogen|d-?dimer|coag)\b/i, 'COAG'],
+  [/\b(glucose|\bfbs\b|\brbs\b|urea|creatinin|electrolyte|\bna\b|\bk\b|lft|liver|\balt\b|\bast\b|bilirubin|lipid|cholesterol|albumin|amylase|calcium|uric|renal)\b/i, 'BIOCHEM'],
+  [/\b(tsh|ft4|ft3|cortisol|testosterone|estrogen|prolactin|\blh\b|\bfsh\b|hormone|hba1c|insulin)\b/i, 'HORMONE'],
+  [/\b(troponin|ck-?mb|\bbnp\b|cardiac)\b/i, 'CARDIAC'],
+  [/\b(psa|cea|afp|ca-?125|ca-?19|ca-?15|tumou?r)\b/i, 'TUMOUR'],
+  [/\b(hiv|hbsag|\bhcv\b|syphilis|\brpr\b|tpha|widal|pylori|serolog|\brf\b|\baso\b|\bcrp\b|dengue|covid|antibody|antigen|immunolog)\b/i, 'SERO'],
+  [/\b(culture|gram|c\/?s|\bafb\b|ziehl|micro|antibiogram|stool|swab)\b/i, 'MICRO'],
+  [/\b(pcr|genexpert|\bmtb\b|viral\s?load|\bhpv\b|molecular|\bdna\b|\brna\b|sequenc)\b/i, 'MOL'],
+  [/\b(urinalysis|urine|dipstick)\b/i, 'URN'],
+  [/\b(cross-?match|blood\s?group|\babo\b|\brh\b|coombs|transfus|donor)\b/i, 'BB'],
+  [/\b(histo|biopsy|cytolog|\bpap\b|fnac|anat)\b/i, 'ANAPATH'],
+  [/\b(toxic|\btdm\b|paracetamol|salicylate|alcohol|poison|drug\s?screen)\b/i, 'TOX'],
+]
+function deptForTest(name: string): (keyof typeof DEPT_THEMES) | null {
+  for (const [re, d] of TEST_DEPT) if (re.test(name)) return d
+  return null
+}
+
 export default function LabelModal({ onClose }: { onClose: () => void }) {
   const [sampleId,  setSampleId]  = useState('S-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-001')
   const [patient,   setPatient]   = useState('')
@@ -93,6 +115,13 @@ export default function LabelModal({ onClose }: { onClose: () => void }) {
   const [tube,      setTube]      = useState('EDTA (purple)')
   const [priority,  setPriority]  = useState('routine')
   const labelRef = useRef<HTMLDivElement>(null)
+
+  // Colour follows the test: when the test name changes to a recognised assay,
+  // switch the department (and therefore the label colour) to match it.
+  useEffect(() => {
+    const d = deptForTest(test)
+    if (d) setDept(d)
+  }, [test])
 
   const theme = DEPT_THEMES[dept]
   const code  = useMemo(() => code39SVG(sampleId, { barUnit: 2, height: 50 }), [sampleId])

@@ -14,6 +14,7 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import RequireAuth from '../../components/RequireAuth'
 import AppShell from '../../components/AppShell'
+import DeviceManager from '../../components/DeviceManager'
 
 const API = process.env.NEXT_PUBLIC_API_URL || ''
 
@@ -225,6 +226,8 @@ function Inner() {
           </div>
         </div>
       )}
+
+      <DeviceManager />
 
       <div>
         <Link href="/modules/settings" className="text-sky-300 hover:underline text-sm">← Settings</Link>

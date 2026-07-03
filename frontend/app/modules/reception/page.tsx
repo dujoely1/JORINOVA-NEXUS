@@ -110,6 +110,7 @@ function Inner() {
       </section>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-5 space-y-5">
+        <OutbreakBanner />
         {err && <div className="rounded-lg bg-rose-900/30 border border-rose-700/50 px-3 py-2 text-sm text-rose-200">{err}</div>}
 
         {tab === 'reception' && (
@@ -196,5 +197,32 @@ function VisitTable({ title, rows }: { title: string; rows: Visit[] }) {
         </table>
       </div>
     </section>
+  )
+}
+
+// Reception outbreak warning — surfaces active outbreak signals so staff take
+// isolation precautions for patients from affected districts / high-communicable
+// disease profiles. GET /api/v1/ops/surveillance/active-alerts.
+interface Alert { id: number; disease?: string; district?: string; alert_level: string; case_count_7d: number }
+function OutbreakBanner() {
+  const [alerts, setAlerts] = useState<Alert[]>([])
+  useEffect(() => {
+    fetch(`${API}/api/v1/ops/surveillance/active-alerts`, { headers: authHeader() })
+      .then(r => r.ok ? r.json() : []).then(d => setAlerts(Array.isArray(d) ? d : [])).catch(() => {})
+  }, [])
+  if (alerts.length === 0) return null
+  return (
+    <div className="rounded-xl border border-rose-500/50 bg-rose-950/30 px-4 py-3" style={{ boxShadow: '0 0 24px rgba(220,38,38,0.15)' }}>
+      <div className="flex items-center gap-2 text-rose-200 font-bold text-sm">
+        <span className="animate-pulse">⚠️</span> Active outbreak alerts — apply isolation precautions for patients from these areas
+      </div>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {alerts.map(a => (
+          <span key={a.id} className="text-[11px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-100 border border-rose-400/40">
+            {a.disease ?? 'communicable disease'} · {a.district ?? '—'} · {a.case_count_7d} cases · {a.alert_level}
+          </span>
+        ))}
+      </div>
+    </div>
   )
 }

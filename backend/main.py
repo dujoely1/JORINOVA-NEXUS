@@ -315,6 +315,13 @@ app = FastAPI(
     docs_url  = '/api/docs',
     redoc_url = '/api/redoc',
     lifespan  = lifespan,
+    # Never emit a 307 trailing-slash redirect: the Next.js proxy normalises
+    # slashes and FastAPI's redirect points at an ABSOLUTE backend URL, which is
+    # cross-origin from the browser's point of view — browsers strip the
+    # Authorization header on a cross-origin redirect, so the request arrives
+    # unauthenticated (401) and the UI bounces to /login. Instead we register
+    # both slash and no-slash forms of every route below (see _add_slash_aliases).
+    redirect_slashes = False,
 )
 
 # ── Middleware ────────────────────────────────────────────────────────────────
@@ -395,6 +402,7 @@ _ROUTERS = [
     ('routers.qr_login',        'router'),   # QR / phone approval login
     ('routers.patients',        'router'),
     ('routers.laboratory',      'router'),
+    ('routers.ops_extra',       'router'),   # surveillance/RBC/interop/reflex/forecast/genomics
     ('routers.ai_nexus',        'router'),
     # Clinical departments
     ('routers.hematology',      'router'),
@@ -458,6 +466,43 @@ for _mod, _attr in _ROUTERS:
         logger.info('Router registered: %s', _mod)
     except Exception as _e:
         logger.warning('Router skipped %s: %s', _mod, _e)
+
+
+def _add_slash_aliases() -> None:
+    """Register both the slash and no-slash form of every API route.
+
+    With redirect_slashes=False (set on the app) FastAPI no longer 307-redirects
+    between `/x` and `/x/`. To keep both forms working — regardless of how the
+    reverse proxy normalises the URL — we clone each route under its opposite
+    trailing-slash spelling. Auth and validation are declared as endpoint
+    parameters (Depends(...)), so they are re-applied automatically when the same
+    endpoint function is re-registered.
+    """
+    from fastapi.routing import APIRoute
+    seen = {(r.path, frozenset(r.methods or ())) for r in app.routes if isinstance(r, APIRoute)}
+    for r in list(app.routes):
+        if not isinstance(r, APIRoute) or r.endpoint is None:
+            continue
+        alt = r.path[:-1] if r.path.endswith('/') else r.path + '/'
+        if alt in ('', '/'):
+            continue
+        key = (alt, frozenset(r.methods or ()))
+        if key in seen:
+            continue
+        seen.add(key)
+        app.add_api_route(
+            alt, r.endpoint,
+            methods         = list(r.methods or []),
+            response_model  = r.response_model,
+            status_code     = r.status_code,
+            dependencies    = r.dependencies,
+            responses       = r.responses,
+            name            = r.name,
+            tags            = r.tags,
+            include_in_schema = False,
+        )
+
+_add_slash_aliases()
 
 
 

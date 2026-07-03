@@ -18,7 +18,17 @@ interface Signal { id: number; signal_id: string; signal_date?: string; departme
 interface Disease { id: number; track_date: string; disease: string; department: string; new_cases: number; total_cases: number; positive_rate?: number; district?: string }
 interface FieldAct { id: number; staff: string; activity_type: string; title?: string; notes?: string; latitude?: number; longitude?: number; status: string; occurred_at?: string }
 
-type Tab = 'signals' | 'tracking' | 'amr' | 'field'
+type Tab = 'signals' | 'burden' | 'tracking' | 'amr' | 'field'
+
+async function opsPost(path: string, body?: unknown) {
+  const t = getToken()
+  const r = await fetch(`${API}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(t ? { Authorization: `Bearer ${t}` } : {}) },
+    body: body != null ? JSON.stringify(body) : undefined,
+  })
+  return r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))
+}
 
 export default function SurveillancePage() {
   return (
@@ -44,6 +54,7 @@ function Inner() {
           <nav className="mt-4 flex flex-wrap gap-1 border-b border-slate-700/60 -mb-px">
             {([
               ['signals',  t('surv.tab.signals'),  '🚨'],
+              ['burden',   'Facility burden',      '🏥'],
               ['tracking', t('surv.tab.tracking'), '📊'],
               ['amr',      t('surv.tab.amr'),      '🦠'],
               ['field',    t('surv.tab.field'),    '📍'],
@@ -63,6 +74,7 @@ function Inner() {
 
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 py-5">
         {tab === 'signals'  && <SignalsTab />}
+        {tab === 'burden'   && <BurdenTab />}
         {tab === 'tracking' && <TrackingTab />}
         {tab === 'amr'      && <AMRTab />}
         {tab === 'field'    && <FieldTab />}
@@ -115,9 +127,87 @@ function SignalsTab() {
               <div><div className="text-slate-500">{t('surv.pct_increase')}</div><div className={`text-xl font-bold ${s.pct_increase && s.pct_increase >= 100 ? 'text-rose-300' : 'text-amber-300'}`}>{s.pct_increase != null ? `${Math.round(s.pct_increase)}%` : '—'}</div></div>
             </div>
             {s.recommended_action && <div className="mt-2 text-xs text-slate-400 italic">→ {s.recommended_action}</div>}
+            <SignalActions signal={s} />
           </div>
         )
       })}
+    </div>
+  )
+}
+
+function SignalActions({ signal }: { signal: Signal }) {
+  const [msg, setMsg] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  async function rbc() {
+    setBusy(true)
+    try { const d = await opsPost(`/api/v1/ops/surveillance/${signal.id}/report-rbc`); setMsg(`✅ ${d.message}`) }
+    catch { setMsg('⚠ failed') } finally { setBusy(false) }
+  }
+  async function warn() {
+    const ward = window.prompt('Send critical warning to which ward?', 'Pediatrics')
+    if (!ward) return
+    setBusy(true)
+    try { const d = await opsPost(`/api/v1/ops/surveillance/${signal.id}/warn-ward`, { ward }); setMsg(`✅ ${d.message}`) }
+    catch { setMsg('⚠ failed') } finally { setBusy(false) }
+  }
+  return (
+    <div className="mt-3 flex items-center gap-2 flex-wrap">
+      <button onClick={rbc} disabled={busy} className="text-xs px-3 py-1.5 rounded-lg border border-sky-400/50 bg-sky-500/15 text-sky-100 hover:bg-sky-500/30 disabled:opacity-50">🏛️ Send to RBC</button>
+      <button onClick={warn} disabled={busy} className="text-xs px-3 py-1.5 rounded-lg border border-rose-400/50 bg-rose-500/15 text-rose-100 hover:bg-rose-500/30 disabled:opacity-50">⚠ Warn ward</button>
+      {msg && <span className="text-[11px] text-slate-300">{msg}</span>}
+    </div>
+  )
+}
+
+function BurdenTab() {
+  const [data, setData] = useState<{ by_department: { department: string; count: number }[]; total_today: number; active_clusters: number } | null>(null)
+  const [alerts, setAlerts] = useState<{ id: number; disease?: string; district?: string; alert_level: string; case_count_7d: number }[]>([])
+  useEffect(() => {
+    fetch(`${API}/api/v1/ops/facility-burden`, { headers: authHeaders() }).then(r => r.ok ? r.json() : null).then(setData).catch(() => {})
+    fetch(`${API}/api/v1/ops/surveillance/active-alerts`, { headers: authHeaders() }).then(r => r.ok ? r.json() : []).then(setAlerts).catch(() => {})
+  }, [])
+  const max = Math.max(1, ...(data?.by_department.map(d => d.count) ?? [1]))
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <Kpi label="Tests in facility today" value={data?.total_today ?? '—'} accent="#10b981" />
+        <Kpi label="Active outbreak clusters" value={data?.active_clusters ?? '—'} accent="#ef4444" />
+        <Kpi label="Departments active" value={data?.by_department.length ?? '—'} accent="#0ea5e9" />
+      </div>
+      <div className="rounded-xl border border-slate-700/60 bg-slate-900/60 p-5">
+        <h3 className="text-sm font-bold text-emerald-300 mb-3">🏥 Disease / workload burden by department (today)</h3>
+        <div className="space-y-2">
+          {(data?.by_department ?? []).map(d => (
+            <div key={d.department} className="flex items-center gap-3">
+              <div className="w-28 text-xs text-slate-300 capitalize truncate">{d.department}</div>
+              <div className="flex-1 h-4 rounded bg-slate-800 overflow-hidden"><div className="h-full rounded bg-emerald-500/70" style={{ width: `${(d.count / max) * 100}%` }} /></div>
+              <div className="w-10 text-right text-xs font-mono text-slate-200">{d.count}</div>
+            </div>
+          ))}
+          {(!data || data.by_department.length === 0) && <div className="text-xs text-slate-500">No worklist activity recorded today.</div>}
+        </div>
+      </div>
+      <div className="rounded-xl border border-rose-400/30 bg-slate-900/60 p-5">
+        <h3 className="text-sm font-bold text-rose-300 mb-3">📍 Area outbreak clusters (common disease spiking in a zone)</h3>
+        <div className="space-y-1.5">
+          {alerts.map(a => (
+            <div key={a.id} className="flex items-center justify-between text-xs border-b border-slate-800/60 py-1.5">
+              <span className="text-slate-100">{a.disease ?? '—'} <span className="text-slate-400">· {a.district ?? '—'}</span></span>
+              <span className="text-rose-200 font-semibold">{a.case_count_7d} cases · {a.alert_level}</span>
+            </div>
+          ))}
+          {alerts.length === 0 && <div className="text-xs text-slate-500">No active area clusters.</div>}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Kpi({ label, value, accent }: { label: string; value: string | number; accent: string }) {
+  return (
+    <div className="rounded-xl bg-slate-900/60 p-4 border" style={{ borderColor: `${accent}55` }}>
+      <div className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: accent }}>{label}</div>
+      <div className="text-3xl font-extrabold text-slate-100 mt-1">{value}</div>
     </div>
   )
 }
