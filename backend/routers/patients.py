@@ -28,6 +28,8 @@ class PatientOut(BaseModel):
     national_id:   Optional[str]
     insurance_no:  Optional[str]
     insurance_provider: Optional[str]
+    district:      Optional[str] = None
+    ward:          Optional[str] = None
     full_name:     str
     age:           Optional[int]
     is_active:     bool
@@ -43,6 +45,8 @@ class PatientCreate(BaseModel):
     phone:         Optional[str]  = None
     email:         Optional[str]  = None
     address:       Optional[str]  = None
+    district:      Optional[str]  = None
+    ward:          Optional[str]  = None
     national_id:   Optional[str]  = None
     insurance_no:  Optional[str]  = None
     insurance_provider: Optional[str] = None

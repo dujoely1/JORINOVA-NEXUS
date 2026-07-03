@@ -17,10 +17,8 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useAuth } from '../contexts/AuthProvider'
 import { useT } from '../contexts/I18nProvider'
-import type { TKey } from '../lib/i18n'
 import RequireAuth from '../components/RequireAuth'
 import AppShell from '../components/AppShell'
 import QuickPatientBar from '../components/QuickPatientBar'
@@ -33,59 +31,9 @@ const MIL_GREEN_DK= '#3A4019'
 const GOLD        = '#D4A017'
 const GOLD_DK     = '#A6800F'
 
-// ── Module + demo definitions ───────────────────────────────────────────────
-
-// Departments grouped by category. Each item carries i18n keys so the labels
-// localise automatically when the user switches language.
-
-type ModItem = { key: string; nameKey: TKey; icon: string; href: string }
-type ModGroup = { titleKey: TKey; accent: string; items: ModItem[] }
-
-const MODULE_GROUPS: readonly ModGroup[] = [
-  {
-    titleKey: 'dash.group.intake', accent: '#0066CC',
-    items: [
-      { key: 'patients',     nameKey: 'nav.patients',    icon: '👤', href: '/modules/patients' },
-      { key: 'lis_mapping',  nameKey: 'nav.lis_mapping', icon: '📄', href: '/modules/lis_mapping' },
-      { key: 'register',     nameKey: 'nav.register',    icon: '📚', href: '/modules/register' },
-    ],
-  },
-  {
-    titleKey: 'dash.group.clinical', accent: '#0F766E',
-    items: [
-      { key: 'laboratory',   nameKey: 'nav.laboratory',  icon: '🧪', href: '/modules/laboratory' },
-      { key: 'biochemistry', nameKey: 'nav.biochem',     icon: '🧫', href: '/modules/biochemistry' },
-      { key: 'microbiology', nameKey: 'nav.micro',       icon: '🦠', href: '/modules/microbiology' },
-      { key: 'serology',     nameKey: 'nav.serology',    icon: '🩸', href: '/modules/serology' },
-      { key: 'molecular',    nameKey: 'nav.molecular',   icon: '🧬', href: '/modules/molecular_advanced' },
-      { key: 'anapath',      nameKey: 'nav.anapath',     icon: '🔭', href: '/modules/anapath' },
-      { key: 'toxicology',   nameKey: 'nav.toxicology',  icon: '☠️', href: '/modules/toxicology' },
-      { key: 'blood_bank',   nameKey: 'nav.blood_bank',  icon: '🩸', href: '/modules/blood_bank' },
-    ],
-  },
-  {
-    titleKey: 'dash.group.ops', accent: '#D4A017',
-    items: [
-      { key: 'quality',      nameKey: 'nav.quality',      icon: '📐', href: '/modules/quality' },
-      { key: 'surveillance', nameKey: 'nav.surveillance', icon: '🔭', href: '/modules/surveillance' },
-      { key: 'inventory',    nameKey: 'nav.inventory',    icon: '📦', href: '/modules/inventory' },
-      { key: 'billing',      nameKey: 'nav.billing',      icon: '💳', href: '/modules/billing' },
-      { key: 'staffhub',     nameKey: 'nav.staffhub',     icon: '🧑‍⚕️', href: '/modules/staffhub' },
-      { key: 'connectivity', nameKey: 'nav.connectivity', icon: '🌐', href: '/modules/connectivity' },
-    ],
-  },
-  {
-    titleKey: 'dash.group.intel', accent: '#A855F7',
-    items: [
-      { key: 'ai_nexus',      nameKey: 'nav.ai_nexus',      icon: '🤖', href: '/modules/ai_nexus' },
-      { key: 'notifications', nameKey: 'nav.notifications', icon: '🔔', href: '/modules/notifications' },
-      { key: 'audit',         nameKey: 'nav.audit',         icon: '📋', href: '/modules/audit' },
-      { key: 'admin',         nameKey: 'nav.admin',         icon: '🛡️', href: '/admin' },
-      { key: 'settings',      nameKey: 'nav.settings',      icon: '⚙️', href: '/modules/settings' },
-      { key: 'help-support',  nameKey: 'nav.help',          icon: '🎓', href: '/modules/help-support' },
-    ],
-  },
-]
+// ── Demo definitions ────────────────────────────────────────────────────────
+// Module navigation is provided by the left sidebar (role-filtered); the
+// dashboard no longer duplicates it, to keep the home screen uncluttered.
 
 const TRAINING_SCENES = [
   { id: 'iot_analyzer_intake_demo',   title: 'IoT analyzer ingestion',  tag: 'Vendor-neutral',  icon: '⚡' },
@@ -97,11 +45,6 @@ const TRAINING_SCENES = [
   { id: 'momo_billing_demo',          title: 'MoMo payment + release',  tag: 'Billing',         icon: '💳' },
 ] as const
 
-const REAL_FEATURE_LINKS = [
-  { label: 'LIS Auto-Mapping',         href: '/modules/lis_mapping',     icon: '🔎', desc: 'Scan lab form → auto-mapped LabRequest' },
-  { label: 'AI image upload',          href: '/modules/ai_nexus',        icon: '📷', desc: 'Microscopy / slide image → AI reads it' },
-  { label: 'Laboratory Registers',     href: '/modules/register',        icon: '📚', desc: '42 books · auto-archive · amendments' },
-] as const
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -146,7 +89,6 @@ export default function DashboardPage() {
 
 function DashboardInner() {
   const { user } = useAuth()
-  const router = useRouter()
   const t = useT()
 
   const [stats,           setStats]           = useState<Stats | null>(null)
@@ -274,6 +216,9 @@ function DashboardInner() {
         {/* ── AI briefing: what to do today + outbreak / critical alerts ─ */}
         <AIBriefing stats={stats} feed={feed} />
 
+        {/* ── What you recently worked on ───────────────────────────────── */}
+        <RecentActivity />
+
         {/* ── Smart sample routing ──────────────────────────────────────── */}
         <section className="rounded-xl border bg-slate-900/60 backdrop-blur p-5 shadow-sm" style={{ borderColor: `${NEXUS_BLUE}30` }}>
           <div className="flex items-center justify-between mb-3">
@@ -298,27 +243,6 @@ function DashboardInner() {
               {isScanning ? 'Routing…' : 'Scan'}
             </button>
           </form>
-        </section>
-
-        {/* ── Real-feature shortcuts ────────────────────────────────────── */}
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {REAL_FEATURE_LINKS.map(f => (
-            <Link
-              key={f.href}
-              href={f.href}
-              className="group rounded-xl bg-slate-900/60 backdrop-blur border-2 p-4 transition-all hover:bg-slate-900/80"
-              style={{ borderColor: 'rgba(56,189,248,0.30)', boxShadow: '0 0 20px rgba(56,189,248,0.08)' }}
-            >
-              <div className="flex items-start gap-3">
-                <div className="text-2xl">{f.icon}</div>
-                <div className="flex-1">
-                  <div className="font-semibold text-sm text-slate-100 group-hover:text-sky-300">{f.label}</div>
-                  <div className="text-xs text-slate-400 mt-0.5">{f.desc}</div>
-                </div>
-                <div className="text-slate-500 group-hover:text-sky-300">→</div>
-              </div>
-            </Link>
-          ))}
         </section>
 
         {/* ── Demo scene grid ───────────────────────────────────────────── */}
@@ -353,31 +277,7 @@ function DashboardInner() {
           </div>
         </section>
 
-        {/* ── All modules grouped by category ───────────────────────────── */}
-        {MODULE_GROUPS.map(group => (
-          <section key={group.titleKey}>
-            <h2 className="text-sm font-bold tracking-wide mb-3 uppercase"
-                style={{ color: group.accent, textShadow: `0 0 14px ${group.accent}55` }}>
-              {t(group.titleKey)}
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {group.items.map(m => (
-                <button
-                  key={m.key}
-                  onClick={() => router.push(m.href)}
-                  className="text-left rounded-xl bg-slate-900/60 backdrop-blur border p-3 transition-all hover:bg-slate-900/80"
-                  style={{
-                    borderColor: `${group.accent}30`,
-                    boxShadow: `0 0 14px ${group.accent}0F`,
-                  }}
-                >
-                  <div className="text-2xl mb-1">{m.icon}</div>
-                  <div className="font-semibold text-sm text-slate-100">{t(m.nameKey)}</div>
-                </button>
-              ))}
-            </div>
-          </section>
-        ))}
+        {/* Module navigation lives in the left sidebar — not duplicated here. */}
 
         {/* ── Activity feed ─────────────────────────────────────────────── */}
         {feed.length > 0 && (
@@ -549,6 +449,39 @@ function AIBriefing({
           </li>
         ))}
       </ol>
+    </section>
+  )
+}
+
+// ── Recent activity — what THIS user last worked on (shown right after login) ─
+interface ActivityItem { entity_type: string; action: string; entity_id: string | null; patient_pid: string | null; department: string | null; timestamp: string | null }
+
+function RecentActivity() {
+  const [items, setItems] = useState<ActivityItem[]>([])
+  useEffect(() => {
+    const tok = getToken()
+    fetch(`${API}/api/v1/ops/recent-activity?limit=8`, { headers: tok ? { Authorization: `Bearer ${tok}` } : {} })
+      .then(r => r.ok ? r.json() : [])
+      .then(d => setItems(Array.isArray(d) ? d : []))
+      .catch(() => setItems([]))
+  }, [])
+  if (items.length === 0) return null
+  return (
+    <section className="rounded-xl border bg-slate-900/60 backdrop-blur p-5" style={{ borderColor: 'rgba(56,189,248,0.30)' }}>
+      <h2 className="text-sm font-bold tracking-wide mb-3 text-sky-300">↩ Continue where you left off</h2>
+      <div className="space-y-1.5">
+        {items.map((a, i) => (
+          <div key={i} className="flex items-center justify-between text-sm py-1.5 border-b last:border-0 border-slate-700/40">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-[11px] uppercase tracking-wider text-sky-300/80 font-semibold w-20 shrink-0">{a.action}</span>
+              <span className="text-slate-200 truncate">{a.entity_type}{a.entity_id ? ` · ${a.entity_id}` : ''}{a.patient_pid ? ` · PID ${a.patient_pid}` : ''}</span>
+            </div>
+            <span className="text-[10px] text-slate-500 shrink-0">
+              {a.timestamp ? new Date(a.timestamp).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
+            </span>
+          </div>
+        ))}
+      </div>
     </section>
   )
 }

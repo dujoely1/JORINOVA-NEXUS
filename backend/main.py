@@ -402,6 +402,7 @@ _ROUTERS = [
     ('routers.qr_login',        'router'),   # QR / phone approval login
     ('routers.patients',        'router'),
     ('routers.laboratory',      'router'),
+    ('routers.ops_extra',       'router'),   # surveillance/RBC/interop/reflex/forecast/genomics
     ('routers.ai_nexus',        'router'),
     # Clinical departments
     ('routers.hematology',      'router'),
