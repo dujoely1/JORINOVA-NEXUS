@@ -1,6 +1,7 @@
 """Nexus ops endpoints — surveillance burden/RBC/ward, clinic-order intake,
 AI reflex tests + doctor approval + SMS, inventory forecast, genomics, and
 per-user recent activity. Mounted under /api/v1/ops."""
+import os
 from datetime import datetime, timezone, date, timedelta
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -75,10 +76,29 @@ def report_to_rbc(signal_id: int, db: Session = Depends(get_db), user: User = De
     s = db.query(SurveillanceSignal).filter(SurveillanceSignal.id == signal_id).first()
     if not s:
         raise HTTPException(404, 'Signal not found')
+    # Live RBC interoperability when RBC_API_URL is configured; otherwise the
+    # report is recorded locally (simulated) until RBC exposes an endpoint.
+    rbc_url = os.environ.get('RBC_API_URL', '').strip()
+    delivered = False
+    if rbc_url:
+        try:
+            import httpx
+            resp = httpx.post(
+                f'{rbc_url.rstrip("/")}/surveillance/report',
+                json={'signal_id': s.signal_id, 'disease': s.disease, 'district': s.district,
+                      'alert_level': s.alert_level, 'case_count_7d': s.case_count_7d},
+                headers={'Authorization': f'Bearer {os.environ.get("RBC_API_TOKEN", "")}'},
+                timeout=10,
+            )
+            delivered = resp.is_success
+        except Exception:
+            delivered = False
     _audit(db, 'surveillance', 'REPORT_RBC', user, entity_id=str(signal_id),
-           metadata={'disease': s.disease, 'district': s.district, 'level': s.alert_level})
+           metadata={'disease': s.disease, 'district': s.district, 'level': s.alert_level,
+                     'delivered': delivered})
     db.commit()
-    return {'message': f'Signal {s.signal_id} reported to RBC', 'rbc_ref': f'RBC-{s.signal_id}'}
+    return {'message': f'Signal {s.signal_id} reported to RBC', 'rbc_ref': f'RBC-{s.signal_id}',
+            'mode': 'live' if rbc_url else 'simulated', 'delivered': delivered}
 
 
 class WardWarn(BaseModel):
@@ -238,7 +258,7 @@ def suggest_reflex(body: ReflexIn, db: Session = Depends(get_db), _u: User = Dep
 
 
 @router.post('/reflex/{reflex_id}/approve')
-def approve_reflex(reflex_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+async def approve_reflex(reflex_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     """Doctor approves an AI reflex test → creates a LabRequest and generates an SMS."""
     from models.nexus_ops import ReflexSuggestion
     from models.patient import Patient
@@ -265,22 +285,21 @@ def approve_reflex(reflex_id: int, db: Session = Depends(get_db), user: User = D
     r.status = 'approved'; r.approved_by_id = user.id
     r.decided_at = datetime.now(timezone.utc)
 
-    # SMS generation: queue an outbound SMS row (the async SMS worker/service
-    # delivers it). Best-effort — never blocks the approval.
+    # SMS generation via the real SMS service — delivers through the configured
+    # provider (SMS_PROVIDER + AT_*/PINDO_* env vars) or queues to sms_queue if
+    # none is set. Never blocks the approval.
     sms_status = 'skipped'
-    try:
-        if patient and getattr(patient, 'phone', None):
-            msg = (f'Additional test ordered for you: {r.suggested_test}. '
-                   f'Please return to the laboratory.')
-            try:
-                from models.notifications import Notification
-                db.add(Notification(title='SMS — reflex test', message=f'{patient.phone}: {msg}',
-                                    level='info', category='sms'))
-            except Exception:
-                pass
-            sms_status = 'queued'
-    except Exception:
-        sms_status = 'unavailable'
+    if patient and getattr(patient, 'phone', None):
+        try:
+            from services.sms_service import send_sms
+            res = await send_sms(
+                patient.phone,
+                f'Additional test ordered for you: {r.suggested_test}. Please return to the laboratory.',
+                'reflex', patient.id, patient.pid, db,
+            )
+            sms_status = res.get('status', 'queued')
+        except Exception:
+            sms_status = 'unavailable'
 
     _audit(db, 'reflex', 'APPROVE', user, entity_id=str(reflex_id),
            patient_pid=r.pid, metadata={'test': r.suggested_test, 'lab_id': lab_id})
@@ -363,7 +382,21 @@ def near_expiry(days: int = 90, db: Session = Depends(get_db), _u: User = Depend
 @router.get('/rbc/hospitals')
 def rbc_hospitals(_u: User = Depends(get_current_user)):
     """AI read-only snapshot of other hospitals (as seen on the RBC dashboard) —
-    which facilities are short of which categories, to route near-expiry stock."""
+    which facilities are short of which categories, to route near-expiry stock.
+    Reads the live RBC API when RBC_API_URL is set; otherwise a simulated view."""
+    rbc_url = os.environ.get('RBC_API_URL', '').strip()
+    if rbc_url:
+        try:
+            import httpx
+            resp = httpx.get(
+                f'{rbc_url.rstrip("/")}/hospitals/stock-status',
+                headers={'Authorization': f'Bearer {os.environ.get("RBC_API_TOKEN", "")}'},
+                timeout=10,
+            )
+            if resp.is_success:
+                return resp.json()
+        except Exception:
+            pass
     return [
         {'hospital': 'Ruhengeri Referral Hospital', 'district': 'Musanze', 'needs': ['reagent', 'consumable'], 'status': 'low'},
         {'hospital': 'Byumba District Hospital',     'district': 'Gicumbi', 'needs': ['reagent'],             'status': 'critical'},
