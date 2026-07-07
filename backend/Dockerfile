@@ -17,13 +17,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies into a virtual environment
-COPY requirements.txt requirements-prod.txt* ./
+# Install Python dependencies into a virtual environment.
+# INSTALL_ML=1 additionally installs requirements-ml.txt (CPU torch + ultralytics)
+# so the local YOLOv8 detectors load. OFF by default — torch needs ~1 GB RAM and
+# would OOM Render's free 512 MB tier; enable only on a Standard (2 GB+) instance.
+# Render injects the INSTALL_ML service env var here because this ARG matches it.
+ARG INSTALL_ML=0
+COPY requirements.txt requirements-prod.txt* requirements-ml.txt* ./
 RUN python -m venv /opt/venv && \
     /opt/venv/bin/pip install --upgrade pip wheel && \
     /opt/venv/bin/pip install --no-cache-dir -r requirements.txt && \
     if [ -f requirements-prod.txt ]; then \
         /opt/venv/bin/pip install --no-cache-dir -r requirements-prod.txt; \
+    fi && \
+    if [ "$INSTALL_ML" = "1" ] && [ -f requirements-ml.txt ]; then \
+        /opt/venv/bin/pip install --no-cache-dir -r requirements-ml.txt; \
     fi
 
 
@@ -39,8 +47,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
     poppler-utils \
+    libgl1 \
+    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
+# libgl1 + libglib2.0-0: shared libs OpenCV imports (pulled in by ultralytics when
+# INSTALL_ML=1). Harmless/idle when the local detector is not enabled.
 
 # Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv

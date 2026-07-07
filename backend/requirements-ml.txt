@@ -1,0 +1,23 @@
+# ════════════════════════════════════════════════════════════════════════════
+# JORINOVA NEXUS ALIS-X — OPTIONAL local vision models (YOLOv8)
+# ════════════════════════════════════════════════════════════════════════════
+# Installs the local trained detectors (backend/models/<key>/<key>.pt — malaria,
+# parasitology, etc.). The vision service auto-loads them when `ultralytics` is
+# importable; otherwise it falls back to Claude vision (ANTHROPIC_API_KEY).
+#
+# HEAVY: ~1 GB installed (torch + torchvision + ultralytics) and ~1 GB RAM to run
+# an inference. It will OOM Render's FREE 512 MB instance — enable ONLY on a
+# Standard (2 GB+) instance or a self-hosted box.
+#
+# This file is installed by the Dockerfile ONLY when built with INSTALL_ML=1.
+#   • Render: set INSTALL_ML=1 in the service env AND use a >=2 GB plan.
+#   • Local:  docker build --build-arg INSTALL_ML=1 ...
+#             or plain:  pip install -r requirements-ml.txt
+#
+# The --extra-index-url points pip at PyTorch's CPU wheels. Their +cpu local
+# version sorts higher than the PyPI CUDA build, so pip selects CPU automatically
+# and the image stays ~2 GB smaller. (cp312 wheels — matches python:3.12-slim.)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch>=2.2,<2.8
+torchvision>=0.17,<0.23
+ultralytics>=8.2,<9

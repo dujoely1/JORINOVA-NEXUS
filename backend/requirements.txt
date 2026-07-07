@@ -39,10 +39,10 @@ anthropic>=0.50             # Claude API with prompt caching
 # torch>=2.0.0              # required by Whisper (CPU build)
 
 # ── AI — Image processing (Vision) ───────────────────────────────────────────
-# Install separately (large dependency):
-#   pip install pillow numpy
-# Pillow>=10.0              # uncomment for production
-# numpy>=1.26               # uncomment for production
+# Pillow + numpy (below, in the Image processing section) cover offline CV and
+# Claude vision. The LOCAL YOLOv8 detectors (torch + ultralytics) are heavy and
+# live in requirements-ml.txt — installed only when built with INSTALL_ML=1.
+# Do NOT add torch/ultralytics here; it would OOM the free 512 MB Render tier.
 
 # ── Task Queue (Background workers) ──────────────────────────────────────────
 celery[redis]>=5.3          # background task queue
