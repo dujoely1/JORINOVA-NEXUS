@@ -45,7 +45,7 @@ function Inner() {
       <section className="border-b" style={{ borderColor: 'rgba(245,158,11,0.30)', background: 'linear-gradient(180deg, rgba(2,8,23,0) 0%, rgba(245,158,11,0.08) 100%)' }}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-5">
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-wide text-amber-200" style={{ textShadow: '0 0 20px rgba(245,158,11,0.30)' }}>
-            ☠️ {t('tox.title')}
+            ⚗️ {t('tox.title')}
           </h1>
           <p className="text-sm text-slate-400 mt-1">{t('tox.sub')}</p>
           <nav className="mt-4 flex flex-wrap gap-1 border-b border-slate-700/60 -mb-px">
