@@ -3,6 +3,15 @@
 Train a malaria detector/classifier on **NIH** (public) and **Roboflow** data, then
 drop the trained weights into the app and the vision service uses them automatically.
 
+## ▶️ One-click: open the training notebook in Colab
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/dujoely1/JORINOVA-NEXUS/blob/main/ml/malaria/malaria_training_colab.ipynb)
+
+`malaria_training_colab.ipynb` runs the whole flow (GPU check → install → clone →
+Roboflow download → train → export `malaria.pt` → download). Set the runtime to a
+**T4 GPU** and run the cells top to bottom. *(The badge opens the notebook straight
+from GitHub once this is on `main`; if the repo is private, in Colab use
+**File → Open notebook → GitHub** and sign in, or just upload the `.ipynb`.)*
+
 > ⚠️ **Run training on a GPU (Colab free T4, or a GPU box).** No GPU here in the app
 > environment. Follow `../../GPU_TRAINING.md`: put **only** `ml/`, `datasets/`,
 > `notebooks/` on the training machine — never `.env`, DB creds, or patient data.
