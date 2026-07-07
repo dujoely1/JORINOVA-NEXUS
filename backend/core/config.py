@@ -72,6 +72,10 @@ class Settings(BaseSettings):
     # AI — Cloud
     anthropic_api_key: str = ''
     claude_model:      str = 'claude-haiku-4-5-20251001'
+    # Vision uses a stronger model than the text LLM — medical image reads need
+    # the accuracy. Override with VISION_MODEL (e.g. claude-sonnet-5 to cut cost,
+    # claude-haiku-4-5 for the cheapest).
+    vision_model:      str = 'claude-opus-4-8'
     cloud_ai_timeout:  int = 30
 
     # AI cache

@@ -1,0 +1,25 @@
+# Malaria microscopy — detection classes (thin/thick Giemsa blood film)
+# Bounding-box detection classes, aligned with the NIH BBBC041 malaria set and
+# common Roboflow malaria datasets so both sources map onto one label space.
+
+names:
+  0: red_blood_cell      # uninfected RBC
+  1: leukocyte           # white blood cell (context / density)
+  2: ring                # P. falciparum ring / early trophozoite
+  3: trophozoite         # mature (amoeboid) trophozoite
+  4: schizont            # segmented schizont
+  5: gametocyte          # sexual stage (banana-shaped in P. falciparum)
+  6: difficult           # ambiguous / degraded object (BBBC041 label)
+
+# ── Plasmodium species (reported separately by the interpretation layer; most
+# open datasets are P. falciparum-heavy, so species is a coarse hint, not a
+# per-box label unless your Roboflow project has species classes) ────────────
+species:
+  - Plasmodium falciparum   # rings + banana gametocytes; high parasitaemia
+  - Plasmodium vivax        # amoeboid trophozoites, Schüffner's dots, enlarged RBC
+  - Plasmodium ovale        # oval RBC, fimbriated edges, Schüffner's dots
+  - Plasmodium malariae     # band-form trophozoites, rosette schizonts
+  # - Plasmodium knowlesi   # add if your dataset covers it (band forms; PCR-confirm)
+
+# Asexual life-cycle forms captured by the stage classes above:
+#   ring -> trophozoite -> schizont ; plus the sexual gametocyte.

@@ -151,51 +151,83 @@ async def _cloud_vision_analysis(
                       '.png': 'image/png', '.webp': 'image/webp'}
         media_type = suffix_map.get(path.suffix.lower(), 'image/jpeg')
 
+        # Shared JSON tail — every prompt carries a calibrated confidence + a
+        # suggested follow-up test (which the reflex-test workflow can pick up).
+        _tail = (
+            '\nAlso include: "confidence" (0.0-1.0, calibrated certainty), '
+            '"suggested_followup" (single next test/action a clinician should consider, or ""), '
+            '"critical" (true if urgent notification is warranted), '
+            '"requires_human_review" (always true). '
+            'Return ONLY the JSON object — no prose, no markdown fences.'
+        )
         prompts = {
             'blood_smear': (
-                'This is a Giemsa-stained peripheral blood smear from a hospital laboratory.\n'
-                'Describe what you observe:\n'
-                '1. Overall RBC morphology (size, shape, colour, inclusions)\n'
-                '2. WBC types visible and any abnormalities\n'
-                '3. Platelet distribution\n'
-                '4. Any parasites or inclusions (malaria, trypanosoma, etc.)\n'
-                '5. Overall impression\n\n'
-                'Respond in JSON: {"rbc_morphology":"...","wbc_observations":"...",'
-                '"parasites_seen":true|false,"parasite_description":"...",'
-                '"platelet_comment":"...","overall_impression":"...",'
-                '"requires_urgent_review":true|false,"caveats":["..."]}'
+                'This is a Giemsa-stained peripheral blood smear. Report RBC morphology '
+                '(size/shape/colour/inclusions), WBC types and abnormalities, platelet estimate, '
+                'and any parasites (malaria species + stage, trypanosomes, microfilariae).\n'
+                'JSON keys: "rbc_morphology","wbc_observations","parasites_seen"(bool),'
+                '"parasite_description","platelet_comment","overall_impression".' + _tail
+            ),
+            'parasitology': (
+                'This is a stained stool/blood parasitology preparation. Identify ova, cysts, '
+                'larvae, trophozoites, or blood parasites; name the organism and stage if visible.\n'
+                'JSON keys: "organisms_seen"(list),"positivity"(bool),"stage","impression".' + _tail
+            ),
+            'gram_stain': (
+                'This is a Gram-stained microbiology smear. Report Gram reaction, morphology '
+                '(cocci/bacilli, arrangement), yeast, pus cells, and quantity.\n'
+                'JSON keys: "gram_reaction","morphology","yeast_seen"(bool),"pus_cells","quantity","impression".' + _tail
+            ),
+            'afb': (
+                'This is a Ziehl-Neelsen (AFB) smear screening for M. tuberculosis. Report acid-fast '
+                'bacilli presence and semi-quantitative grade (Neg, Scanty, 1+, 2+, 3+).\n'
+                'JSON keys: "afb_seen"(bool),"grade","impression".' + _tail
+            ),
+            'koh': (
+                'This is a KOH wet mount for fungal elements (hyphae, pseudohyphae, budding yeast, spores).\n'
+                'JSON keys: "fungal_elements_seen"(bool),"description","impression".' + _tail
+            ),
+            'urine_microscopy': (
+                'This is a urine sediment microscopy field. Report RBCs, WBCs/pus cells, epithelial '
+                'cells, casts, crystals, bacteria, and yeast per HPF.\n'
+                'JSON keys: "rbc","wbc","casts"(list),"crystals"(list),"bacteria","impression".' + _tail
             ),
             'slide': (
-                'This is a histology/cytology slide from a hospital pathology department.\n'
+                'This is a histology/cytology slide from anatomic pathology.\n'
                 f'Context: {context or "no additional context"}\n'
-                'Describe the cellular pattern, staining characteristics, and any notable findings.\n'
-                'Respond in JSON: {"pattern":"...","cellularity":"...","notable_findings":["..."],'
-                '"impression":"...","requires_pathologist_review":true}'
+                'Describe cellular pattern, architecture, staining, and features suggesting malignancy.\n'
+                'JSON keys: "pattern","cellularity","notable_findings"(list),"malignancy_flag"(bool),"impression".' + _tail
             ),
             'xray_cxr': (
-                'This is a chest X-ray (CXR) from a hospital TB screening program.\n'
-                'Screen for: cavitation, consolidation, infiltrates, pleural effusion, '
-                'lymphadenopathy, miliary pattern.\n'
-                'Respond in JSON: {"findings":["..."],"tb_features_present":true|false,'
-                '"tb_likelihood":"low|medium|high","other_findings":["..."],'
-                '"recommendation":"...","requires_radiologist_review":true}'
+                'This is a chest X-ray from a TB screening program. Screen for cavitation, '
+                'consolidation, infiltrates, effusion, lymphadenopathy, miliary pattern.\n'
+                'JSON keys: "findings"(list),"tb_features_present"(bool),"tb_likelihood"'
+                '("low|medium|high"),"other_findings"(list),"recommendation".' + _tail
             ),
             'microscopy': (
-                f'This is a laboratory microscopy image.\n'
+                'This is a laboratory microscopy image.\n'
                 f'Image context: {context or image_type}\n'
                 'Describe observable features relevant to laboratory diagnosis.\n'
-                'Respond in JSON: {"observations":["..."],"key_findings":["..."],'
-                '"quality_assessment":"adequate|inadequate|poor","recommendation":"..."}'
+                'JSON keys: "observations"(list),"key_findings"(list),'
+                '"quality_assessment"("adequate|inadequate|poor"),"impression".' + _tail
             ),
         }
 
         prompt_text = prompts.get(image_type, prompts['microscopy'])
+        system_prompt = (
+            'You are a laboratory image-interpretation assistant for a hospital lab in Rwanda. '
+            'You provide DECISION SUPPORT ONLY — never an autonomous diagnosis; a qualified '
+            'scientist or pathologist always validates. Report only what is visible, state '
+            'uncertainty honestly, flag anything critical, and if image quality is inadequate to '
+            'interpret, say so rather than guessing.'
+        )
 
         client = anthropic.AsyncAnthropic(api_key=s.anthropic_api_key)
         t0 = time.time()
         msg = await client.messages.create(
-            model=s.claude_model,
-            max_tokens=800,
+            model=getattr(s, 'vision_model', None) or s.claude_model,
+            max_tokens=1024,
+            system=system_prompt,
             messages=[{
                 'role': 'user',
                 'content': [
@@ -205,6 +237,12 @@ async def _cloud_vision_analysis(
             }],
         )
         raw = msg.content[0].text.strip() if msg.content else ''
+        # Strip markdown code fences if the model wrapped the JSON.
+        if raw.startswith('```'):
+            raw = raw.split('```', 2)[1] if raw.count('```') >= 2 else raw
+            if raw.lstrip().lower().startswith('json'):
+                raw = raw.lstrip()[4:]
+            raw = raw.strip('`').strip()
         import json
         try:
             result = json.loads(raw)
@@ -218,6 +256,67 @@ async def _cloud_vision_analysis(
     except Exception as e:
         logger.error('Cloud vision error: %s', e)
         return {'error': str(e), 'layer': 'cloud_vision_failed'}
+
+
+# ── Local trained malaria detector (YOLOv8) ───────────────────────────────────
+# Loaded from backend/models/malaria/malaria.pt if the trained weights are
+# present AND ultralytics is installed. Otherwise returns None → Claude vision.
+# See ml/malaria/ for the training pipeline.
+
+_MALARIA_MODEL = None
+_MALARIA_LOADED = False
+_STAGE_CLASSES = ('ring', 'trophozoite', 'schizont', 'gametocyte')
+
+
+def _malaria_model_path():
+    p = Path(__file__).resolve().parents[1] / 'models' / 'malaria' / 'malaria.pt'
+    return p if p.exists() else None
+
+
+def _local_malaria_infer(file_path: str) -> Optional[dict]:
+    """Run the locally-trained malaria detector. None if weights/ultralytics absent."""
+    global _MALARIA_MODEL, _MALARIA_LOADED
+    mp = _malaria_model_path()
+    if not mp:
+        return None
+    try:
+        if not _MALARIA_LOADED:
+            from ultralytics import YOLO
+            _MALARIA_MODEL = YOLO(str(mp))
+            _MALARIA_LOADED = True
+        if _MALARIA_MODEL is None:
+            return None
+        res = _MALARIA_MODEL.predict(file_path, verbose=False, conf=0.25)[0]
+        names = res.names
+        counts, boxes = {}, []
+        for b in res.boxes:
+            cls = names.get(int(b.cls), str(int(b.cls)))
+            counts[cls] = counts.get(cls, 0) + 1
+            boxes.append({'class': cls, 'confidence': round(float(b.conf), 3),
+                          'xyxy': [round(float(v), 1) for v in b.xyxy[0].tolist()]})
+        stages = {k: counts[k] for k in _STAGE_CLASSES if k in counts}
+        rbc = counts.get('red_blood_cell', 0)
+        parasites = sum(stages.values())
+        parasitaemia = round(parasites / rbc * 100, 2) if rbc else None
+        positive = parasites > 0
+        findings = []
+        if positive:
+            findings.append('Malaria parasites detected: '
+                            + ', '.join(f'{v} {k}' for k, v in stages.items()))
+            if parasitaemia is not None:
+                findings.append(f'Estimated parasitaemia ~{parasitaemia}% ({parasites}/{rbc} RBC)')
+        else:
+            findings.append('No malaria parasites detected by the local detector — confirm on manual reading')
+        return {
+            'layer': 'local_malaria', 'model': mp.name, 'positive': positive,
+            'stage_counts': stages, 'rbc_count': rbc, 'parasite_count': parasites,
+            'parasitaemia_pct': parasitaemia, 'detections': boxes[:200],
+            'findings': findings, 'confidence': 0.8 if positive else 0.6,
+            'requires_human_review': True,
+        }
+    except Exception as e:
+        logger.debug('Local malaria infer skipped: %s', e)
+        return None
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
@@ -273,17 +372,28 @@ async def _process_image_task(task_id: str, task: VisionTask) -> None:
         confidence = offline_result.get('confidence', 0.1)
         layer      = 'offline'
 
-        # Step 2: cloud vision (if online and not stat-priority waiting)
+        # Step 1b: locally-trained malaria detector (purpose-built; runs on
+        # blood-smear / parasitology images and takes priority when present).
+        malaria_result = {}
+        if task.image_type in ('blood_smear', 'smear', 'parasitology', 'malaria'):
+            malaria_result = _local_malaria_infer(task.file_path) or {}
+            if malaria_result.get('findings'):
+                findings   = malaria_result['findings']
+                confidence = malaria_result.get('confidence', 0.75)
+                layer      = 'local_malaria'
+
+        # Step 2: cloud vision (narrative interpretation; also the fallback when
+        # no local model is present).
         cloud_result = {}
         from ai_services.cloud_llm import is_available
         if await is_available():
             cloud_result = await _cloud_vision_analysis(task.image_type, task.file_path)
             if not cloud_result.get('error'):
                 cloud_findings = cloud_result.get('findings', []) or cloud_result.get('observations', [])
-                if cloud_findings:
-                    findings = cloud_findings
-                confidence = 0.65
-                layer      = 'cloud_vision'
+                if cloud_findings and layer != 'local_malaria':
+                    findings   = cloud_findings
+                    confidence = 0.65
+                    layer      = 'cloud_vision'
 
         _task_store[task_id] = VisionResult(
             task_id=task_id,
@@ -291,7 +401,7 @@ async def _process_image_task(task_id: str, task: VisionTask) -> None:
             confidence=confidence,
             layer_used=layer,
             requires_review=True,   # always — AI is decision support
-            raw_output={**offline_result, **cloud_result},
+            raw_output={**offline_result, **malaria_result, **cloud_result},
         )
         logger.info('Vision task %s complete (layer=%s)', task_id, layer)
 
