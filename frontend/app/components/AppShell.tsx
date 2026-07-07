@@ -36,7 +36,7 @@ const NEO_BOTTOM    = '#000814'
 // the operator is never bumped back to the login screen mid-demo. Set
 // NEXT_PUBLIC_IDLE_MINUTES to a small number to re-enable a short timeout, or
 // 0 to disable idle logout entirely.
-const _IDLE_MIN = Number(process.env.NEXT_PUBLIC_IDLE_MINUTES ?? '720')   // default 12 h
+const _IDLE_MIN = Number(process.env.NEXT_PUBLIC_IDLE_MINUTES ?? '30')   // auto-logout after 30 min idle
 const IDLE_MS = _IDLE_MIN > 0 ? _IDLE_MIN * 60 * 1000 : 0
 
 export default function AppShell({
