@@ -103,6 +103,27 @@ services:
         value: "dujoely1@gmail.com"
       - key: EMAIL_HOST_PASSWORD
         sync: false
+      # ── Cloud AI: Claude vision + LLM enrichment (optional) ──────────────────
+      # Powers image analysis (blood smears, X-ray, histology) and result
+      # interpretation via Claude. This is what runs on the FREE tier — no torch,
+      # no GPU. Leave unset to stay fully offline. sync:false = you paste the key
+      # at Sync; it is NOT stored in the repo.
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      # Text LLM model (cheap). Vision uses VISION_MODEL below.
+      - key: CLAUDE_MODEL
+        value: "claude-haiku-4-5-20251001"
+      # Vision model — stronger, medical image reads need it. Lower to
+      # claude-haiku-4-5-20251001 to cut cost.
+      - key: VISION_MODEL
+        value: "claude-opus-4-8"
+      # ── Local trained detector (YOLOv8 malaria/parasitology .pt) ─────────────
+      # OFF by default: torch needs ~1 GB RAM and OOM-kills the free 512 MB
+      # instance. To enable, upgrade this service to Standard (>=2 GB) AND set
+      # INSTALL_ML=1 (the Dockerfile then installs requirements-ml.txt). With it
+      # off, image analysis still works via Claude vision above.
+      - key: INSTALL_ML
+        value: "0"
 
   # ── Frontend (native Node so build-time env bakes the rewrite target) ──────
   - type: web
