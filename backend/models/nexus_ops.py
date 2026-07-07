@@ -46,6 +46,19 @@ class ReflexSuggestion(Base):
     created_at     = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+class QrSession(Base):
+    """Desktop QR sign-in session — persisted so it survives worker restarts /
+    free-tier cold starts (was in-memory, which lost sessions → 'code expired')."""
+    __tablename__ = 'qr_sessions'
+    id:         Mapped[int]           = mapped_column(Integer, primary_key=True)
+    sid:        Mapped[str]           = mapped_column(String(64), unique=True, index=True)
+    approved:   Mapped[bool]          = mapped_column(Boolean, default=False)
+    token:      Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    username:   Mapped[Optional[str]] = mapped_column(String(60), nullable=True)
+    expires_at: Mapped[datetime]      = mapped_column(DateTime(timezone=True), index=True)
+    created_at  = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 class ExchangeOffer(Base):
     """A near-expiry stock item offered to another hospital (inter-facility exchange)."""
     __tablename__ = 'exchange_offers'

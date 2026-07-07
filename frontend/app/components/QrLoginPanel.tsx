@@ -31,15 +31,23 @@ export default function QrLoginPanel({ onCancel }: { onCancel: () => void }) {
 
   const start = useCallback(async () => {
     setErr(''); setStatus('loading'); setQr(null)
-    try {
-      const r = await fetch(`${API}/api/v1/auth/qr/start`, { method: 'POST' })
-      if (!r.ok) throw new Error(`HTTP ${r.status}`)
-      const d = await r.json()
-      sidRef.current = d.sid
-      setQr(d.qr); setApproveUrl(d.approve_url || ''); setStatus('pending')
-    } catch (e: any) {
-      setErr('Could not start QR sign-in'); setStatus('expired')
+    const appUrl = typeof window !== 'undefined' ? window.location.origin : ''
+    const url = `${API}/api/v1/auth/qr/start?app_url=${encodeURIComponent(appUrl)}`
+    // Retry so a free-tier cold start (~50s wake) doesn't fail the very first call.
+    for (let attempt = 0; attempt < 6; attempt++) {
+      try {
+        const r = await fetch(url, { method: 'POST' })
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        const d = await r.json()
+        sidRef.current = d.sid
+        setQr(d.qr); setApproveUrl(d.approve_url || ''); setStatus('pending')
+        return
+      } catch {
+        await new Promise(res => setTimeout(res, 4000))
+      }
     }
+    setErr('Could not start QR sign-in — the server may be waking up. Tap “New code”.')
+    setStatus('expired')
   }, [])
 
   useEffect(() => { void start() }, [start])

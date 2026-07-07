@@ -46,7 +46,7 @@ const NAV: readonly NavItem[] = [
   { href: '/modules/serology',      icon: '🩸', labelKey: 'nav.serology',   roles: ['lab_manager', 'scientist', 'super_admin'], groupKey: 'nav.group.clinical' },
   { href: '/modules/blood_bank',    icon: '🩸', labelKey: 'nav.blood_bank', roles: ['lab_manager', 'scientist', 'super_admin'], groupKey: 'nav.group.clinical' },
   { href: '/modules/anapath',       icon: '🔭', labelKey: 'nav.anapath',    roles: ['pathologist', 'lab_manager', 'super_admin'], groupKey: 'nav.group.clinical' },
-  { href: '/modules/toxicology',    icon: '☠️', labelKey: 'nav.toxicology', roles: ['lab_manager', 'scientist', 'pathologist', 'super_admin'], groupKey: 'nav.group.clinical' },
+  { href: '/modules/toxicology',    icon: '⚗️', labelKey: 'nav.toxicology', roles: ['lab_manager', 'scientist', 'pathologist', 'super_admin'], groupKey: 'nav.group.clinical' },
   { href: '/modules/molecular_advanced', icon: '🧬', labelKey: 'nav.molecular', roles: ['lab_manager', 'scientist', 'pathologist', 'super_admin'], groupKey: 'nav.group.clinical' },
   { href: '/modules/medgenome',     icon: '🧬', labelKey: 'nav.medgenome',   roles: ['pathologist', 'scientist', 'lab_manager', 'super_admin'], groupKey: 'nav.group.clinical' },
   { href: '/modules/reflex',        icon: '🤖', labelKey: 'nav.reflex',      roles: ['doctor', 'scientist', 'lab_manager', 'super_admin'], groupKey: 'nav.group.clinical' },
