@@ -7,8 +7,12 @@ drop the trained weights into the app and the vision service uses them automatic
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/dujoely1/JORINOVA-NEXUS/blob/main/ml/malaria/malaria_training_colab.ipynb)
 
 `malaria_training_colab.ipynb` runs the whole flow (GPU check → install → clone →
-Roboflow download → train → export `malaria.pt` → download). Set the runtime to a
-**T4 GPU** and run the cells top to bottom. *(The badge opens the notebook straight
+data → train → export `malaria.pt` → download). Set the runtime to a **T4 GPU** and
+run the cells top to bottom.
+
+**No Roboflow key required:** step 4 **Option A** downloads the public **NIH BBBC041**
+malaria set (bounding boxes) and `prepare_bbbc041.py` converts it to YOLO. Roboflow is
+an optional alternative if you want a different/larger dataset. *(The badge opens the notebook straight
 from GitHub once this is on `main`; if the repo is private, in Colab use
 **File → Open notebook → GitHub** and sign in, or just upload the `.ipynb`.)*
 
