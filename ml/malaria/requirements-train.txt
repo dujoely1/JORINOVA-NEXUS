@@ -1,0 +1,6 @@
+# Malaria training deps — install on the GPU / Colab machine only.
+ultralytics>=8.3        # YOLOv8 detector (train_detect.py)
+roboflow>=1.1           # dataset download (download_data.py --roboflow)
+torch>=2.2              # classifier (train_classify.py)
+torchvision>=0.17
+onnx>=1.16              # portable export
