@@ -505,3 +505,26 @@ def recent_activity(limit: int = 12, db: Session = Depends(get_db), user: User =
         } for a in rows]
     except Exception:
         return []
+
+
+# ─────────────── RESULT INTERPRETATION (reference ranges + rules) ─────────────
+
+class InterpretIn(BaseModel):
+    results: list           # [{'test': 'hb', 'value': 8.1}, ...]
+    sex: Optional[str] = None
+    age: Optional[int] = None
+
+
+@router.post('/interpret')
+def interpret_results(body: InterpretIn, _u: User = Depends(get_current_user)):
+    """Flag lab values against reference ranges and derive clinical patterns
+    (anaemia type, coagulation pathway, renal, thyroid, diabetes, critical values)."""
+    from ai_services.reference_ranges import interpret
+    return interpret(body.results, body.sex, body.age)
+
+
+@router.get('/glossary')
+def glossary(q: str, _u: User = Depends(get_current_user)):
+    """Look up a medical term / abbreviation / acronym (English + French)."""
+    from ai_services.glossary import lookup
+    return lookup(q)
