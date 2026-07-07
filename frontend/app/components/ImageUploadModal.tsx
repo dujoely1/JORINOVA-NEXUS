@@ -91,7 +91,10 @@ export default function ImageUploadModal({ onClose }: { onClose: () => void }) {
           const r = await fetch(`${API}/api/v1/ai/vision/${taskId}`, { headers: authHeaders() })
           if (r.ok) {
             const j = await r.json()
-            if (j && j.status !== 'pending' && j.status !== 'queued') {
+            // VisionResult has no `status` field; it lands with layer_used='pending'
+            // and is replaced by the real layer (offline / cloud_vision / local_*)
+            // once background analysis finishes. Keep polling until then.
+            if (j && j.layer_used && j.layer_used !== 'pending') {
               if (!stop) setResult(j)
               return
             }
