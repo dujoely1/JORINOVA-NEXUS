@@ -130,9 +130,13 @@ async def _cloud_vision_analysis(
     Send image to Claude vision API for advanced analysis.
     Returns empty if cloud unavailable — never raises.
     """
-    from ai_services.cloud_llm import is_available
-    if not await is_available():
-        return {'error': 'Cloud vision unavailable', 'layer': 'cloud_skipped'}
+    # Gate on the key being present — NOT on cloud_llm.is_available(), whose 3s
+    # network probe caches a transient failure for 60s and would wrongly skip
+    # Claude on a cold instance. The Claude call below fails gracefully (returns
+    # an 'error' dict) if the network is genuinely down, so trying is safe.
+    from ai_services.cloud_llm import is_configured
+    if not is_configured():
+        return {'error': 'Cloud vision unavailable — ANTHROPIC_API_KEY not set', 'layer': 'cloud_skipped'}
 
     path = Path(file_path)
     if not path.exists():
@@ -421,8 +425,8 @@ async def _process_image_task(task_id: str, task: VisionTask) -> None:
         # Step 2: cloud vision (narrative interpretation; also the fallback when
         # no local model is present).
         cloud_result = {}
-        from ai_services.cloud_llm import is_available
-        if await is_available():
+        from ai_services.cloud_llm import is_configured
+        if is_configured():
             cloud_result = await _cloud_vision_analysis(task.image_type, task.file_path)
             if not cloud_result.get('error'):
                 cloud_findings = cloud_result.get('findings', []) or cloud_result.get('observations', [])

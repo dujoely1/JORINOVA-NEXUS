@@ -337,7 +337,9 @@ async def _dispatch_vision(task: TaskType, payload: dict, patient_id, lab_req_id
     }
     vtask = VisionTask(
         task_id    = payload.get('task_id', ''),
-        image_type = image_map.get(task, payload.get('image_type', 'microscopy')),
+        # Honour the caller's explicit image_type (from the upload UI) so the
+        # right Claude prompt/local model is used; fall back to the task default.
+        image_type = payload.get('image_type') or image_map.get(task, 'microscopy'),
         file_path  = payload.get('file_path', ''),
         patient_id = patient_id,
         lab_req_id = lab_req_id,

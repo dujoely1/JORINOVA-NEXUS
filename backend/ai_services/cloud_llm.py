@@ -110,11 +110,15 @@ async def is_available() -> bool:
     if not is_configured():
         return False
     now = time.time()
-    if now - _net_last_probe < _NET_PROBE_TTL:
+    # Cache a SUCCESS for the full TTL; after a failure re-probe much sooner, so a
+    # single slow/timed-out probe on a cold instance does not wedge cloud off for
+    # a whole minute. Timeout is generous for cold-start latency.
+    ttl = _NET_PROBE_TTL if _net_last_status else 10.0
+    if now - _net_last_probe < ttl:
         return _net_last_status
     try:
         import httpx
-        async with httpx.AsyncClient(timeout=3.0) as c:
+        async with httpx.AsyncClient(timeout=8.0) as c:
             r = await c.get('https://api.anthropic.com')
             _net_last_status = r.status_code < 500
     except Exception:
