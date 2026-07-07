@@ -258,35 +258,62 @@ async def _cloud_vision_analysis(
         return {'error': str(e), 'layer': 'cloud_vision_failed'}
 
 
-# ── Local trained malaria detector (YOLOv8) ───────────────────────────────────
-# Loaded from backend/models/malaria/malaria.pt if the trained weights are
-# present AND ultralytics is installed. Otherwise returns None → Claude vision.
-# See ml/malaria/ for the training pipeline.
+# ── Local trained vision models (YOLOv8) — generic registry ───────────────────
+# Any weights at backend/models/<key>/<key>.pt auto-load by the image_type below.
+# Train a new one with ml/ (see ml/TRAINING_ROADMAP.md), drop the .pt in, done —
+# no code change. Falls back to Claude vision when weights/ultralytics absent.
 
-_MALARIA_MODEL = None
-_MALARIA_LOADED = False
-_STAGE_CLASSES = ('ring', 'trophozoite', 'schizont', 'gametocyte')
+# image_type (from the frontend) -> model key (folder + <key>.pt filename)
+_MODEL_REGISTRY = {
+    'blood_smear': 'malaria', 'smear': 'malaria', 'malaria': 'malaria',
+    'parasitology': 'parasitology', 'stool': 'parasitology', 'ova': 'parasitology',
+    'urine_parasite': 'parasitology',
+    'pbs': 'pbs', 'peripheral_blood_smear': 'pbs',
+    'leukemia': 'leukemia', 'blast': 'leukemia',
+    'anemia': 'anemia', 'rbc_morphology': 'anemia',
+    'trypanosoma': 'trypanosoma', 'leishmania': 'leishmania', 'microfilaria': 'microfilaria',
+    'gram_stain': 'gram', 'afb': 'tb_afb', 'tb_smear': 'tb_afb',
+    'fungi': 'fungi', 'koh': 'fungi',
+    'cytology': 'cytology', 'histology': 'histology', 'cancer': 'cancer',
+    'urine_microscopy': 'urine',
+}
+_MALARIA_STAGES = ('ring', 'trophozoite', 'schizont', 'gametocyte')
+_MODEL_CACHE: dict = {}   # model_key -> loaded YOLO | None
 
 
-def _malaria_model_path():
-    p = Path(__file__).resolve().parents[1] / 'models' / 'malaria' / 'malaria.pt'
+def _model_key(image_type: str) -> str:
+    return _MODEL_REGISTRY.get(image_type, image_type)
+
+
+def _model_path(key: str):
+    p = Path(__file__).resolve().parents[1] / 'models' / key / f'{key}.pt'
     return p if p.exists() else None
 
 
-def _local_malaria_infer(file_path: str) -> Optional[dict]:
-    """Run the locally-trained malaria detector. None if weights/ultralytics absent."""
-    global _MALARIA_MODEL, _MALARIA_LOADED
-    mp = _malaria_model_path()
+def _load_model(key: str):
+    if key in _MODEL_CACHE:
+        return _MODEL_CACHE[key]
+    mp = _model_path(key)
     if not mp:
+        _MODEL_CACHE[key] = None
         return None
     try:
-        if not _MALARIA_LOADED:
-            from ultralytics import YOLO
-            _MALARIA_MODEL = YOLO(str(mp))
-            _MALARIA_LOADED = True
-        if _MALARIA_MODEL is None:
-            return None
-        res = _MALARIA_MODEL.predict(file_path, verbose=False, conf=0.25)[0]
+        from ultralytics import YOLO
+        _MODEL_CACHE[key] = YOLO(str(mp))
+    except Exception as e:
+        logger.debug('load model %s skipped: %s', key, e)
+        _MODEL_CACHE[key] = None
+    return _MODEL_CACHE[key]
+
+
+def _local_detect(image_type: str, file_path: str) -> Optional[dict]:
+    """Run the trained detector for this image_type. None if no weights/ultralytics."""
+    key = _model_key(image_type)
+    model = _load_model(key)
+    if model is None:
+        return None
+    try:
+        res = model.predict(file_path, verbose=False, conf=0.25)[0]
         names = res.names
         counts, boxes = {}, []
         for b in res.boxes:
@@ -294,29 +321,40 @@ def _local_malaria_infer(file_path: str) -> Optional[dict]:
             counts[cls] = counts.get(cls, 0) + 1
             boxes.append({'class': cls, 'confidence': round(float(b.conf), 3),
                           'xyxy': [round(float(v), 1) for v in b.xyxy[0].tolist()]})
-        stages = {k: counts[k] for k in _STAGE_CLASSES if k in counts}
-        rbc = counts.get('red_blood_cell', 0)
-        parasites = sum(stages.values())
-        parasitaemia = round(parasites / rbc * 100, 2) if rbc else None
-        positive = parasites > 0
-        findings = []
-        if positive:
-            findings.append('Malaria parasites detected: '
-                            + ', '.join(f'{v} {k}' for k, v in stages.items()))
-            if parasitaemia is not None:
-                findings.append(f'Estimated parasitaemia ~{parasitaemia}% ({parasites}/{rbc} RBC)')
-        else:
-            findings.append('No malaria parasites detected by the local detector — confirm on manual reading')
-        return {
-            'layer': 'local_malaria', 'model': mp.name, 'positive': positive,
-            'stage_counts': stages, 'rbc_count': rbc, 'parasite_count': parasites,
-            'parasitaemia_pct': parasitaemia, 'detections': boxes[:200],
-            'findings': findings, 'confidence': 0.8 if positive else 0.6,
-            'requires_human_review': True,
+        total = sum(counts.values())
+        summary = ', '.join(f'{v} {k}' for k, v in sorted(counts.items(), key=lambda x: -x[1]))
+        findings = [f'{key} detector: {summary}'] if total else \
+                   [f'{key} detector: nothing detected — confirm on manual reading']
+        result = {
+            'layer': f'local_{key}', 'model': f'{key}.pt', 'class_counts': counts,
+            'detections': boxes[:200], 'findings': findings,
+            'confidence': 0.8 if total else 0.55, 'requires_human_review': True,
         }
+        # malaria-specific enrichment: stage counts + parasitaemia estimate
+        if key == 'malaria':
+            stages = {k: counts[k] for k in _MALARIA_STAGES if k in counts}
+            rbc = counts.get('red_blood_cell', 0)
+            parasites = sum(stages.values())
+            result.update({'stage_counts': stages, 'parasite_count': parasites,
+                           'rbc_count': rbc, 'positive': parasites > 0})
+            if rbc:
+                result['parasitaemia_pct'] = round(parasites / rbc * 100, 2)
+            if parasites:
+                f = 'Malaria parasites: ' + ', '.join(f'{v} {k}' for k, v in stages.items())
+                if 'parasitaemia_pct' in result:
+                    f += f' (~{result["parasitaemia_pct"]}% parasitaemia)'
+                result['findings'] = [f]
+        return result
     except Exception as e:
-        logger.debug('Local malaria infer skipped: %s', e)
+        logger.debug('local detect (%s) skipped: %s', key, e)
         return None
+
+
+def available_local_models() -> list:
+    """Which trained model keys are present on disk (for /health and diagnostics)."""
+    root = Path(__file__).resolve().parents[1] / 'models'
+    keys = sorted(set(_MODEL_REGISTRY.values()))
+    return [k for k in keys if (root / k / f'{k}.pt').exists()]
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
@@ -372,15 +410,13 @@ async def _process_image_task(task_id: str, task: VisionTask) -> None:
         confidence = offline_result.get('confidence', 0.1)
         layer      = 'offline'
 
-        # Step 1b: locally-trained malaria detector (purpose-built; runs on
-        # blood-smear / parasitology images and takes priority when present).
-        malaria_result = {}
-        if task.image_type in ('blood_smear', 'smear', 'parasitology', 'malaria'):
-            malaria_result = _local_malaria_infer(task.file_path) or {}
-            if malaria_result.get('findings'):
-                findings   = malaria_result['findings']
-                confidence = malaria_result.get('confidence', 0.75)
-                layer      = 'local_malaria'
+        # Step 1b: any locally-trained detector for this image_type. Auto-loads
+        # backend/models/<key>/<key>.pt via _MODEL_REGISTRY and takes priority.
+        local_result = _local_detect(task.image_type, task.file_path) or {}
+        if local_result.get('findings'):
+            findings   = local_result['findings']
+            confidence = local_result.get('confidence', 0.75)
+            layer      = local_result.get('layer', 'local_model')
 
         # Step 2: cloud vision (narrative interpretation; also the fallback when
         # no local model is present).
@@ -390,7 +426,7 @@ async def _process_image_task(task_id: str, task: VisionTask) -> None:
             cloud_result = await _cloud_vision_analysis(task.image_type, task.file_path)
             if not cloud_result.get('error'):
                 cloud_findings = cloud_result.get('findings', []) or cloud_result.get('observations', [])
-                if cloud_findings and layer != 'local_malaria':
+                if cloud_findings and not layer.startswith('local_'):
                     findings   = cloud_findings
                     confidence = 0.65
                     layer      = 'cloud_vision'
@@ -401,7 +437,7 @@ async def _process_image_task(task_id: str, task: VisionTask) -> None:
             confidence=confidence,
             layer_used=layer,
             requires_review=True,   # always — AI is decision support
-            raw_output={**offline_result, **malaria_result, **cloud_result},
+            raw_output={**offline_result, **local_result, **cloud_result},
         )
         logger.info('Vision task %s complete (layer=%s)', task_id, layer)
 
@@ -440,6 +476,7 @@ def health_status() -> dict:
     return {
         'pillow_installed': pillow_ok,
         'queued_tasks':     len(_task_store),
+        'local_models':     available_local_models(),
         'cloud_vision':     'available when cloud LLM is connected',
         'offline_capable':  True,
     }
