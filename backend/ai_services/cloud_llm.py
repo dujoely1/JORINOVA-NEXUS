@@ -239,6 +239,43 @@ async def advanced_interpretation(
     return _parse_json(resp, {'clinical_narrative': resp.content or 'Cloud analysis failed.'})
 
 
+async def interpret_single_result(
+    test_name:   str,
+    value:       str,
+    unit:        str  = '',
+    flag:        str  = '',
+    ref_range:   str  = '',
+    patient_age: int  = 0,
+    patient_sex: str  = '',
+) -> dict[str, Any]:
+    """
+    Single lab-result interpretation via Claude. Gates on the KEY being present
+    (not the network probe); generate() fails gracefully, so this works on Render
+    (which has no Ollama) whenever ANTHROPIC_API_KEY is set. Returns {'error':...}
+    on failure so callers can fall back to rules-only.
+    """
+    if not is_configured():
+        return {'error': 'Cloud not configured', 'layer': 'cloud'}
+    prompt = (
+        f'Interpret this single laboratory result for a clinician in a Rwandan hospital lab.\n'
+        f'Patient: {patient_sex or "unknown sex"}, '
+        f'{("age " + str(patient_age)) if patient_age else "age unknown"}\n'
+        f'Result: {test_name}: {value} {unit} [{flag or "N"}] ref:{ref_range or "—"}\n\n'
+        f'Respond ONLY in JSON (no markdown fences):\n'
+        f'{{"interpretation":"1-2 sentence clinical meaning",'
+        f'"significance":"normal|significant|critical",'
+        f'"possible_causes":["...","..."],'
+        f'"suggested_followup":"single next test/action, or \'\'",'
+        f'"confidence":"low|medium|high"}}'
+    )
+    resp = await generate(prompt, max_tokens=500)
+    if resp.error or not resp.content:
+        return {'error': resp.error or 'empty cloud response', 'layer': 'cloud'}
+    result = _parse_json(resp, {'interpretation': resp.content[:500]})
+    result['layer'] = 'cloud'
+    return result
+
+
 async def epidemic_intelligence(
     department: str,
     test_code:  str,
