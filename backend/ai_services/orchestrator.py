@@ -371,6 +371,7 @@ async def _dispatch_local_preferred(task: TaskType, payload: dict, db) -> dict:
         )
         # Step 2: local LLM enrichment (best-effort, non-blocking)
         ai_enrichment: dict = {}
+        layer = 'rules_only'
         if await local_llm.is_available():
             ai_enrichment = await local_llm.interpret_lab_result(
                 test_name = payload.get('test_name', payload.get('test_code', '')),
@@ -381,10 +382,29 @@ async def _dispatch_local_preferred(task: TaskType, payload: dict, db) -> dict:
                 sex       = payload.get('sex', ''),
                 age       = int(payload.get('age', 0)),
             )
+            if ai_enrichment:
+                layer = 'rules+local'
+        # Step 3: cloud (Claude) fallback when the local LLM is absent — e.g. on
+        # Render, where Ollama isn't running. This is what makes interpretation
+        # actually use the cloud with just ANTHROPIC_API_KEY set. Gates on the key
+        # (not the flaky network probe); fails gracefully back to rules-only.
+        if not ai_enrichment and cloud_llm.is_configured():
+            cloud = await cloud_llm.interpret_single_result(
+                test_name   = payload.get('test_name', payload.get('test_code', '')),
+                value       = str(payload.get('value', '')),
+                unit        = payload.get('unit', ''),
+                flag        = payload.get('flag', ''),
+                ref_range   = payload.get('ref_range', ''),
+                patient_age = int(payload.get('age', 0) or 0),
+                patient_sex = payload.get('sex', ''),
+            )
+            if cloud and not cloud.get('error'):
+                ai_enrichment = cloud
+                layer = 'rules+cloud'
         return {
             'rules':        rules_result.model_dump(),
             'ai_enrichment':ai_enrichment,
-            'layer':        'rules+local' if ai_enrichment else 'rules_only',
+            'layer':        layer,
             'is_critical':  rules_result.is_critical,
             'significance': rules_result.significance,
         }
