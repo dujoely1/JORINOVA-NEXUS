@@ -369,9 +369,15 @@ def _local_detect(image_type: str, file_path: str) -> Optional[dict]:
                 if 'parasitaemia_pct' in result:
                     f += f' (~{result["parasitaemia_pct"]}% parasitaemia)'
                 result['findings'] = [f]
-        # PBS-specific enrichment: map each detected morphology to related disorders
-        if key == 'pbs':
-            dmap = _load_disorder_map('pbs_disorders.json', ('normal', 'abnormal'))
+        # Haematology morphology enrichment (PBS + leukaemia): map each detected
+        # abnormal cell to its related disorders + a critical flag.
+        _MORPH = {
+            'pbs':      ('pbs_disorders.json',      ('normal', 'abnormal'),  'PBS morphology'),
+            'leukemia': ('leukemia_disorders.json', ('normal', 'malignant'), 'Leukaemia'),
+        }
+        if key in _MORPH:
+            fname, groups, label = _MORPH[key]
+            dmap = _load_disorder_map(fname, groups)
             def _norm(name: str) -> str:
                 return str(name).lower().replace(' ', '_').replace('-', '_')
             abnormal, related, criticals = {}, [], []
@@ -393,10 +399,10 @@ def _local_detect(image_type: str, file_path: str) -> Optional[dict]:
             if related:
                 related.sort(key=lambda e: 0 if e['significance'] == 'critical' else 1)
                 lines = [f'{e["count"]}x {e["finding"]} -> {", ".join(e["disorders"][:3])}' for e in related]
-                result['findings'] = ['PBS morphology: ' + '; '.join(lines)]
+                result['findings'] = [label + ': ' + '; '.join(lines)]
                 result['confidence'] = 0.8
             if criticals:
-                result['findings'].insert(0, 'CRITICAL morphology: ' + ', '.join(criticals) + ' - urgent haematology review')
+                result['findings'].insert(0, 'CRITICAL: ' + ', '.join(criticals) + ' - urgent haematology review')
         # Parasitology enrichment: map each detected ovum/cyst/organism to its disease
         if key == 'parasitology':
             omap = _load_disorder_map('parasitology_organisms.json', ('organisms',))

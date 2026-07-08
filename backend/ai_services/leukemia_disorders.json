@@ -1,0 +1,25 @@
+{
+  "_meta": {
+    "purpose": "Leukaemia / blast morphology -> leukaemia type. Keys are YOLO class names from the leukemia detector. The vision service resolves each detected blast to its leukaemia type + significance and flags criticals. Decision support only; a haematologist + flow cytometry/cytogenetics confirm the diagnosis.",
+    "significance_levels": ["normal", "significant", "critical"],
+    "source": "C-NMC 2019 / ALL-IDB classes + standard blast morphology (WHO). Curated for JORINOVA NEXUS."
+  },
+
+  "normal": {
+    "normal":     {"name": "Normal cell", "aka": ["hem", "benign", "healthy", "normal_cell", "non_blast"], "significance": "normal", "disorders": []},
+    "lymphocyte": {"name": "Lymphocyte", "significance": "normal", "disorders": []},
+    "neutrophil": {"name": "Neutrophil", "significance": "normal", "disorders": []},
+    "monocyte":   {"name": "Monocyte", "significance": "normal", "disorders": []}
+  },
+
+  "malignant": {
+    "blast":                 {"name": "Blast cell", "aka": ["blasts", "leukemic", "leukaemic", "malignant", "cancer"], "significance": "critical", "disorders": ["Acute leukaemia (AML or ALL)"], "note": "Critical: urgent haematology review. Confirm lineage with flow cytometry."},
+    "lymphoblast":           {"name": "Lymphoblast", "aka": ["all", "leukemic_lymphoblast", "b_all", "t_all"], "significance": "critical", "disorders": ["Acute lymphoblastic leukaemia (ALL)"], "note": "Critical: commonest childhood leukaemia. Urgent referral."},
+    "myeloblast":            {"name": "Myeloblast", "aka": ["aml_blast"], "significance": "critical", "disorders": ["Acute myeloid leukaemia (AML)"], "note": "Critical: look for Auer rods. Urgent referral."},
+    "monoblast":             {"name": "Monoblast / promonocyte", "aka": ["monoblast_promonocyte"], "significance": "critical", "disorders": ["Acute myeloid leukaemia, monocytic (AML-M4/M5)"]},
+    "abnormal_promyelocyte": {"name": "Abnormal promyelocyte", "aka": ["promyelocyte_abnormal", "apl_cell", "faggot_cell"], "significance": "critical", "disorders": ["Acute promyelocytic leukaemia (APL, AML-M3)"], "note": "MEDICAL EMERGENCY: DIC risk. Start ATRA on suspicion; confirm PML-RARA."},
+    "auer_rod":              {"name": "Auer rod", "aka": ["auer_rods"], "significance": "critical", "disorders": ["Acute myeloid leukaemia (AML)", "Acute promyelocytic leukaemia (APL)"], "note": "Pathognomonic for AML."},
+    "atypical_lymphocyte":   {"name": "Atypical / abnormal lymphocyte", "aka": ["atypical_lymph"], "significance": "significant", "disorders": ["Reactive (viral) vs lymphoproliferative disorder", "Chronic lymphocytic leukaemia (CLL)"]},
+    "smudge_cell":           {"name": "Smudge cell", "aka": ["smudge", "basket_cell"], "significance": "significant", "disorders": ["Chronic lymphocytic leukaemia (CLL)"]}
+  }
+}
