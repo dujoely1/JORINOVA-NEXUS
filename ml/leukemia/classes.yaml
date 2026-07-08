@@ -1,0 +1,29 @@
+# ============================================================================
+# JORINOVA NEXUS — Leukaemia / blast-cell unified class map
+# ============================================================================
+# YOLO detection classes for the `leukemia` model. Names match the keys in
+# backend/ai_services/leukemia_disorders.json, so every detected blast resolves
+# to its leukaemia type + a CRITICAL flag in the app.
+#
+# Most public datasets are binary (blast/ALL vs normal). Finer AML subtypes
+# (myeloblast/monoblast/APL) need an AML dataset (e.g. Munich Matek/TCIA). Train on
+# whatever your dataset provides; any matching name gets disease enrichment for free.
+# ============================================================================
+
+# --- Normal (to distinguish from blasts) ---
+normal:
+  - normal          # a.k.a. hem / benign (C-NMC "hem" class)
+  - lymphocyte
+  - neutrophil
+  - monocyte
+
+# --- Malignant / blasts -> acute leukaemia ---
+malignant:
+  - blast                 # generic blast -> acute leukaemia (AML/ALL)  [CRITICAL]
+  - lymphoblast           # ALL (C-NMC "all" class)                     [CRITICAL]
+  - myeloblast            # AML                                          [CRITICAL]
+  - monoblast             # AML-M4/M5 (monocytic)                        [CRITICAL]
+  - abnormal_promyelocyte # APL (AML-M3) — DIC emergency, start ATRA     [CRITICAL]
+  - auer_rod              # pathognomonic for AML                        [CRITICAL]
+  - atypical_lymphocyte   # reactive vs CLL
+  - smudge_cell           # CLL

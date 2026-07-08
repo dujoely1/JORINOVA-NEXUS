@@ -283,27 +283,27 @@ _MODEL_REGISTRY = {
 }
 _MALARIA_STAGES = ('ring', 'trophozoite', 'schizont', 'gametocyte')
 _MODEL_CACHE: dict = {}   # model_key -> loaded YOLO | None
-_PBS_DISORDERS: Optional[dict] = None   # flattened morphology -> disorders map
+_MAP_CACHE: dict = {}   # json filename -> flattened {class-or-alias -> info}
 
 
-def _pbs_disorders() -> dict:
-    """Load (once) the PBS morphology -> related-disorders map from
-    pbs_disorders.json, flattened with aliases. Returns {} if missing/bad."""
-    global _PBS_DISORDERS
-    if _PBS_DISORDERS is None:
+def _load_disorder_map(filename: str, groups: tuple) -> dict:
+    """Load + flatten (with `aka` aliases) a morphology/organism -> info JSON from
+    ai_services/<filename>. Cached; returns {} if missing/bad. Used to attach
+    related disorders/diseases to detected classes (PBS, parasitology, ...)."""
+    if filename not in _MAP_CACHE:
         flat: dict = {}
         try:
             import json
-            data = json.loads((Path(__file__).resolve().parent / 'pbs_disorders.json').read_text(encoding='utf-8'))
-            for group in ('normal', 'abnormal'):
+            data = json.loads((Path(__file__).resolve().parent / filename).read_text(encoding='utf-8'))
+            for group in groups:
                 for cls, info in (data.get(group) or {}).items():
                     flat[cls] = info
                     for alias in (info.get('aka') or []):
                         flat.setdefault(alias, info)
         except Exception as e:
-            logger.debug('pbs_disorders load skipped: %s', e)
-        _PBS_DISORDERS = flat
-    return _PBS_DISORDERS
+            logger.debug('map %s load skipped: %s', filename, e)
+        _MAP_CACHE[filename] = flat
+    return _MAP_CACHE[filename]
 
 
 def _model_key(image_type: str) -> str:
@@ -369,9 +369,15 @@ def _local_detect(image_type: str, file_path: str) -> Optional[dict]:
                 if 'parasitaemia_pct' in result:
                     f += f' (~{result["parasitaemia_pct"]}% parasitaemia)'
                 result['findings'] = [f]
-        # PBS-specific enrichment: map each detected morphology to related disorders
-        if key == 'pbs':
-            dmap = _pbs_disorders()
+        # Haematology morphology enrichment (PBS + leukaemia): map each detected
+        # abnormal cell to its related disorders + a critical flag.
+        _MORPH = {
+            'pbs':      ('pbs_disorders.json',      ('normal', 'abnormal'),  'PBS morphology'),
+            'leukemia': ('leukemia_disorders.json', ('normal', 'malignant'), 'Leukaemia'),
+        }
+        if key in _MORPH:
+            fname, groups, label = _MORPH[key]
+            dmap = _load_disorder_map(fname, groups)
             def _norm(name: str) -> str:
                 return str(name).lower().replace(' ', '_').replace('-', '_')
             abnormal, related, criticals = {}, [], []
@@ -393,10 +399,40 @@ def _local_detect(image_type: str, file_path: str) -> Optional[dict]:
             if related:
                 related.sort(key=lambda e: 0 if e['significance'] == 'critical' else 1)
                 lines = [f'{e["count"]}x {e["finding"]} -> {", ".join(e["disorders"][:3])}' for e in related]
-                result['findings'] = ['PBS morphology: ' + '; '.join(lines)]
+                result['findings'] = [label + ': ' + '; '.join(lines)]
                 result['confidence'] = 0.8
             if criticals:
-                result['findings'].insert(0, 'CRITICAL morphology: ' + ', '.join(criticals) + ' - urgent haematology review')
+                result['findings'].insert(0, 'CRITICAL: ' + ', '.join(criticals) + ' - urgent haematology review')
+        # Parasitology enrichment: map each detected ovum/cyst/organism to its disease
+        if key == 'parasitology':
+            omap = _load_disorder_map('parasitology_organisms.json', ('organisms',))
+            def _norm(name: str) -> str:
+                return str(name).lower().replace(' ', '_').replace('-', '_')
+            organisms, criticals = [], []
+            for cls, n in counts.items():
+                info = omap.get(cls) or omap.get(_norm(cls))
+                if not info:
+                    organisms.append({'organism': cls, 'count': n})
+                    continue
+                entry = {'organism': info.get('name', cls), 'count': n,
+                         'disease': info.get('disease', ''),
+                         'significance': info.get('significance', 'significant')}
+                if info.get('note'):
+                    entry['note'] = info['note']
+                organisms.append(entry)
+                if info.get('significance') == 'critical':
+                    criticals.append(info.get('name', cls))
+            result.update({'organisms_seen': organisms, 'positive': bool(organisms),
+                           'critical': bool(criticals)})
+            if organisms:
+                lines = [f'{o["count"]}x {o["organism"]}' + (f' -> {o["disease"]}' if o.get('disease') else '')
+                         for o in organisms]
+                result['findings'] = ['Parasitology: ' + '; '.join(lines)]
+                result['confidence'] = 0.8
+            else:
+                result['findings'] = ['Parasitology detector: no ova/parasites detected - confirm on manual O&P']
+            if criticals:
+                result['findings'].insert(0, 'NOTE: ' + ', '.join(criticals) + ' - clinically important, verify + treat')
         return result
     except Exception as e:
         logger.debug('local detect (%s) skipped: %s', key, e)

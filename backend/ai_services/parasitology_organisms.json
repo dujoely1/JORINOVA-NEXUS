@@ -1,0 +1,28 @@
+{
+  "_meta": {
+    "purpose": "Stool/urine parasitology (O&P) organism -> disease. Keys are YOLO class names (snake_case) from the parasitology detector. The vision service resolves each detected ovum/cyst/organism to its disease + significance. Decision support only; a microscopist/clinician validates.",
+    "significance_levels": ["normal", "significant", "critical"],
+    "source": "Chula-ParasiteEgg-11 species + common stool/urine parasites (WHO, CDC DPDx). Curated for JORINOVA NEXUS."
+  },
+
+  "organisms": {
+    "ascaris_lumbricoides":     {"name": "Ascaris lumbricoides ovum", "aka": ["ascaris", "roundworm"], "type": "helminth_egg", "significance": "significant", "disease": "Ascariasis (roundworm)", "note": "Heavy load -> intestinal obstruction; larvae -> Loffler syndrome. Treat: albendazole/mebendazole."},
+    "trichuris_trichiura":      {"name": "Trichuris trichiura ovum", "aka": ["trichuris", "whipworm"], "type": "helminth_egg", "significance": "significant", "disease": "Trichuriasis (whipworm)", "note": "Heavy infection -> anaemia, rectal prolapse in children. Treat: mebendazole/albendazole."},
+    "hookworm":                 {"name": "Hookworm ovum", "aka": ["ancylostoma", "ancylostoma_duodenale", "necator", "necator_americanus", "hookworm_egg"], "type": "helminth_egg", "significance": "significant", "disease": "Hookworm disease (ancylostomiasis / necatoriasis)", "note": "Major cause of IRON-DEFICIENCY ANAEMIA and protein loss. Treat: albendazole + iron."},
+    "enterobius_vermicularis":  {"name": "Enterobius vermicularis ovum", "aka": ["enterobius", "pinworm"], "type": "helminth_egg", "significance": "significant", "disease": "Enterobiasis (pinworm)", "note": "Perianal pruritus; scotch-tape test more sensitive. Treat household."},
+    "hymenolepis_nana":         {"name": "Hymenolepis nana ovum", "aka": ["h_nana", "dwarf_tapeworm"], "type": "helminth_egg", "significance": "significant", "disease": "Hymenolepiasis (dwarf tapeworm)", "note": "Most common tapeworm worldwide; autoinfection. Treat: praziquantel."},
+    "hymenolepis_diminuta":     {"name": "Hymenolepis diminuta ovum", "aka": ["h_diminuta", "rat_tapeworm"], "type": "helminth_egg", "significance": "significant", "disease": "Hymenolepiasis (rat tapeworm)"},
+    "taenia":                   {"name": "Taenia spp. ovum", "aka": ["taenia_spp", "taenia_solium", "taenia_saginata", "tapeworm"], "type": "helminth_egg", "significance": "significant", "disease": "Taeniasis (beef/pork tapeworm)", "note": "Eggs of T. solium and T. saginata are identical. T. solium -> CYSTICERCOSIS / neurocysticercosis risk. Treat: praziquantel."},
+    "opisthorchis_viverrini":   {"name": "Opisthorchis viverrini ovum", "aka": ["opisthorchis", "liver_fluke"], "type": "helminth_egg", "significance": "significant", "disease": "Opisthorchiasis (liver fluke)", "note": "Chronic infection -> CHOLANGIOCARCINOMA risk. Treat: praziquantel."},
+    "clonorchis_sinensis":      {"name": "Clonorchis sinensis ovum", "aka": ["clonorchis", "chinese_liver_fluke"], "type": "helminth_egg", "significance": "significant", "disease": "Clonorchiasis (Chinese liver fluke)", "note": "Cholangiocarcinoma risk. Treat: praziquantel."},
+    "fasciolopsis_buski":       {"name": "Fasciolopsis buski ovum", "aka": ["fasciolopsis", "giant_intestinal_fluke"], "type": "helminth_egg", "significance": "significant", "disease": "Fasciolopsiasis (giant intestinal fluke)"},
+    "paragonimus":              {"name": "Paragonimus spp. ovum", "aka": ["paragonimus_spp", "lung_fluke"], "type": "helminth_egg", "significance": "significant", "disease": "Paragonimiasis (lung fluke)", "note": "Haemoptysis -> often MISDIAGNOSED AS TB. Treat: praziquantel."},
+    "capillaria_philippinensis":{"name": "Capillaria philippinensis ovum", "aka": ["capillaria"], "type": "helminth_egg", "significance": "critical", "disease": "Intestinal capillariasis", "note": "Severe malabsorption / protein-losing enteropathy; can be FATAL if untreated. Treat: albendazole."},
+
+    "schistosoma_haematobium":  {"name": "Schistosoma haematobium ovum (terminal spine)", "aka": ["s_haematobium", "urinary_schistosomiasis", "bilharzia"], "type": "helminth_egg", "specimen": "urine", "significance": "significant", "disease": "Urinary schistosomiasis (bilharzia)", "note": "Terminal haematuria; chronic -> BLADDER SQUAMOUS-CELL CARCINOMA risk. Treat: praziquantel."},
+    "schistosoma_mansoni":      {"name": "Schistosoma mansoni ovum (lateral spine)", "aka": ["s_mansoni"], "type": "helminth_egg", "significance": "significant", "disease": "Intestinal/hepatic schistosomiasis", "note": "Chronic -> periportal fibrosis, portal hypertension. Treat: praziquantel."},
+
+    "entamoeba_histolytica":    {"name": "Entamoeba histolytica cyst/trophozoite", "aka": ["e_histolytica", "amoeba"], "type": "protozoa", "significance": "significant", "disease": "Amoebiasis", "note": "Amoebic dysentery; can cause LIVER ABSCESS. Distinguish from non-pathogenic E. dispar. Treat: metronidazole + luminal agent."},
+    "giardia_lamblia":          {"name": "Giardia lamblia cyst/trophozoite", "aka": ["giardia", "giardia_duodenalis", "giardia_intestinalis"], "type": "protozoa", "significance": "significant", "disease": "Giardiasis", "note": "Malabsorption, chronic diarrhoea. Treat: metronidazole/tinidazole."}
+  }
+}
