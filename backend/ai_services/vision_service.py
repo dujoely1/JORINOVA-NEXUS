@@ -283,6 +283,27 @@ _MODEL_REGISTRY = {
 }
 _MALARIA_STAGES = ('ring', 'trophozoite', 'schizont', 'gametocyte')
 _MODEL_CACHE: dict = {}   # model_key -> loaded YOLO | None
+_PBS_DISORDERS: Optional[dict] = None   # flattened morphology -> disorders map
+
+
+def _pbs_disorders() -> dict:
+    """Load (once) the PBS morphology -> related-disorders map from
+    pbs_disorders.json, flattened with aliases. Returns {} if missing/bad."""
+    global _PBS_DISORDERS
+    if _PBS_DISORDERS is None:
+        flat: dict = {}
+        try:
+            import json
+            data = json.loads((Path(__file__).resolve().parent / 'pbs_disorders.json').read_text(encoding='utf-8'))
+            for group in ('normal', 'abnormal'):
+                for cls, info in (data.get(group) or {}).items():
+                    flat[cls] = info
+                    for alias in (info.get('aka') or []):
+                        flat.setdefault(alias, info)
+        except Exception as e:
+            logger.debug('pbs_disorders load skipped: %s', e)
+        _PBS_DISORDERS = flat
+    return _PBS_DISORDERS
 
 
 def _model_key(image_type: str) -> str:
@@ -348,6 +369,34 @@ def _local_detect(image_type: str, file_path: str) -> Optional[dict]:
                 if 'parasitaemia_pct' in result:
                     f += f' (~{result["parasitaemia_pct"]}% parasitaemia)'
                 result['findings'] = [f]
+        # PBS-specific enrichment: map each detected morphology to related disorders
+        if key == 'pbs':
+            dmap = _pbs_disorders()
+            def _norm(name: str) -> str:
+                return str(name).lower().replace(' ', '_').replace('-', '_')
+            abnormal, related, criticals = {}, [], []
+            for cls, n in counts.items():
+                info = dmap.get(cls) or dmap.get(_norm(cls))
+                if not info or info.get('significance', 'normal') == 'normal':
+                    continue
+                abnormal[cls] = n
+                entry = {'finding': info.get('name', cls), 'count': n,
+                         'significance': info.get('significance'),
+                         'disorders': info.get('disorders', [])}
+                if info.get('note'):
+                    entry['note'] = info['note']
+                related.append(entry)
+                if info.get('significance') == 'critical':
+                    criticals.append(info.get('name', cls))
+            result.update({'abnormal_counts': abnormal, 'related_disorders': related,
+                           'critical': bool(criticals)})
+            if related:
+                related.sort(key=lambda e: 0 if e['significance'] == 'critical' else 1)
+                lines = [f'{e["count"]}x {e["finding"]} -> {", ".join(e["disorders"][:3])}' for e in related]
+                result['findings'] = ['PBS morphology: ' + '; '.join(lines)]
+                result['confidence'] = 0.8
+            if criticals:
+                result['findings'].insert(0, 'CRITICAL morphology: ' + ', '.join(criticals) + ' - urgent haematology review')
         return result
     except Exception as e:
         logger.debug('local detect (%s) skipped: %s', key, e)
