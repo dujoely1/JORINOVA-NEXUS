@@ -1,0 +1,50 @@
+{
+  "_meta": {
+    "purpose": "Peripheral blood smear (PBS) morphology -> related disorders. Keys are YOLO class names (snake_case) produced by the pbs detector. The vision service looks up each detected class here and attaches related disorders + significance to the report. Decision support only; a haematologist validates.",
+    "significance_levels": ["normal", "significant", "critical"],
+    "source": "Standard haematology morphology references (Bain, Dacie & Lewis; WHO). Curated for JORINOVA NEXUS."
+  },
+
+  "normal": {
+    "rbc":        {"name": "Red blood cell (normocyte)", "significance": "normal", "disorders": []},
+    "wbc":        {"name": "White blood cell", "significance": "normal", "disorders": []},
+    "neutrophil": {"name": "Neutrophil", "significance": "normal", "disorders": []},
+    "lymphocyte": {"name": "Lymphocyte", "significance": "normal", "disorders": []},
+    "monocyte":   {"name": "Monocyte", "significance": "normal", "disorders": []},
+    "eosinophil": {"name": "Eosinophil", "significance": "normal", "disorders": ["Allergy / atopy", "Parasitic (helminth) infection", "Drug reaction"]},
+    "basophil":   {"name": "Basophil", "significance": "normal", "disorders": ["Chronic myeloid leukaemia (if raised)", "Allergic / inflammatory states"]},
+    "platelet":   {"name": "Platelet", "significance": "normal", "disorders": []}
+  },
+
+  "abnormal": {
+    "sickle_cell":        {"name": "Sickle cell (drepanocyte)", "aka": ["drepanocyte", "sickle"], "category": "rbc", "significance": "significant", "disorders": ["Sickle cell anaemia (HbSS)", "HbSC disease", "Sickle-β-thalassaemia"], "note": "Confirm with sickling test / Hb electrophoresis."},
+    "target_cell":        {"name": "Target cell (codocyte)", "aka": ["codocyte", "target"], "category": "rbc", "significance": "significant", "disorders": ["Thalassaemia", "HbC disease", "Chronic liver disease", "Iron deficiency", "Post-splenectomy"]},
+    "schistocyte":        {"name": "Schistocyte (fragmented / helmet cell)", "aka": ["fragment", "helmet_cell", "schizocyte"], "category": "rbc", "significance": "critical", "disorders": ["Microangiopathic haemolytic anaemia (TTP, HUS, DIC)", "Mechanical heart valve haemolysis", "Malignant hypertension", "HELLP syndrome"], "note": "Critical: quantify and notify — may indicate TTP/DIC."},
+    "spherocyte":         {"name": "Spherocyte", "aka": ["spherocytosis"], "category": "rbc", "significance": "significant", "disorders": ["Hereditary spherocytosis", "Warm autoimmune haemolytic anaemia", "ABO haemolytic disease of newborn"], "note": "Correlate with DAT / reticulocytes."},
+    "elliptocyte":        {"name": "Elliptocyte (ovalocyte)", "aka": ["ovalocyte"], "category": "rbc", "significance": "significant", "disorders": ["Hereditary elliptocytosis", "Iron deficiency", "Megaloblastic anaemia", "Myelofibrosis"]},
+    "teardrop_cell":      {"name": "Teardrop cell (dacrocyte)", "aka": ["dacrocyte", "teardrop"], "category": "rbc", "significance": "significant", "disorders": ["Primary myelofibrosis", "Marrow infiltration (metastasis, myelophthisis)", "Thalassaemia", "Megaloblastic anaemia"]},
+    "echinocyte":         {"name": "Echinocyte (burr / crenated cell)", "aka": ["burr_cell", "crenated", "echinocytes"], "category": "rbc", "significance": "significant", "disorders": ["Uraemia / renal failure", "Pyruvate kinase deficiency", "Post-transfusion"], "note": "Often a drying / storage artefact — correlate with clinical picture."},
+    "acanthocyte":        {"name": "Acanthocyte (spur cell)", "aka": ["spur_cell", "acanthocytes"], "category": "rbc", "significance": "significant", "disorders": ["Severe liver disease", "Abetalipoproteinaemia", "Post-splenectomy", "McLeod phenotype"]},
+    "stomatocyte":        {"name": "Stomatocyte", "aka": ["stomatocytes"], "category": "rbc", "significance": "significant", "disorders": ["Hereditary stomatocytosis", "Alcoholic liver disease"], "note": "Often artefact."},
+    "macrocyte":          {"name": "Macrocyte", "aka": ["macrocytosis", "macro_ovalocyte"], "category": "rbc", "significance": "significant", "disorders": ["Megaloblastic anaemia (B12 / folate deficiency)", "Liver disease", "Reticulocytosis", "Alcohol", "Hypothyroidism"]},
+    "microcyte":          {"name": "Microcyte", "aka": ["microcytosis"], "category": "rbc", "significance": "significant", "disorders": ["Iron-deficiency anaemia", "Thalassaemia", "Anaemia of chronic disease", "Sideroblastic anaemia"]},
+    "hypochromia":        {"name": "Hypochromic red cell", "aka": ["hypochromic"], "category": "rbc", "significance": "significant", "disorders": ["Iron deficiency", "Thalassaemia", "Sideroblastic anaemia"]},
+    "polychromasia":      {"name": "Polychromasia", "aka": ["polychromatophilia"], "category": "rbc", "significance": "significant", "disorders": ["Reticulocytosis — haemolysis or acute blood-loss response"]},
+    "rouleaux":           {"name": "Rouleaux formation", "aka": [], "category": "rbc", "significance": "significant", "disorders": ["Multiple myeloma", "Waldenström macroglobulinaemia", "Chronic inflammation (high fibrinogen / globulins)"]},
+    "howell_jolly_body":  {"name": "Howell–Jolly body", "aka": ["howell_jolly", "hjb"], "category": "rbc", "significance": "significant", "disorders": ["Hyposplenism / asplenia", "Post-splenectomy", "Megaloblastic anaemia"]},
+    "basophilic_stippling":{"name": "Basophilic stippling", "aka": ["stippling"], "category": "rbc", "significance": "significant", "disorders": ["Lead poisoning", "Thalassaemia", "Sideroblastic anaemia", "Myelodysplasia"]},
+    "pappenheimer_body":  {"name": "Pappenheimer body", "aka": ["pappenheimer"], "category": "rbc", "significance": "significant", "disorders": ["Sideroblastic anaemia", "Hyposplenism", "Haemochromatosis"]},
+    "nucleated_rbc":      {"name": "Nucleated RBC (normoblast)", "aka": ["nrbc", "normoblast", "erythroblast"], "category": "rbc", "significance": "significant", "disorders": ["Marked haemolysis", "Marrow infiltration / myelofibrosis", "Severe hypoxia", "Neonate (physiological)"]},
+
+    "blast":              {"name": "Blast cell", "aka": ["blasts", "myeloblast", "lymphoblast"], "category": "wbc", "significance": "critical", "disorders": ["Acute myeloid leukaemia (AML)", "Acute lymphoblastic leukaemia (ALL)"], "note": "Critical: urgent haematology review — possible acute leukaemia."},
+    "auer_rod":           {"name": "Auer rod", "aka": ["auer_rods"], "category": "wbc", "significance": "critical", "disorders": ["Acute myeloid leukaemia (AML)", "Acute promyelocytic leukaemia (APL)"], "note": "Pathognomonic for AML. APL is a medical emergency (DIC risk)."},
+    "atypical_lymphocyte":{"name": "Atypical / reactive lymphocyte", "aka": ["reactive_lymphocyte", "atypical_lymph"], "category": "wbc", "significance": "significant", "disorders": ["EBV infectious mononucleosis", "CMV", "Viral hepatitis", "Toxoplasmosis"]},
+    "hypersegmented_neutrophil":{"name": "Hypersegmented neutrophil", "aka": ["hypersegmented"], "category": "wbc", "significance": "significant", "disorders": ["Megaloblastic anaemia (B12 / folate deficiency)"]},
+    "toxic_granulation":  {"name": "Toxic granulation", "aka": ["toxic_granules"], "category": "wbc", "significance": "significant", "disorders": ["Bacterial infection / sepsis", "Severe inflammation"]},
+    "band_cell":          {"name": "Band neutrophil (left shift)", "aka": ["band", "left_shift"], "category": "wbc", "significance": "significant", "disorders": ["Infection / inflammation", "Marrow stress response"]},
+    "smudge_cell":        {"name": "Smudge cell", "aka": ["smudge", "basket_cell"], "category": "wbc", "significance": "significant", "disorders": ["Chronic lymphocytic leukaemia (CLL)"]},
+
+    "giant_platelet":     {"name": "Giant platelet", "aka": ["large_platelet", "macrothrombocyte"], "category": "platelet", "significance": "significant", "disorders": ["Immune thrombocytopenia (ITP)", "Myeloproliferative neoplasm", "Bernard–Soulier syndrome"]},
+    "platelet_clump":     {"name": "Platelet clump", "aka": ["platelet_clumping"], "category": "platelet", "significance": "significant", "disorders": ["Artefact — EDTA-induced pseudothrombocytopenia"], "note": "Recollect in citrate before reporting a low platelet count."}
+  }
+}

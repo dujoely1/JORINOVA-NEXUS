@@ -1,0 +1,65 @@
+# ============================================================================
+# JORINOVA NEXUS — Peripheral Blood Smear (PBS) unified class map
+# ============================================================================
+# Recommended YOLO detection classes for the `pbs` model. Class NAMES here match
+# the keys in backend/ai_services/pbs_disorders.json, so every detected cell
+# auto-resolves to its related disorders + significance in the app.
+#
+# You rarely get ALL of these from one dataset. Train on whatever classes your
+# chosen dataset provides (the notebook reads names from the dataset's data.yaml);
+# any class name that matches a key below gets disorder enrichment for free.
+# Add more classes over time by merging datasets — no app/code change needed.
+#
+# Coverage by the datasets the notebook wires up:
+#   • BCCD                       -> rbc, wbc, platelet                 (normal baseline)
+#   • Blood Detection (Banerjee) -> echinocyte, spherocyte, teardrop_cell,
+#                                    sickle_cell, elliptocyte, stomatocyte (RBC abnormalities)
+#   • Raabin-WBC / PBC (Barcelona) -> WBC subtypes (neutrophil…basophil), nucleated_rbc
+# ============================================================================
+
+# --- Normal cells (baseline; no disorder unless raised) ---
+normal:
+  - rbc                 # red blood cell (normocyte)
+  - wbc                 # generic white cell
+  - neutrophil
+  - lymphocyte
+  - monocyte
+  - eosinophil
+  - basophil
+  - platelet
+
+# --- RBC morphology abnormalities -> anaemias & haemolytic disorders ---
+rbc_abnormal:
+  - sickle_cell         # sickle cell disease
+  - target_cell         # thalassaemia, liver disease, HbC
+  - schistocyte         # CRITICAL: MAHA (TTP/HUS/DIC)
+  - spherocyte          # hereditary spherocytosis, AIHA
+  - elliptocyte         # hereditary elliptocytosis, Fe deficiency
+  - teardrop_cell       # myelofibrosis, marrow infiltration
+  - echinocyte          # uraemia (often artefact)
+  - acanthocyte         # liver disease, abetalipoproteinaemia
+  - stomatocyte         # liver disease (often artefact)
+  - macrocyte           # B12/folate deficiency, liver disease
+  - microcyte           # iron deficiency, thalassaemia
+  - hypochromia         # iron deficiency, thalassaemia
+  - polychromasia       # reticulocytosis (haemolysis / blood loss)
+  - rouleaux            # myeloma, chronic inflammation
+  - howell_jolly_body   # hyposplenism, megaloblastic
+  - basophilic_stippling# lead poisoning, thalassaemia
+  - pappenheimer_body   # sideroblastic anaemia, hyposplenism
+  - nucleated_rbc       # marked haemolysis, marrow infiltration
+
+# --- WBC abnormalities -> leukaemias & reactive states ---
+wbc_abnormal:
+  - blast               # CRITICAL: acute leukaemia (AML/ALL)
+  - auer_rod            # CRITICAL: AML / APL
+  - atypical_lymphocyte # EBV/CMV viral infection
+  - hypersegmented_neutrophil # megaloblastic anaemia
+  - toxic_granulation   # sepsis / severe infection
+  - band_cell           # left shift (infection)
+  - smudge_cell         # CLL
+
+# --- Platelet abnormalities ---
+platelet_abnormal:
+  - giant_platelet      # ITP, myeloproliferative
+  - platelet_clump      # artefact (pseudothrombocytopenia)
