@@ -372,7 +372,7 @@ def _local_detect(image_type: str, file_path: str) -> Optional[dict]:
         # Haematology morphology enrichment (PBS + leukaemia): map each detected
         # abnormal cell to its related disorders + a critical flag.
         _MORPH = {
-            'pbs':      ('pbs_disorders.json',      ('normal', 'abnormal'),  'PBS morphology'),
+            'pbs':      ('pbs_disorders.json',      ('normal', 'abnormal', 'artifact'),  'PBS morphology'),
             'leukemia': ('leukemia_disorders.json', ('normal', 'malignant'), 'Leukaemia'),
         }
         if key in _MORPH:
@@ -403,9 +403,23 @@ def _local_detect(image_type: str, file_path: str) -> Optional[dict]:
                 result['confidence'] = 0.8
             if criticals:
                 result['findings'].insert(0, 'CRITICAL: ' + ', '.join(criticals) + ' - urgent haematology review')
-        # Parasitology enrichment: map each detected ovum/cyst/organism to its disease
-        if key == 'parasitology':
-            omap = _load_disorder_map('parasitology_organisms.json', ('organisms',))
+        # Organism/finding enrichment: map each detected organism/finding to its disease.
+        # Shared by parasitology (ova/cysts), stool protozoa, blood parasites (filariae)
+        # and urine sediment — every map uses the same {name, aka, disease, significance,
+        # note} schema under an 'organisms' or 'findings' group.
+        _ORGMAP = {
+            'parasitology':   ('parasitology_organisms.json',   'Parasitology',   'no ova/parasites detected - confirm on manual O&P'),
+            'protozoa':       ('protozoa_organisms.json',       'Stool protozoa', 'no protozoa detected - confirm on manual O&P (wet prep / trichrome)'),
+            'microfilaria':   ('blood_parasite_organisms.json', 'Blood parasites','no blood parasites detected - confirm on thick/thin film'),
+            'urine_sediment': ('urine_sediment_findings.json',  'Urine sediment', 'no significant sediment - confirm on manual microscopy'),
+            'bacteriology':   ('bacteriology_organisms.json',   'Bacteriology',   'no organisms seen - confirm on culture'),
+            'mycology':       ('mycology_organisms.json',       'Mycology',       'no fungal elements seen - confirm on culture'),
+            'cytology':       ('cytology_findings.json',        'Cytology',       'no abnormal cells - screening only, cytopathologist reviews'),
+            'histology':      ('histology_findings.json',       'Histology',      'no malignancy identified - pathologist reviews'),
+        }
+        if key in _ORGMAP:
+            omfile, olabel, oempty = _ORGMAP[key]
+            omap = _load_disorder_map(omfile, ('organisms', 'findings'))
             def _norm(name: str) -> str:
                 return str(name).lower().replace(' ', '_').replace('-', '_')
             organisms, criticals = [], []
@@ -427,10 +441,10 @@ def _local_detect(image_type: str, file_path: str) -> Optional[dict]:
             if organisms:
                 lines = [f'{o["count"]}x {o["organism"]}' + (f' -> {o["disease"]}' if o.get('disease') else '')
                          for o in organisms]
-                result['findings'] = ['Parasitology: ' + '; '.join(lines)]
+                result['findings'] = [olabel + ': ' + '; '.join(lines)]
                 result['confidence'] = 0.8
             else:
-                result['findings'] = ['Parasitology detector: no ova/parasites detected - confirm on manual O&P']
+                result['findings'] = [olabel + ' detector: ' + oempty]
             if criticals:
                 result['findings'].insert(0, 'NOTE: ' + ', '.join(criticals) + ' - clinically important, verify + treat')
         return result

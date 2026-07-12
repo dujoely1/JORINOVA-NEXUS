@@ -1,0 +1,4 @@
+# Histology classes -> keys in backend/ai_services/histology_findings.json
+benign_reactive: [normal_tissue, benign, inflammation, granuloma]
+features: [necrosis, mitotic_figure, dysplasia]
+malignant: [adenocarcinoma, squamous_cell_carcinoma, carcinoma, tumor, metastasis]

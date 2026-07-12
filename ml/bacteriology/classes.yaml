@@ -1,0 +1,4 @@
+# Bacteriology (Gram + acid-fast) classes -> keys in backend/ai_services/bacteriology_organisms.json
+gram_positive: [gram_positive_cocci_clusters, gram_positive_cocci_chains, gram_positive_cocci_pairs, gram_positive_bacilli]
+gram_negative: [gram_negative_bacilli, gram_negative_coccobacilli, gram_negative_diplococci]
+other: [gram_variable_bacilli, acid_fast_bacilli, yeast, pus_cell, epithelial_cell]

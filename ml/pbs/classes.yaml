@@ -8,18 +8,16 @@
 # You rarely get ALL of these from one dataset. Train on whatever classes your
 # chosen dataset provides (the notebook reads names from the dataset's data.yaml);
 # any class name that matches a key below gets disorder enrichment for free.
-# Add more classes over time by merging datasets — no app/code change needed.
+# Merge datasets over time to widen coverage — no app/code change needed.
 #
-# Coverage by the datasets the notebook wires up:
-#   • BCCD                       -> rbc, wbc, platelet                 (normal baseline)
-#   • Blood Detection (Banerjee) -> echinocyte, spherocyte, teardrop_cell,
-#                                    sickle_cell, elliptocyte, stomatocyte (RBC abnormalities)
-#   • Raabin-WBC / PBC (Barcelona) -> WBC subtypes (neutrophil…basophil), nucleated_rbc
+# Current trained model (backend/models/pbs/pbs.pt): rbc, wbc, platelet, sickle_cell.
+# The classes below are the FULL target taxonomy to grow into.
 # ============================================================================
 
-# --- Normal cells (baseline; no disorder unless raised) ---
+# --- Normal cells / normal findings (no disorder unless raised) ---
 normal:
   - rbc                 # red blood cell (normocyte)
+  - normochromia        # normal central pallor
   - wbc                 # generic white cell
   - neutrophil
   - lymphocyte
@@ -28,38 +26,160 @@ normal:
   - basophil
   - platelet
 
-# --- RBC morphology abnormalities -> anaemias & haemolytic disorders ---
-rbc_abnormal:
-  - sickle_cell         # sickle cell disease
-  - target_cell         # thalassaemia, liver disease, HbC
-  - schistocyte         # CRITICAL: MAHA (TTP/HUS/DIC)
+# --- RBC size (anisocytosis) ---
+rbc_size:
+  - microcyte           # iron deficiency, thalassaemia
+  - macrocyte           # B12/folate deficiency, liver disease, MDS
+  - anisocytosis        # variable size (raised RDW)
+  - dimorphic_rbc       # treated deficiency / post-transfusion
+
+# --- RBC colour ---
+rbc_colour:
+  - hypochromia         # iron deficiency, thalassaemia
+  - hyperchromia        # spherocytes (loss of central pallor)
+  - polychromasia       # reticulocytosis (haemolysis / blood loss)
+
+# --- RBC shape (poikilocytosis) ---
+rbc_shape:
   - spherocyte          # hereditary spherocytosis, AIHA
   - elliptocyte         # hereditary elliptocytosis, Fe deficiency
+  - ovalocyte           # megaloblastic, MDS
+  - schistocyte         # CRITICAL: MAHA (TTP/HUS/DIC)
+  - target_cell         # thalassaemia, liver disease, HbC
+  - sickle_cell         # sickle cell disease
   - teardrop_cell       # myelofibrosis, marrow infiltration
   - echinocyte          # uraemia (often artefact)
   - acanthocyte         # liver disease, abetalipoproteinaemia
   - stomatocyte         # liver disease (often artefact)
-  - macrocyte           # B12/folate deficiency, liver disease
-  - microcyte           # iron deficiency, thalassaemia
-  - hypochromia         # iron deficiency, thalassaemia
-  - polychromasia       # reticulocytosis (haemolysis / blood loss)
+  - bite_cell           # G6PD deficiency / oxidant haemolysis
+  - blister_cell        # G6PD deficiency
+  - knizocyte           # spherocytosis, haemolysis
+  - keratocyte          # fragmentation (horn cell)
+  - helmet_cell         # CRITICAL: fragmentation (treat as schistocyte)
+  - boat_cell           # HbSC / sickle variants
+  - pencil_cell         # iron deficiency, thalassaemia
+  - mushroom_cell       # microangiopathic fragmentation
+  - irregularly_contracted_cell  # G6PD / unstable Hb / oxidative injury
+  - pyropoikilocyte     # hereditary pyropoikilocytosis, burns
+
+# --- RBC distribution ---
+rbc_distribution:
   - rouleaux            # myeloma, chronic inflammation
+  - autoagglutination   # cold agglutinin disease
+
+# --- RBC inclusions ---
+rbc_inclusion:
   - howell_jolly_body   # hyposplenism, megaloblastic
   - basophilic_stippling# lead poisoning, thalassaemia
   - pappenheimer_body   # sideroblastic anaemia, hyposplenism
+  - heinz_body          # G6PD deficiency (supravital stain)
+  - cabot_ring          # megaloblastic, MDS, lead
+  - hemoglobin_h_inclusion  # HbH disease (supravital stain)
+  - hb_c_crystal        # HbC disease
+  - hb_sc_crystal       # HbSC disease
+  - hb_e_crystal        # HbE disease / trait
+  - intraerythrocytic_parasite  # CRITICAL: malaria / babesia
+
+# --- Immature RBC ---
+rbc_immature:
   - nucleated_rbc       # marked haemolysis, marrow infiltration
+  - reticulocyte        # haemolysis / blood loss (supravital)
+  - erythroblast        # leukoerythroblastic reaction
 
-# --- WBC abnormalities -> leukaemias & reactive states ---
-wbc_abnormal:
-  - blast               # CRITICAL: acute leukaemia (AML/ALL)
-  - auer_rod            # CRITICAL: AML / APL
-  - atypical_lymphocyte # EBV/CMV viral infection
-  - hypersegmented_neutrophil # megaloblastic anaemia
+# --- Neutrophil abnormalities ---
+wbc_neutrophil:
   - toxic_granulation   # sepsis / severe infection
-  - band_cell           # left shift (infection)
-  - smudge_cell         # CLL
+  - toxic_vacuolation   # sepsis
+  - dohle_body          # infection, burns, pregnancy
+  - hypersegmented_neutrophil # megaloblastic anaemia
+  - hyposegmented_neutrophil  # Pelger–Huët / MDS
+  - giant_neutrophil    # megaloblastic, MDS
+  - hypogranular_neutrophil   # MDS
+  - hypergranular_neutrophil  # reactive / toxic
+  - pseudo_pelger_cell  # MDS, post-chemo
+  - left_shift          # infection / marrow stress
+  - right_shift         # megaloblastic, uraemia
 
-# --- Platelet abnormalities ---
-platelet_abnormal:
-  - giant_platelet      # ITP, myeloproliferative
+# --- Lymphocyte abnormalities ---
+wbc_lymphocyte:
+  - atypical_lymphocyte # EBV/CMV viral infection
+  - large_granular_lymphocyte # reactive / LGL leukaemia
+  - smudge_cell         # CLL
+  - hairy_cell          # CRITICAL: hairy cell leukaemia
+  - sezary_cell         # CRITICAL: Sézary syndrome / CTCL
+  - clefted_lymphocyte  # follicular / NHL
+
+# --- Monocyte abnormalities ---
+wbc_monocyte:
+  - vacuolated_monocyte # sepsis
+  - dysplastic_monocyte # CMML / MDS
+
+# --- Eosinophil abnormalities ---
+wbc_eosinophil:
+  - hypogranular_eosinophil   # MDS / MPN
+  - hypersegmented_eosinophil # megaloblastic / clonal
+
+# --- Basophil abnormalities ---
+wbc_basophil:
+  - basophilia          # CML, MPN
+  - dysplastic_basophil # MDS, CML
+
+# --- Immature / blast cells (mostly CRITICAL) ---
+wbc_immature:
+  - blast               # CRITICAL: acute leukaemia (AML/ALL)
+  - myeloblast          # CRITICAL: AML
+  - lymphoblast         # CRITICAL: ALL
+  - promyelocyte        # CRITICAL if abnormal: APL
+  - myelocyte           # left shift / CML
+  - metamyelocyte       # left shift / MPN
+  - plasma_cell         # myeloma / plasma cell leukaemia
+  - prolymphocyte       # prolymphocytic leukaemia / CLL
+
+# --- Leukocyte inclusions ---
+wbc_inclusion:
+  - auer_rod            # CRITICAL: AML / APL
+  - alder_reilly_granule    # mucopolysaccharidosis
+  - chediak_higashi_granule # Chédiak–Higashi syndrome
+  - may_hegglin_inclusion   # May–Hegglin anomaly
+
+# --- Platelet number ---
+platelet_number:
+  - thrombocytopenia    # CRITICAL if very low / bleeding
+  - thrombocytosis      # reactive / essential thrombocythaemia
+
+# --- Platelet size ---
+platelet_size:
+  - giant_platelet      # ITP, MPN, Bernard–Soulier
+  - large_platelet      # increased turnover
+  - small_platelet      # Wiskott–Aldrich, marrow failure
+  - platelet_anisocytosis    # MPN / increased turnover
+
+# --- Platelet morphology / distribution ---
+platelet_morphology:
   - platelet_clump      # artefact (pseudothrombocytopenia)
+  - platelet_satellitism# artefact (EDTA rosetting)
+  - hypogranular_platelet    # grey platelet syndrome, MDS
+  - agranular_platelet  # MDS, storage pool disorder
+
+# --- Blood parasites (CRITICAL) ---
+blood_parasite:
+  - plasmodium_falciparum   # CRITICAL: falciparum malaria
+  - plasmodium_vivax        # vivax malaria
+  - plasmodium_malariae     # quartan malaria
+  - plasmodium_ovale        # ovale malaria
+  - plasmodium_knowlesi     # knowlesi malaria
+  - babesia                 # CRITICAL: babesiosis
+  - trypanosoma             # CRITICAL: trypanosomiasis
+  - microfilaria            # lymphatic filariasis / loiasis
+
+# --- Artifacts (recognise + ignore; NOT true abnormalities) ---
+artifact:
+  - drying_artifact
+  - stain_precipitate
+  - water_artifact
+  - thick_smear
+  - thin_smear
+  - crenation
+  - smudge_artifact
+  - dust_contamination
+  - fungal_contamination

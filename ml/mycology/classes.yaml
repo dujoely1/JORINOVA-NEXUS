@@ -1,0 +1,4 @@
+# Mycology classes -> keys in backend/ai_services/mycology_organisms.json
+yeasts: [budding_yeast, yeast_with_pseudohyphae, germ_tube, narrow_based_budding_yeast, broad_based_budding_yeast, small_intracellular_yeast]
+hyphae: [septate_hyphae_acute_angle, aseptate_hyphae_wide_angle, true_septate_hyphae]
+other: [arthroconidia, spherule, macroconidia, microconidia, spores]
