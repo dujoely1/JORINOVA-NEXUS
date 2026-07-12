@@ -1,0 +1,64 @@
+{
+  "_meta": {
+    "purpose": "Haematological neoplasm knowledge base (WHO 2022 / ICC) for the INTERPRETATION layer. No image model: the rules engine + LLM + RAG use this to interpret CBC/differential/smear/marrow findings and flags (e.g. blasts from the PBS/leukaemia detectors) toward a likely neoplasm category, its defining criteria, confirmatory tests and urgency. Decision support only; diagnosis requires morphology review + flow cytometry + cytogenetics/molecular by a haematopathologist.",
+    "significance_levels": ["significant", "critical"],
+    "confirm_with": ["Bone marrow aspirate + trephine", "Flow cytometry (immunophenotype)", "Cytogenetics (karyotype/FISH)", "Molecular (NGS/PCR)", "Lymph node / tissue biopsy + IHC"],
+    "source": "WHO Classification of Haematolymphoid Tumours 5th ed (2022) + ICC 2022. Curated for JORINOVA NEXUS; verify against current guidance.",
+    "consumed_by": ["clinical_rules.py", "medical_rag.py", "cloud_llm.py"]
+  },
+
+  "acute_leukemia": {
+    "aml": {"name": "Acute myeloid leukaemia (AML)", "smear_features": ["myeloblasts", "Auer rods", "hypogranular/dysplastic forms"], "criteria": ["≥20% blasts in blood/marrow (or an AML-defining genetic abnormality regardless of blast %)"], "markers": ["MPO+", "CD13/CD33/CD117", "t(8;21) RUNX1-RUNX1T1", "inv(16) CBFB-MYH11", "NPM1", "FLT3-ITD"], "significance": "critical", "note": "Urgent. Rule out APL first (coagulopathy)."},
+    "apl": {"name": "Acute promyelocytic leukaemia (APL, AML with PML-RARA)", "smear_features": ["abnormal promyelocytes", "faggot cells (bundled Auer rods)"], "criteria": ["Abnormal promyelocytes + t(15;17) PML-RARA"], "markers": ["MPO strong+", "CD33+ CD13+ HLA-DR- CD34-", "t(15;17) PML-RARA"], "significance": "critical", "note": "MEDICAL EMERGENCY: DIC/bleeding. Start ATRA on suspicion before genetic confirmation."},
+    "all": {"name": "Acute lymphoblastic leukaemia / lymphoblastic lymphoma (ALL)", "smear_features": ["lymphoblasts (scant cytoplasm, condensed chromatin)"], "criteria": ["≥20% lymphoblasts; B- or T-lineage by flow"], "markers": ["TdT+", "B-ALL: CD19/CD10/CD22; t(9;22) BCR-ABL1, KMT2A", "T-ALL: CD3/CD7"], "significance": "critical", "note": "Commonest childhood leukaemia. Ph+ (BCR-ABL1) changes therapy (add TKI)."}
+  },
+
+  "mds": {
+    "mds": {"name": "Myelodysplastic syndrome (MDS)", "smear_features": ["dysplasia (hypogranular/hyposegmented neutrophils, Pelger-Huet)", "oval macrocytes", "dimorphic RBC", "hypogranular platelets"], "criteria": ["Persistent cytopenia(s) + dysplasia in ≥10% of a lineage and/or ring sideroblasts and/or MDS-defining cytogenetics; blasts <20%"], "markers": ["del(5q), -7/del(7q), del(20q), complex karyotype", "SF3B1 (ring sideroblasts), TP53, ASXL1, TET2"], "significance": "critical", "note": "Blast % and cytogenetics/TP53 drive risk (IPSS-R). Exclude B12/folate/copper deficiency + drugs first."},
+    "mds_ebfrom": {"name": "MDS with increased blasts (MDS-EB / MDS-IB)", "smear_features": ["blasts 5-19%", "dysplasia"], "criteria": ["Blasts 5-9% (IB1) or 10-19% (IB2) in marrow, or 2-19% in blood"], "markers": ["High-risk cytogenetics", "TP53 multi-hit"], "significance": "critical", "note": "High risk of AML progression."},
+    "mds_rs": {"name": "MDS with ring sideroblasts / low blasts (SF3B1)", "smear_features": ["dimorphic RBC", "basophilic stippling"], "criteria": ["Ring sideroblasts ≥15% (or ≥5% with SF3B1); blasts <5%"], "markers": ["SF3B1 mutation"], "significance": "significant", "note": "Generally lower-risk; iron-loading anaemia."}
+  },
+
+  "mpn": {
+    "cml": {"name": "Chronic myeloid leukaemia (CML)", "smear_features": ["marked leukocytosis with full myeloid left shift", "basophilia", "eosinophilia", "small platelets"], "criteria": ["BCR-ABL1 (Philadelphia chromosome) t(9;22) — defining"], "markers": ["BCR-ABL1 fusion (PCR/FISH)"], "significance": "critical", "note": "Confirm BCR-ABL1; treat with TKI (imatinib etc.). Watch for blast phase (≥20% blasts)."},
+    "pv": {"name": "Polycythaemia vera (PV)", "smear_features": ["raised Hb/Hct", "panmyelosis", "often raised WBC + platelets"], "criteria": ["Raised Hb/Hct + JAK2 V617F (or exon 12) + hypercellular marrow with panmyelosis; low EPO"], "markers": ["JAK2 V617F (~95%)"], "significance": "significant", "note": "Thrombosis risk — venesection + aspirin +/- cytoreduction."},
+    "et": {"name": "Essential thrombocythaemia (ET)", "smear_features": ["marked thrombocytosis", "giant/large platelets", "platelet anisocytosis"], "criteria": ["Platelets ≥450 x10^9/L + large mature megakaryocytes; JAK2/CALR/MPL; exclude reactive + other MPN/MDS"], "markers": ["JAK2 V617F, CALR, MPL"], "significance": "significant", "note": "Exclude reactive thrombocytosis (iron deficiency, infection, inflammation)."},
+    "pmf": {"name": "Primary myelofibrosis (PMF)", "smear_features": ["leukoerythroblastic film", "teardrop cells (dacrocytes)", "nucleated RBC + left-shifted myeloid"], "criteria": ["Marrow fibrosis (grade 2-3) + megakaryocyte atypia; JAK2/CALR/MPL; exclude other MPN"], "markers": ["JAK2, CALR, MPL"], "significance": "critical", "note": "Leukoerythroblastic + teardrops on film is the classic clue. Splenomegaly common."}
+  },
+
+  "mds_mpn_overlap": {
+    "cmml": {"name": "Chronic myelomonocytic leukaemia (CMML)", "smear_features": ["persistent monocytosis", "dysplastic + dysplastic monocytes", "left shift"], "criteria": ["Persistent monocytosis ≥0.5 x10^9/L and ≥10% of WBC + dysplasia; blasts <20%; no BCR-ABL1"], "markers": ["TET2, SRSF2, ASXL1", "no BCR-ABL1"], "significance": "critical", "note": "Overlaps MDS + MPN features."},
+    "acml": {"name": "Atypical chronic myeloid leukaemia (aCML), BCR-ABL1-negative", "smear_features": ["neutrophilic leukocytosis with dysgranulopoiesis", "left shift", "no/low basophilia"], "criteria": ["Neutrophilia + dysplasia; blasts <20%; BCR-ABL1 NEGATIVE"], "markers": ["SETBP1, ETNK1", "no BCR-ABL1"], "significance": "critical"},
+    "mds_mpn_rs_t": {"name": "MDS/MPN with ring sideroblasts and thrombocytosis (MDS/MPN-RS-T)", "smear_features": ["anaemia with ring sideroblasts + thrombocytosis", "large platelets"], "criteria": ["Ring sideroblasts + platelets ≥450 x10^9/L; often SF3B1 + JAK2"], "markers": ["SF3B1 + JAK2 V617F"], "significance": "significant"},
+    "jmml": {"name": "Juvenile myelomonocytic leukaemia (JMML)", "smear_features": ["monocytosis", "leukocytosis", "nucleated RBC"], "criteria": ["Childhood; monocytosis + splenomegaly; RAS-pathway mutation; no BCR-ABL1"], "markers": ["PTPN11, NRAS/KRAS, NF1, CBL"], "significance": "critical"}
+  },
+
+  "lymphoma_bcell": {
+    "cll_sll": {"name": "Chronic lymphocytic leukaemia / small lymphocytic lymphoma (CLL/SLL)", "smear_features": ["mature small lymphocytosis", "smudge (basket) cells"], "criteria": ["≥5 x10^9/L clonal B-cells; CD5+ CD23+ CD20(dim) surface Ig(dim)"], "markers": ["CD5+CD23+CD19+", "del(13q), del(11q), del(17p)/TP53, trisomy 12", "IGHV mutation status"], "significance": "significant", "note": "del(17p)/TP53 = adverse, avoid chemo (use targeted agents)."},
+    "follicular": {"name": "Follicular lymphoma", "smear_features": ["clefted (buttock-cell) lymphocytes if circulating"], "criteria": ["Follicular growth; t(14;18) BCL2-IGH"], "markers": ["CD10+ BCL6+ BCL2+", "t(14;18)"], "significance": "significant", "note": "Indolent; watch for transformation to DLBCL."},
+    "dlbcl": {"name": "Diffuse large B-cell lymphoma (DLBCL)", "smear_features": ["large atypical lymphoid cells (if leukaemic)"], "criteria": ["Diffuse large B-cells; determine COO (GCB vs ABC)"], "markers": ["CD20+", "MYC/BCL2/BCL6 rearrangements (double/triple-hit = high grade)"], "significance": "critical", "note": "Aggressive but curable; double-hit is high-grade — urgent."},
+    "mantle_cell": {"name": "Mantle cell lymphoma", "smear_features": ["small-medium irregular lymphocytes"], "criteria": ["CD5+ CD23- ; t(11;14) CCND1-IGH (cyclin D1+)"], "markers": ["Cyclin D1+ SOX11+", "t(11;14)"], "significance": "critical", "note": "CD5+ CD23-negative distinguishes from CLL."},
+    "burkitt": {"name": "Burkitt lymphoma / leukaemia", "smear_features": ["medium blasts with deeply basophilic vacuolated cytoplasm (L3)"], "criteria": ["MYC translocation t(8;14); Ki-67 ~100%"], "markers": ["CD10+ BCL6+ BCL2- ; MYC t(8;14)"], "significance": "critical", "note": "MEDICAL EMERGENCY: extremely fast-growing, tumour-lysis risk."},
+    "marginal_zone": {"name": "Marginal zone lymphoma (incl. MALT)", "smear_features": ["small lymphocytes +/- plasmacytoid"], "criteria": ["Marginal-zone/MALT pattern; CD5- CD10-"], "markers": ["CD20+ CD5- CD10-"], "significance": "significant", "note": "Gastric MALT — test/treat H. pylori."},
+    "hairy_cell": {"name": "Hairy cell leukaemia", "smear_features": ["hairy cells (villous cytoplasmic projections)", "pancytopenia + monocytopenia"], "criteria": ["Hairy cells; BRAF V600E"], "markers": ["CD11c+ CD25+ CD103+ CD123+", "BRAF V600E"], "significance": "critical", "note": "Monocytopenia is characteristic. Dry tap common."},
+    "lpl_waldenstrom": {"name": "Lymphoplasmacytic lymphoma / Waldenström macroglobulinaemia", "smear_features": ["lymphoplasmacytoid cells", "rouleaux (IgM paraprotein)"], "criteria": ["Lymphoplasmacytic infiltrate + IgM paraprotein; MYD88 L265P"], "markers": ["MYD88 L265P"], "significance": "significant", "note": "Hyperviscosity risk with high IgM."}
+  },
+
+  "lymphoma_tcell": {
+    "ptcl": {"name": "Peripheral T-cell lymphoma (PTCL)", "smear_features": ["pleomorphic atypical T-cells (if circulating)"], "criteria": ["Mature T-cell phenotype; aberrant loss of pan-T antigens"], "markers": ["CD3+ with antigen loss; clonal TCR"], "significance": "critical"},
+    "atll": {"name": "Adult T-cell leukaemia/lymphoma (ATLL)", "smear_features": ["flower cells (polylobated nuclei)", "hypercalcaemia"], "criteria": ["HTLV-1 positive; CD4+ CD25+"], "markers": ["HTLV-1", "CD4+CD25+"], "significance": "critical", "note": "Flower cells + hypercalcaemia + HTLV-1 endemic exposure."},
+    "sezary": {"name": "Sézary syndrome / mycosis fungoides", "smear_features": ["Sézary (cerebriform) cells"], "criteria": ["Erythroderma + clonal cerebriform T-cells ≥1 x10^9/L"], "markers": ["CD4+ with loss of CD7/CD26; clonal TCR"], "significance": "critical", "note": "Cutaneous T-cell lymphoma, leukaemic phase."},
+    "tlgl": {"name": "T-cell large granular lymphocytic leukaemia (T-LGL)", "smear_features": ["large granular lymphocytes", "neutropenia"], "criteria": ["Persistent LGL >6 months; STAT3"], "markers": ["CD3+CD8+CD57+", "STAT3 mutation"], "significance": "significant", "note": "Associated with rheumatoid arthritis / cytopenias."}
+  },
+
+  "hodgkin": {
+    "classic_hodgkin": {"name": "Classic Hodgkin lymphoma", "smear_features": ["(tissue) Reed-Sternberg cells + inflammatory background"], "criteria": ["Reed-Sternberg cells; CD30+ CD15+ CD45-"], "markers": ["CD30+ CD15+ PAX5(dim)+ CD45-", "EBV (LMP1) in some"], "significance": "critical", "note": "Nodal biopsy required (not a blood-film diagnosis). Highly curable."},
+    "nlphl": {"name": "Nodular lymphocyte-predominant Hodgkin lymphoma (NLPHL)", "smear_features": ["(tissue) LP 'popcorn' cells"], "criteria": ["LP cells CD20+ CD30- CD15-"], "markers": ["CD20+ CD45+ CD30- CD15-"], "significance": "significant", "note": "B-cell-derived; more indolent, can transform to DLBCL."}
+  },
+
+  "plasma_cell": {
+    "myeloma": {"name": "Plasma cell myeloma (multiple myeloma)", "smear_features": ["rouleaux", "circulating plasma cells (if plasma cell leukaemia)", "blue background (paraprotein)"], "criteria": ["Clonal marrow plasma cells ≥10% or plasmacytoma + CRAB (hyperCalcaemia, Renal, Anaemia, Bone) or a myeloma-defining biomarker (≥60% PC, FLC ratio ≥100, >1 focal MRI lesion)"], "markers": ["CD138+ CD38+ cytoplasmic light-chain restriction", "t(4;14), t(14;16), del(17p) = high risk", "serum/urine paraprotein + free light chains"], "significance": "critical", "note": "Check calcium, creatinine, Hb, SPEP/FLC. del(17p)/t(4;14) adverse."},
+    "mgus": {"name": "Monoclonal gammopathy of undetermined significance (MGUS)", "smear_features": ["rouleaux"], "criteria": ["Paraprotein <30 g/L + marrow plasma cells <10% + no CRAB/myeloma-defining event"], "markers": ["serum paraprotein + FLC ratio"], "significance": "significant", "note": "Pre-malignant; monitor (~1%/yr progression to myeloma)."},
+    "plasma_cell_leukemia": {"name": "Plasma cell leukaemia", "smear_features": ["circulating plasma cells ≥20% of WBC or ≥2 x10^9/L"], "criteria": ["Circulating clonal plasma cells above threshold"], "markers": ["CD138+ CD38+"], "significance": "critical", "note": "Aggressive; urgent haematology."}
+  }
+}
