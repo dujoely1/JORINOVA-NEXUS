@@ -1,0 +1,4 @@
+# TB chest X-ray classes -> keys in backend/ai_services/tb_cxr_findings.json
+normal: [normal]
+tb_specific: [tb, cavitation, miliary, fibrosis]
+general_cxr: [consolidation, pleural_effusion, hilar_lymphadenopathy, nodule, pneumothorax, cardiomegaly]

@@ -1,0 +1,26 @@
+{
+  "_meta": {
+    "purpose": "Arterial/venous blood gas (ABG/VBG) reference + acid-base interpretation for the rules engine + LLM. Decision support only; interpret with clinical context + electrolytes + lactate.",
+    "significance_levels": ["normal", "significant", "critical"],
+    "source": "Standard blood-gas / acid-base references. Curated for JORINOVA NEXUS.",
+    "consumed_by": ["clinical_rules.py", "cloud_llm.py"]
+  },
+
+  "parameters": {
+    "ph":     {"name": "pH", "units": "", "ref_low": 7.35, "ref_high": 7.45, "critical_low": 7.2, "critical_high": 7.6, "note": "<7.35 acidaemia; >7.45 alkalaemia."},
+    "pco2":   {"name": "pCO2", "units": "kPa", "ref_low": 4.7, "ref_high": 6.0, "critical_high": 8.5, "note": "Respiratory component. High -> resp acidosis/hypoventilation; low -> resp alkalosis/hyperventilation. (~35-45 mmHg)."},
+    "po2":    {"name": "pO2 (arterial)", "units": "kPa", "ref_low": 11, "ref_high": 13, "critical_low": 8, "note": "<8 kPa (60 mmHg) = respiratory failure (type 1 if pCO2 normal/low, type 2 if pCO2 high)."},
+    "hco3":   {"name": "Bicarbonate (HCO3-)", "units": "mmol/L", "ref_low": 22, "ref_high": 26, "note": "Metabolic component. Low -> metabolic acidosis; high -> metabolic alkalosis."},
+    "base_excess":{"name": "Base excess", "units": "mmol/L", "ref_low": -2, "ref_high": 2, "note": "Negative -> metabolic acidosis; positive -> metabolic alkalosis."},
+    "lactate":{"name": "Lactate", "units": "mmol/L", "ref_low": 0.5, "ref_high": 2.0, "critical_high": 4.0, "note": ">4 -> hypoperfusion/sepsis."}
+  },
+
+  "patterns": {
+    "metabolic_acidosis":   {"finding": "Metabolic acidosis", "pattern": "low pH, low HCO3, negative BE", "next": "calculate anion gap", "note": "High AG -> lactate/ketones/toxins/uraemia (MUDPILES); normal AG -> GI/renal HCO3 loss (RTA, diarrhoea)."},
+    "respiratory_acidosis": {"finding": "Respiratory acidosis", "pattern": "low pH, high pCO2", "note": "Hypoventilation (COPD, opioids, neuromuscular). Chronic -> renal HCO3 compensation."},
+    "metabolic_alkalosis":  {"finding": "Metabolic alkalosis", "pattern": "high pH, high HCO3", "note": "Vomiting, diuretics, hypokalaemia, antacids."},
+    "respiratory_alkalosis":{"finding": "Respiratory alkalosis", "pattern": "high pH, low pCO2", "note": "Hyperventilation (anxiety, pain, PE, sepsis, salicylate early)."},
+    "type1_resp_failure":   {"finding": "Type 1 respiratory failure", "pattern": "low pO2, normal/low pCO2", "significance": "critical"},
+    "type2_resp_failure":   {"finding": "Type 2 respiratory failure", "pattern": "low pO2, high pCO2", "significance": "critical", "note": "Watch for CO2 narcosis; controlled O2 in COPD."}
+  }
+}

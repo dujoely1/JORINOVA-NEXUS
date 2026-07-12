@@ -1,0 +1,34 @@
+{
+  "_meta": {
+    "purpose": "Serology / immunology interpretation (infectious serology + autoantibodies) for the rules engine + LLM. Results are reactive/non-reactive, titres, or antibody/antigen patterns rather than simple numeric ranges. Decision support only; confirmatory/reference-lab testing required for diagnosis.",
+    "significance_levels": ["normal", "significant", "critical"],
+    "source": "Standard clinical serology + autoimmune panels (WHO/CDC/EULAR). Curated for JORINOVA NEXUS.",
+    "consumed_by": ["clinical_rules.py", "cloud_llm.py", "medical_rag.py"]
+  },
+
+  "infectious": {
+    "hiv_ag_ab":     {"name": "HIV Ag/Ab (4th gen)", "reactive_means": "HIV infection (needs confirmatory)", "significance": "critical", "note": "Reactive screen -> confirm with differentiation/RNA assay per national algorithm. Window period ~2-4 weeks."},
+    "hbsag":         {"name": "Hepatitis B surface antigen (HBsAg)", "reactive_means": "Active HBV infection (acute or chronic)", "significance": "critical", "note": "Interpret full panel: HBsAg/anti-HBs/anti-HBc(IgM/total)/HBeAg/HBV-DNA."},
+    "anti_hbs":      {"name": "Anti-HBs", "reactive_means": "Immunity (vaccine or past infection)", "significance": "normal", "note": ">=10 IU/L = protective."},
+    "anti_hbc":      {"name": "Anti-HBc (total/IgM)", "reactive_means": "Past or current HBV exposure; IgM -> recent/acute", "significance": "significant"},
+    "anti_hcv":      {"name": "Hepatitis C antibody", "reactive_means": "HCV exposure -> confirm with HCV-RNA", "significance": "critical", "note": "Antibody+ does not distinguish active vs cleared; RNA confirms viraemia."},
+    "syphilis_treponemal":{"name": "Treponemal test (TPHA/TPPA/EIA)", "reactive_means": "Syphilis exposure (stays positive lifelong)", "significance": "significant", "note": "Confirm activity with non-treponemal titre (RPR/VDRL)."},
+    "syphilis_rpr":  {"name": "RPR / VDRL (non-treponemal)", "reactive_means": "Active/recent syphilis; titre tracks activity", "significance": "significant", "note": "4-fold titre fall = treatment response; biological false-positives occur (pregnancy, autoimmune)."},
+    "malaria_rdt":   {"name": "Malaria antigen RDT", "reactive_means": "Malaria (species by line: HRP2=falciparum, pLDH)", "significance": "critical", "note": "Confirm + speciate + quantify on blood film (see malaria detector)."},
+    "widal":         {"name": "Widal (typhoid)", "reactive_means": "Suggestive of enteric fever (low specificity)", "significance": "significant", "note": "Paired rising titres more useful; culture is gold standard."},
+    "dengue_ns1":    {"name": "Dengue NS1 / IgM", "reactive_means": "Acute dengue (NS1 early; IgM from ~day 5)", "significance": "significant"},
+    "covid_antigen": {"name": "SARS-CoV-2 antigen/PCR", "reactive_means": "Active COVID-19", "significance": "significant"},
+    "h_pylori":      {"name": "H. pylori (antigen/serology)", "reactive_means": "H. pylori infection", "significance": "significant", "note": "Stool antigen/breath test show active infection; serology can't distinguish past vs current."}
+  },
+
+  "autoimmune": {
+    "ana":           {"name": "Antinuclear antibody (ANA)", "reactive_means": "Screen for connective tissue disease (SLE etc.)", "significance": "significant", "note": "Report titre + pattern; low-titre common in healthy. Reflex to ENA/dsDNA if positive + symptomatic."},
+    "anti_dsdna":    {"name": "Anti-dsDNA", "reactive_means": "SLE (specific); tracks activity/nephritis", "significance": "significant"},
+    "ena":           {"name": "ENA panel (Ro/La/Sm/RNP/Scl-70/Jo-1)", "reactive_means": "Specific CTD subsets (Sjögren, SLE, scleroderma, myositis)", "significance": "significant"},
+    "anca":          {"name": "ANCA (c-/p-ANCA, PR3/MPO)", "reactive_means": "ANCA-associated vasculitis (GPA/MPA/EGPA)", "significance": "critical", "note": "PR3 -> GPA; MPO -> MPA/EGPA. Urgent if pulmonary-renal syndrome."},
+    "rf":            {"name": "Rheumatoid factor (RF)", "reactive_means": "Rheumatoid arthritis (also infection/age)", "significance": "significant"},
+    "anti_ccp":      {"name": "Anti-CCP", "reactive_means": "Rheumatoid arthritis (specific, prognostic)", "significance": "significant"},
+    "anti_ttg":      {"name": "Anti-tTG IgA (coeliac)", "reactive_means": "Coeliac disease (needs total IgA + biopsy)", "significance": "significant", "note": "Check total IgA to exclude IgA deficiency false-negative."},
+    "antiphospholipid":{"name": "Antiphospholipid antibodies (lupus anticoagulant, anti-cardiolipin, anti-β2GP1)", "reactive_means": "Antiphospholipid syndrome (thrombosis/pregnancy loss)", "significance": "critical", "note": "Confirm persistence at 12 weeks."}
+  }
+}

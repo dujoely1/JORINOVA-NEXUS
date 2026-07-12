@@ -416,6 +416,7 @@ def _local_detect(image_type: str, file_path: str) -> Optional[dict]:
             'mycology':       ('mycology_organisms.json',       'Mycology',       'no fungal elements seen - confirm on culture'),
             'cytology':       ('cytology_findings.json',        'Cytology',       'no abnormal cells - screening only, cytopathologist reviews'),
             'histology':      ('histology_findings.json',       'Histology',      'no malignancy identified - pathologist reviews'),
+            'tb_cxr':         ('tb_cxr_findings.json',          'TB chest X-ray', 'no significant CXR finding - radiologist reviews'),
         }
         if key in _ORGMAP:
             omfile, olabel, oempty = _ORGMAP[key]

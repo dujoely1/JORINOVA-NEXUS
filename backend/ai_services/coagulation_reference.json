@@ -1,0 +1,29 @@
+{
+  "_meta": {
+    "purpose": "Coagulation / haemostasis reference intervals + pattern interpretation (mixing study, DIC, DVT/PE, monitoring) for the rules engine + LLM. Decision support only; correlate with clinical bleeding/thrombosis + drugs.",
+    "significance_levels": ["normal", "low", "high", "critical"],
+    "source": "Standard coagulation reference intervals + haemostasis guidance. Curated for JORINOVA NEXUS; assay/reagent-specific (esp. APTT/anti-Xa).",
+    "consumed_by": ["clinical_rules.py", "cloud_llm.py"]
+  },
+
+  "analytes": {
+    "pt":        {"name": "Prothrombin time (PT)", "units": "s", "ref_low": 11, "ref_high": 14, "note": "Extrinsic + common pathway (VII, X, V, II, fibrinogen). Prolonged -> warfarin, liver disease, vit K deficiency, DIC."},
+    "inr":       {"name": "INR", "units": "ratio", "ref_low": 0.8, "ref_high": 1.2, "critical_high": 5.0, "note": "On warfarin: target usually 2-3 (3-4 mechanical valves). >5 or bleeding -> vit K +/- PCC."},
+    "aptt":      {"name": "Activated partial thromboplastin time (APTT)", "units": "s", "ref_low": 25, "ref_high": 38, "note": "Intrinsic + common pathway. Prolonged -> heparin, haemophilia A/B, factor deficiency, lupus anticoagulant, DIC."},
+    "aptt_ratio":{"name": "APTT ratio", "units": "ratio", "ref_low": 0.8, "ref_high": 1.2, "note": "Used to titrate unfractionated heparin (target ~1.5-2.5, protocol-specific)."},
+    "fibrinogen":{"name": "Fibrinogen (Clauss)", "units": "g/L", "ref_low": 2.0, "ref_high": 4.0, "critical_low": 1.0, "note": "Acute-phase (rises in inflammation); LOW in DIC / dilution / dysfibrinogenaemia -> bleeding. <1.0 critical in obstetric haemorrhage."},
+    "d_dimer":   {"name": "D-dimer", "units": "µg/L FEU", "ref_low": 0, "ref_high": 500, "note": "High sensitivity/low specificity. NEGATIVE + low pretest probability rules OUT VTE. Raised in DIC, sepsis, malignancy, pregnancy, age."},
+    "thrombin_time":{"name": "Thrombin time (TT)", "units": "s", "ref_low": 14, "ref_high": 21, "note": "Prolonged -> heparin, dysfibrinogenaemia, low fibrinogen, dabigatran."},
+    "anti_xa":   {"name": "Anti-Xa (LMWH/DOAC)", "units": "IU/mL", "ref_low": 0.5, "ref_high": 1.0, "note": "LMWH therapeutic peak ~0.5-1.0 (4h post-dose, OD dosing differs). Assay must be drug-calibrated."},
+    "platelets": {"name": "Platelet count", "units": "x10^9/L", "ref_low": 150, "ref_high": 400, "critical_low": 20, "critical_high": 1000, "note": "<20 spontaneous-bleed risk; exclude EDTA clumping (pseudothrombocytopenia) on film."}
+  },
+
+  "patterns": {
+    "prolonged_pt_normal_aptt":  {"finding": "Prolonged PT, normal APTT", "interpretation": ["Factor VII deficiency", "early warfarin", "early vitamin K deficiency", "mild liver disease"]},
+    "normal_pt_prolonged_aptt":  {"finding": "Normal PT, prolonged APTT", "interpretation": ["Heparin", "haemophilia A (VIII) or B (IX)", "factor XI/XII deficiency", "von Willebrand disease", "lupus anticoagulant"], "note": "Do a mixing study to separate factor deficiency (corrects) from inhibitor (no correction)."},
+    "both_prolonged":            {"finding": "Prolonged PT AND APTT", "interpretation": ["Liver disease", "DIC", "vitamin K deficiency (advanced)", "warfarin overdose", "common-pathway factor deficiency (X, V, II, fibrinogen)"]},
+    "dic":                       {"finding": "DIC pattern", "interpretation": ["Prolonged PT/APTT + LOW fibrinogen + LOW platelets + HIGH D-dimer + schistocytes on film"], "significance": "critical", "note": "Treat cause; support with FFP/cryo/platelets guided by results."},
+    "mixing_study_corrects":     {"finding": "Mixing study corrects", "interpretation": ["Factor deficiency"], "note": "1:1 mix with normal plasma corrects the prolonged time."},
+    "mixing_study_no_correct":   {"finding": "Mixing study does NOT correct", "interpretation": ["Inhibitor present (lupus anticoagulant, factor inhibitor, heparin)"]}
+  }
+}

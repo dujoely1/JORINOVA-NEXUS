@@ -1,0 +1,31 @@
+{
+  "_meta": {
+    "purpose": "Microbiology culture + antimicrobial susceptibility (AST/antibiogram) interpretation aids for the rules engine + LLM: how to read S/I/R, key resistance phenotypes to flag, and specimen-quality rules. NOT a replacement for a validated AST system + local breakpoints (EUCAST/CLSI). Decision support only.",
+    "significance_levels": ["normal", "significant", "critical"],
+    "source": "EUCAST/CLSI concepts + standard clinical microbiology. Curated for JORINOVA NEXUS; apply CURRENT local breakpoints.",
+    "consumed_by": ["clinical_rules.py", "cloud_llm.py", "medical_rag.py"]
+  },
+
+  "interpretation": {
+    "S": {"name": "Susceptible (standard dosing)", "meaning": "High likelihood of therapeutic success at standard dose."},
+    "I": {"name": "Susceptible, increased exposure", "meaning": "Success likely if higher dose / higher exposure at the site."},
+    "R": {"name": "Resistant", "meaning": "High likelihood of failure even with increased exposure — avoid."}
+  },
+
+  "resistance_phenotypes": {
+    "mrsa":  {"name": "MRSA", "organism": "Staphylococcus aureus", "flag": "cefoxitin/oxacillin resistant", "significance": "critical", "note": "Use glycopeptide/alternative; infection-control isolation. See gram_positive_cocci_clusters."},
+    "vre":   {"name": "VRE", "organism": "Enterococcus", "flag": "vancomycin resistant (vanA/vanB)", "significance": "critical", "note": "Isolate; linezolid/daptomycin per sensitivities."},
+    "esbl":  {"name": "ESBL", "organism": "Enterobacterales", "flag": "3rd-gen cephalosporin resistant", "significance": "critical", "note": "Carbapenem often required; contact precautions."},
+    "ampc":  {"name": "AmpC", "organism": "Enterobacter/Citrobacter/Serratia", "flag": "inducible cephalosporinase", "significance": "significant", "note": "Avoid 3rd-gen cephalosporins even if reported S (risk of on-therapy resistance)."},
+    "cre":   {"name": "CRE / carbapenemase", "organism": "Enterobacterales", "flag": "carbapenem resistant (KPC/NDM/OXA-48)", "significance": "critical", "note": "MAJOR alert: strict isolation, notify IPC, limited options (novel BL/BLI, colistin)."},
+    "mdr_pseudomonas":{"name": "MDR Pseudomonas/Acinetobacter", "flag": "resistant to >=3 classes", "significance": "critical", "note": "Combination therapy per sensitivities; isolate."},
+    "difficile":{"name": "Clostridioides difficile", "flag": "toxin/GDH positive stool", "significance": "critical", "note": "Isolate (spore); stop offending antibiotics; oral vancomycin/fidaxomicin."},
+    "penicillin_resistant_pneumococcus":{"name": "Penicillin-resistant S. pneumoniae", "flag": "reduced penicillin susceptibility", "significance": "significant", "note": "Meningitis breakpoints differ — use meningitis interpretation for CSF isolates."}
+  },
+
+  "specimen_quality": {
+    "sputum":{"name": "Sputum quality (Bartlett/Q score)", "rule": "Accept if >25 neutrophils and <10 squamous epithelial cells per LPF", "note": "Many squamous cells -> saliva contamination, reject/recollect."},
+    "blood_culture":{"name": "Blood culture", "note": "Single CoNS from one set often contaminant; same organism in >=2 sets or with sepsis -> significant. Time-to-positivity aids interpretation."},
+    "urine":{"name": "Urine culture", "rule": ">=10^5 CFU/mL single organism (or lower with symptoms/catheter) = significant", "note": "Mixed growth / many epithelials -> contamination, recollect (MSU)."}
+  }
+}
