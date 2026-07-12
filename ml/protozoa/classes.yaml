@@ -1,0 +1,3 @@
+# Stool-protozoa detector classes -> keys in backend/ai_services/protozoa_organisms.json
+pathogenic: [entamoeba_histolytica, giardia_lamblia, cryptosporidium, cyclospora, cystoisospora, blastocystis, balantidium_coli, dientamoeba_fragilis]
+commensal_nonpathogenic: [entamoeba_dispar, entamoeba_coli, iodamoeba_butschlii, endolimax_nana, chilomastix_mesnili]

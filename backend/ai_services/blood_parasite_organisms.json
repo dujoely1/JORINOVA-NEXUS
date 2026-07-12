@@ -1,0 +1,19 @@
+{
+  "_meta": {
+    "purpose": "Blood parasites — microfilariae (filariae) + trypanosomes/leishmania on blood film -> disease. Keys are YOLO class names (snake_case) from the microfilaria/blood-parasite detector. Resolves each to its disease + significance. Malaria/Babesia are covered by the dedicated malaria detector and the PBS blood_parasite classes. Decision support only; a microscopist speciates.",
+    "significance_levels": ["normal", "significant", "critical"],
+    "source": "CDC DPDx + WHO filariasis references. Curated for JORINOVA NEXUS."
+  },
+
+  "organisms": {
+    "wuchereria_bancrofti":   {"name": "Wuchereria bancrofti microfilaria", "aka": ["w_bancrofti", "bancrofti"], "significance": "significant", "disease": "Bancroftian lymphatic filariasis", "note": "Sheathed; gently curved; nuclei do NOT reach tip. Nocturnal periodicity — sample ~22:00-02:00. Chronic -> lymphoedema/elephantiasis. Treat: DEC (+ albendazole)."},
+    "brugia_malayi":          {"name": "Brugia malayi microfilaria", "aka": ["b_malayi", "brugia"], "significance": "significant", "disease": "Brugian lymphatic filariasis", "note": "Sheathed; kinky; TWO separate terminal nuclei at tip. Nocturnal periodicity. Treat: DEC."},
+    "loa_loa":                {"name": "Loa loa microfilaria", "aka": ["loa", "loaloa"], "significance": "significant", "disease": "Loiasis (eye worm)", "note": "Sheathed; nuclei extend to tip. DIURNAL periodicity — sample midday. Exclude high load before DEC/ivermectin (encephalopathy risk)."},
+    "mansonella_perstans":    {"name": "Mansonella perstans microfilaria", "aka": ["m_perstans", "mansonella"], "significance": "significant", "disease": "Mansonellosis", "note": "UNsheathed; small; nuclei to blunt tip. No periodicity. Often mild/asymptomatic."},
+    "onchocerca_volvulus":    {"name": "Onchocerca volvulus microfilaria (skin snip)", "aka": ["onchocerca", "river_blindness"], "specimen": "skin_snip", "significance": "critical", "disease": "Onchocerciasis (river blindness)", "note": "Skin/nodule, NOT blood. Unsheathed. Ocular involvement -> blindness. Treat: ivermectin (avoid if Loa co-infection with high load)."},
+    "trypanosoma_brucei":     {"name": "Trypanosoma brucei trypomastigote", "aka": ["t_brucei", "trypanosoma", "african_trypanosome"], "significance": "critical", "disease": "African trypanosomiasis (sleeping sickness)", "note": "Extracellular flagellate in plasma. CNS stage fatal if untreated. Urgent."},
+    "trypanosoma_cruzi":      {"name": "Trypanosoma cruzi trypomastigote", "aka": ["t_cruzi", "chagas"], "significance": "critical", "disease": "Chagas disease (American trypanosomiasis)", "note": "C-shaped trypomastigote; cardiomyopathy/megacolon long-term. Urgent."},
+    "leishmania":             {"name": "Leishmania amastigote", "aka": ["leishmania_donovani", "amastigote", "ld_body"], "significance": "critical", "disease": "Leishmaniasis (visceral / cutaneous)", "note": "Intracellular amastigotes (Leishman-Donovan bodies) in macrophages — marrow/splenic aspirate. Visceral (kala-azar) fatal if untreated."},
+    "microfilaria":           {"name": "Microfilaria (species unspecified)", "aka": ["microfilariae", "filaria"], "significance": "significant", "disease": "Filariasis (speciate)", "note": "Assess sheath + tail nuclei + periodicity to speciate (Wuchereria/Brugia/Loa/Mansonella)."}
+  }
+}

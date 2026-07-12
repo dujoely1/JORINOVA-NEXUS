@@ -1,0 +1,3 @@
+# Blood-parasite / microfilaria detector classes -> keys in backend/ai_services/blood_parasite_organisms.json
+microfilariae: [wuchereria_bancrofti, brugia_malayi, loa_loa, mansonella_perstans, onchocerca_volvulus, microfilaria]
+flagellates: [trypanosoma_brucei, trypanosoma_cruzi, leishmania]

@@ -1,0 +1,6 @@
+# Urine-sediment detector classes -> keys in backend/ai_services/urine_sediment_findings.json
+casts: [hyaline_cast, granular_cast, rbc_cast, wbc_cast, epithelial_cast, waxy_cast, fatty_cast, broad_cast]
+cells: [rbc, wbc, squamous_epithelial, transitional_epithelial, renal_tubular_epithelial, oval_fat_body]
+crystals: [calcium_oxalate_crystal, uric_acid_crystal, triple_phosphate_crystal, cystine_crystal, calcium_phosphate_crystal, cholesterol_crystal, tyrosine_crystal, leucine_crystal, bilirubin_crystal]
+organisms: [bacteria, yeast, trichomonas]
+other: [mucus, sperm, artifact]

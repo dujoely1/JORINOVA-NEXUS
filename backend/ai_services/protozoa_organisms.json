@@ -1,0 +1,23 @@
+{
+  "_meta": {
+    "purpose": "Stool intestinal protozoa (cysts / trophozoites / oocysts) -> disease. Keys are YOLO class names (snake_case) from the protozoa detector. The vision service resolves each detected organism to its disease + significance. Decision support only; a microscopist validates (wet prep / trichrome / modified acid-fast).",
+    "significance_levels": ["normal", "significant", "critical"],
+    "source": "CDC DPDx + WHO intestinal protozoa references. Curated for JORINOVA NEXUS."
+  },
+
+  "organisms": {
+    "entamoeba_histolytica":  {"name": "Entamoeba histolytica cyst/trophozoite", "aka": ["e_histolytica", "amoeba", "histolytica"], "significance": "significant", "disease": "Amoebiasis", "note": "Amoebic dysentery; can cause LIVER ABSCESS. Ingested RBCs in trophozoite = invasive. Distinguish from non-pathogenic E. dispar/moshkovskii. Treat: metronidazole + luminal agent."},
+    "entamoeba_dispar":       {"name": "Entamoeba dispar/moshkovskii", "aka": ["e_dispar", "e_moshkovskii"], "significance": "normal", "disease": "Non-pathogenic amoeba (commensal)", "note": "Morphologically identical to E. histolytica — do NOT treat unless histolytica confirmed (antigen/PCR)."},
+    "entamoeba_coli":         {"name": "Entamoeba coli cyst/trophozoite", "aka": ["e_coli_amoeba"], "significance": "normal", "disease": "Non-pathogenic commensal", "note": "Marker of faecal-oral exposure; ≥5 nuclei in mature cyst."},
+    "giardia_lamblia":        {"name": "Giardia lamblia cyst/trophozoite", "aka": ["giardia", "giardia_duodenalis", "giardia_intestinalis"], "significance": "significant", "disease": "Giardiasis", "note": "Malabsorption, chronic/foul diarrhoea. 'Falling-leaf' motility; face-like trophozoite. Treat: metronidazole/tinidazole."},
+    "cryptosporidium":        {"name": "Cryptosporidium oocyst", "aka": ["crypto", "cryptosporidium_parvum"], "significance": "critical", "disease": "Cryptosporidiosis", "note": "Modified acid-fast oocysts (4-6 µm). Severe/chronic diarrhoea in HIV/immunocompromised — can be life-threatening. Notifiable in many settings."},
+    "cyclospora":             {"name": "Cyclospora cayetanensis oocyst", "aka": ["cyclospora_cayetanensis"], "significance": "significant", "disease": "Cyclosporiasis", "note": "Acid-fast, 8-10 µm, autofluorescent. Prolonged watery diarrhoea. Treat: co-trimoxazole."},
+    "cystoisospora":          {"name": "Cystoisospora belli oocyst", "aka": ["isospora", "isospora_belli", "cystoisospora_belli"], "significance": "significant", "disease": "Cystoisosporiasis", "note": "Elongated oocyst; chronic diarrhoea in immunocompromised. Treat: co-trimoxazole."},
+    "blastocystis":           {"name": "Blastocystis hominis", "aka": ["blastocystis_hominis"], "significance": "significant", "disease": "Blastocystosis (variable pathogenicity)", "note": "Central-body forms; significance debated — treat if symptomatic and other causes excluded."},
+    "balantidium_coli":       {"name": "Balantidium coli cyst/trophozoite", "aka": ["balantidium"], "significance": "significant", "disease": "Balantidiasis", "note": "Largest human protozoan; ciliated. May cause colonic ulceration. Treat: tetracycline/metronidazole."},
+    "dientamoeba_fragilis":   {"name": "Dientamoeba fragilis trophozoite", "aka": ["dientamoeba"], "significance": "significant", "disease": "Dientamoebiasis", "note": "Binucleate trophozoite (no cyst); permanent stain needed. Chronic GI symptoms."},
+    "iodamoeba_butschlii":    {"name": "Iodamoeba butschlii cyst/trophozoite", "aka": ["iodamoeba"], "significance": "normal", "disease": "Non-pathogenic commensal", "note": "Large glycogen vacuole in cyst."},
+    "endolimax_nana":         {"name": "Endolimax nana cyst/trophozoite", "aka": ["endolimax"], "significance": "normal", "disease": "Non-pathogenic commensal"},
+    "chilomastix_mesnili":    {"name": "Chilomastix mesnili cyst/trophozoite", "aka": ["chilomastix"], "significance": "normal", "disease": "Non-pathogenic flagellate commensal"}
+  }
+}
