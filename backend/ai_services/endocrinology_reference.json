@@ -1,0 +1,33 @@
+{
+  "_meta": {
+    "purpose": "Endocrinology / hormone reference intervals + axis interpretation for the rules engine + LLM. Many hormones need paired axis interpretation (e.g. TSH+FT4, ACTH+cortisol) and timing (diurnal, cycle day, fasting). Decision support only; endocrinologist confirms with dynamic testing.",
+    "significance_levels": ["normal", "low", "high"],
+    "source": "Standard endocrine reference intervals + guideline cut-offs. Curated for JORINOVA NEXUS; confirm assay-specific ranges.",
+    "consumed_by": ["clinical_rules.py", "cloud_llm.py"]
+  },
+
+  "analytes": {
+    "tsh":        {"name": "TSH", "units": "mIU/L", "ref_low": 0.4, "ref_high": 4.0, "axis": "thyroid", "note": "First-line. High TSH+low FT4 = primary hypothyroid; low TSH+high FT4 = hyperthyroid; low TSH+low FT4 = central."},
+    "ft4":        {"name": "Free T4", "units": "pmol/L", "ref_low": 9, "ref_high": 25, "axis": "thyroid"},
+    "ft3":        {"name": "Free T3", "units": "pmol/L", "ref_low": 3.5, "ref_high": 6.5, "axis": "thyroid", "note": "T3-toxicosis; low in sick-euthyroid."},
+    "tpo_ab":     {"name": "Anti-TPO antibody", "units": "IU/mL", "ref_low": 0, "ref_high": 34, "axis": "thyroid", "note": "Positive -> autoimmune (Hashimoto/Graves)."},
+    "cortisol_am":{"name": "Cortisol (9am)", "units": "nmol/L", "ref_low": 133, "ref_high": 537, "axis": "adrenal", "note": "<100 am with symptoms -> adrenal insufficiency (Short Synacthen); >dynamic suppression fails -> Cushing."},
+    "acth":       {"name": "ACTH", "units": "ng/L", "ref_low": 7.2, "ref_high": 63, "axis": "adrenal", "note": "High ACTH+low cortisol = primary (Addison); low ACTH+low cortisol = secondary."},
+    "aldosterone":{"name": "Aldosterone", "units": "pmol/L", "ref_low": 100, "ref_high": 900, "axis": "adrenal", "note": "Use aldosterone:renin ratio for primary hyperaldosteronism (Conn)."},
+    "renin":      {"name": "Renin (active)", "units": "mIU/L", "ref_low": 5, "ref_high": 46, "axis": "adrenal"},
+    "prolactin":  {"name": "Prolactin", "units": "mIU/L", "ref_low": 100, "ref_high": 500, "axis": "pituitary", "note": "High -> prolactinoma, drugs, pregnancy; exclude macroprolactin."},
+    "gh":         {"name": "Growth hormone", "units": "µg/L", "ref_low": 0, "ref_high": 3, "axis": "pituitary", "note": "Interpret with IGF-1 + dynamic tests (OGTT suppression / GST)."},
+    "igf1":       {"name": "IGF-1", "units": "nmol/L", "ref_low": 13, "ref_high": 45, "axis": "pituitary", "note": "Age-dependent; high -> acromegaly."},
+    "pth":        {"name": "Parathyroid hormone (PTH)", "units": "pmol/L", "ref_low": 1.6, "ref_high": 6.9, "axis": "calcium", "note": "Interpret WITH calcium: high Ca+high/normal PTH = primary hyperPTH; low Ca+high PTH = secondary; high Ca+low PTH = malignancy."},
+    "vitamin_d":  {"name": "25-OH Vitamin D", "units": "nmol/L", "ref_low": 50, "ref_high": 250, "axis": "calcium", "note": "<25 deficient, 25-50 insufficient."},
+    "fsh":        {"name": "FSH", "units": "IU/L", "ref_low": 1.5, "ref_high": 12.4, "axis": "reproductive", "note": "Cycle/sex dependent; high FSH+LH -> primary gonadal failure/menopause."},
+    "lh":         {"name": "LH", "units": "IU/L", "ref_low": 1.7, "ref_high": 8.6, "axis": "reproductive", "note": "LH:FSH >2 supports PCOS."},
+    "oestradiol": {"name": "Oestradiol", "units": "pmol/L", "ref_low": 100, "ref_high": 1500, "axis": "reproductive", "note": "Highly cycle-phase dependent."},
+    "progesterone":{"name": "Progesterone", "units": "nmol/L", "ref_low": 0, "ref_high": 80, "axis": "reproductive", "note": "Day-21 >30 confirms ovulation."},
+    "testosterone":{"name": "Testosterone (total, male)", "units": "nmol/L", "ref_low": 8.6, "ref_high": 29, "axis": "reproductive", "note": "Morning fasting sample; interpret with SHBG/free T."},
+    "beta_hcg":   {"name": "Beta-hCG", "units": "IU/L", "ref_low": 0, "ref_high": 5, "axis": "reproductive", "note": ">5 -> pregnancy (or trophoblastic/germ-cell tumour if non-pregnant)."},
+    "insulin":    {"name": "Insulin (fasting)", "units": "pmol/L", "ref_low": 18, "ref_high": 173, "axis": "glucose", "note": "Interpret with paired glucose + C-peptide (hypoglycaemia workup)."},
+    "c_peptide":  {"name": "C-peptide", "units": "nmol/L", "ref_low": 0.37, "ref_high": 1.47, "axis": "glucose", "note": "Distinguishes endogenous (high) vs exogenous insulin (low)."},
+    "cortisol_dst":{"name": "Cortisol post-1mg dexamethasone", "units": "nmol/L", "ref_low": 0, "ref_high": 50, "axis": "adrenal", "note": ">50 = failure to suppress -> investigate Cushing."}
+  }
+}

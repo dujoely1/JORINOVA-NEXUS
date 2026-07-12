@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "purpose": "Urinalysis dipstick + physical/chemical interpretation for the rules engine + LLM. Complements the urine_sediment vision detector (which reads the microscopy). Decision support only.",
+    "significance_levels": ["normal", "significant", "critical"],
+    "source": "Standard urinalysis references (Strasinger). Curated for JORINOVA NEXUS.",
+    "consumed_by": ["clinical_rules.py", "cloud_llm.py"]
+  },
+
+  "parameters": {
+    "colour":        {"name": "Colour", "normal": "pale-yellow to amber", "note": "Red -> blood/myoglobin/beetroot; brown -> bilirubin/myoglobin; dark -> concentrated."},
+    "clarity":       {"name": "Clarity", "normal": "clear", "note": "Turbid -> cells, crystals, bacteria, mucus."},
+    "specific_gravity":{"name": "Specific gravity", "units": "", "ref_low": 1.005, "ref_high": 1.030, "note": "Low -> diabetes insipidus/overhydration; fixed ~1.010 -> renal failure."},
+    "ph":            {"name": "pH", "units": "", "ref_low": 4.5, "ref_high": 8.0, "note": "Alkaline -> urease UTI (Proteus), RTA, veg diet; acidic -> ketoacidosis."},
+    "protein":       {"name": "Protein", "normal": "negative/trace", "significance": "significant", "note": "Persistent -> glomerular disease; quantify with ACR/PCR. Dipstick misses light chains."},
+    "glucose":       {"name": "Glucose", "normal": "negative", "significance": "significant", "note": "Positive -> hyperglycaemia exceeding renal threshold, or SGLT2i, or renal glycosuria."},
+    "ketones":       {"name": "Ketones", "normal": "negative", "significance": "significant", "note": "Positive -> DKA, starvation, alcohol. Combine with glucose + gas."},
+    "blood":         {"name": "Blood (haem)", "normal": "negative", "significance": "significant", "note": "Positive -> RBCs (haematuria), free Hb, or myoglobin. Confirm with microscopy (see urine_sediment)."},
+    "leukocyte_esterase":{"name": "Leukocyte esterase", "normal": "negative", "significance": "significant", "note": "Positive -> pyuria (UTI/inflammation)."},
+    "nitrite":       {"name": "Nitrite", "normal": "negative", "significance": "significant", "note": "Positive -> Enterobacterales UTI (specific, not sensitive). LE + nitrite positive -> UTI likely."},
+    "bilirubin":     {"name": "Bilirubin", "normal": "negative", "significance": "significant", "note": "Positive -> conjugated hyperbilirubinaemia (hepatobiliary)."},
+    "urobilinogen":  {"name": "Urobilinogen", "normal": "normal/low", "significance": "significant", "note": "High -> haemolysis/hepatocellular; absent -> biliary obstruction."},
+    "microalbumin_acr":{"name": "Albumin:creatinine ratio (ACR)", "units": "mg/mmol", "ref_high": 3.0, "significance": "significant", "note": ">3 = albuminuria (diabetic/CKD screening); >30 = macroalbuminuria."}
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "_meta": {
+    "purpose": "Semen analysis reference limits (WHO 6th ed, 2021 lower reference limits, 5th centile) for the rules engine + LLM. Decision support only; repeat after >=2-3 weeks if abnormal, confirm abstinence 2-7 days.",
+    "significance_levels": ["normal", "low"],
+    "source": "WHO laboratory manual for the examination of human semen, 6th ed (2021). Curated for JORINOVA NEXUS.",
+    "consumed_by": ["clinical_rules.py", "cloud_llm.py"]
+  },
+
+  "parameters": {
+    "volume":            {"name": "Semen volume", "units": "mL", "ref_low": 1.4, "note": "Low -> retrograde/ejaculatory duct obstruction/short abstinence."},
+    "ph":                {"name": "pH", "units": "", "ref_low": 7.2, "note": "Low + low volume + no fructose -> ejaculatory duct/seminal vesicle problem."},
+    "concentration":     {"name": "Sperm concentration", "units": "million/mL", "ref_low": 16, "term_low": "oligozoospermia", "note": "<16 = oligozoospermia; 0 = azoospermia (confirm on centrifuged pellet)."},
+    "total_count":       {"name": "Total sperm number", "units": "million/ejaculate", "ref_low": 39},
+    "total_motility":    {"name": "Total motility", "units": "%", "ref_low": 42, "term_low": "asthenozoospermia", "note": "<42% = asthenozoospermia."},
+    "progressive_motility":{"name": "Progressive motility", "units": "%", "ref_low": 30},
+    "vitality":          {"name": "Vitality (live)", "units": "%", "ref_low": 54, "term_low": "necrozoospermia", "note": "Distinguishes immotile-but-alive from dead sperm."},
+    "normal_morphology": {"name": "Normal forms", "units": "%", "ref_low": 4, "term_low": "teratozoospermia", "note": "Strict (Kruger) criteria; <4% = teratozoospermia."},
+    "leukocytes":        {"name": "Peroxidase-positive leukocytes", "units": "million/mL", "ref_high": 1.0, "note": ">1.0 = leukocytospermia -> possible genital tract infection/inflammation."}
+  },
+
+  "terms": {
+    "azoospermia":    "no sperm in the ejaculate",
+    "oligozoospermia":"low sperm concentration/number",
+    "asthenozoospermia":"reduced motility",
+    "teratozoospermia":"reduced normal morphology",
+    "oligoasthenoteratozoospermia":"OAT — all three reduced",
+    "necrozoospermia":"high proportion of dead sperm"
+  }
+}

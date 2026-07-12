@@ -1,0 +1,22 @@
+{
+  "_meta": {
+    "purpose": "TB chest X-ray (CXR) finding -> significance. Keys are YOLO class names from the tb_cxr detector. Screening/triage aid for pulmonary TB and common CXR findings; a radiologist reports and microbiology (smear/GeneXpert/culture) confirms TB. Decision support only.",
+    "significance_levels": ["normal", "significant", "critical"],
+    "source": "Standard chest radiology + WHO TB screening. Curated for JORINOVA NEXUS.",
+    "consumed_by": ["vision_service.py"]
+  },
+
+  "findings": {
+    "normal":               {"name": "Normal chest X-ray", "aka": ["no_finding"], "significance": "normal", "disease": "No radiographic abnormality"},
+    "tb":                    {"name": "Findings suggestive of TB", "aka": ["tuberculosis", "active_tb"], "significance": "critical", "disease": "Pulmonary tuberculosis (suggestive)", "note": "CRITICAL: airborne isolation + confirm with sputum smear/GeneXpert/culture (notifiable)."},
+    "cavitation":           {"name": "Cavitation", "aka": ["cavity", "cavitary_lesion"], "significance": "critical", "disease": "Post-primary TB (upper-lobe cavity), abscess, cavitating cancer", "note": "Upper-lobe cavitation is classic for infectious/highly transmissible TB."},
+    "consolidation":        {"name": "Consolidation", "aka": ["airspace_opacity", "pneumonia"], "significance": "significant", "disease": "Pneumonia / TB / other airspace disease"},
+    "miliary":              {"name": "Miliary pattern", "aka": ["miliary_tb", "micronodular"], "significance": "critical", "disease": "Miliary (disseminated) TB", "note": "CRITICAL: diffuse tiny nodules -> disseminated TB, urgent."},
+    "pleural_effusion":     {"name": "Pleural effusion", "aka": ["effusion"], "significance": "significant", "disease": "TB pleuritis, parapneumonic, malignant, heart failure", "note": "Sample fluid (see body_fluid_reference / Light's criteria)."},
+    "hilar_lymphadenopathy":{"name": "Hilar / mediastinal lymphadenopathy", "aka": ["lymphadenopathy", "hilar_nodes"], "significance": "significant", "disease": "Primary TB, sarcoidosis, lymphoma, malignancy"},
+    "nodule":               {"name": "Pulmonary nodule / mass", "aka": ["mass", "lung_nodule"], "significance": "significant", "disease": "TB granuloma, malignancy, other", "note": "Characterise size/margins; malignancy risk -> CT + follow-up."},
+    "fibrosis":             {"name": "Fibrosis / scarring", "aka": ["fibrotic", "scarring"], "significance": "significant", "disease": "Old/healed TB, chronic lung disease", "note": "Upper-lobe fibrosis + volume loss suggests prior TB."},
+    "pneumothorax":         {"name": "Pneumothorax", "aka": ["ptx"], "significance": "critical", "disease": "Pneumothorax", "note": "CRITICAL if large/tension -> urgent decompression."},
+    "cardiomegaly":         {"name": "Cardiomegaly", "aka": ["enlarged_heart"], "significance": "significant", "disease": "Cardiac enlargement (CTR >0.5)"}
+  }
+}

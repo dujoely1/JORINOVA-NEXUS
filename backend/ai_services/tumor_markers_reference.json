@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "purpose": "Tumour marker reference cut-offs + follow-up logic for the rules engine + LLM. Tumour markers are mainly for MONITORING known cancer + specific work-ups, NOT population screening (except PSA/AFP in context). Interpret trends, not single values. Decision support only.",
+    "significance_levels": ["normal", "raised", "critical"],
+    "source": "Standard tumour-marker reference cut-offs + guideline usage. Curated for JORINOVA NEXUS; assay-specific.",
+    "consumed_by": ["clinical_rules.py", "cloud_llm.py", "medical_rag.py"]
+  },
+
+  "markers": {
+    "psa":     {"name": "Prostate-specific antigen (PSA)", "units": "µg/L", "ref_high": 4.0, "associated": ["Prostate cancer", "BPH", "prostatitis"], "note": "Age-specific cut-offs; use free:total PSA + velocity. Not diagnostic alone."},
+    "cea":     {"name": "Carcinoembryonic antigen (CEA)", "units": "µg/L", "ref_high": 5.0, "associated": ["Colorectal cancer (monitoring)", "smokers (mildly raised)"], "note": "Post-op surveillance; rising trend -> recurrence."},
+    "afp":     {"name": "Alpha-fetoprotein (AFP)", "units": "µg/L", "ref_high": 10, "associated": ["Hepatocellular carcinoma", "non-seminomatous germ-cell tumour", "pregnancy/NTD"], "note": "HCC surveillance in cirrhosis; germ-cell staging with hCG/LDH."},
+    "ca125":   {"name": "CA-125", "units": "U/mL", "ref_high": 35, "associated": ["Ovarian cancer (monitoring)", "endometriosis/ascites/menstruation (false+)"], "note": "Use with imaging + RMI/ROMA; not for screening asymptomatic women."},
+    "ca19_9":  {"name": "CA 19-9", "units": "U/mL", "ref_high": 37, "associated": ["Pancreatic cancer", "cholangiocarcinoma", "cholestasis (false+)"], "note": "Undetectable in Lewis-antigen-negative people. Correlate with bilirubin."},
+    "ca15_3":  {"name": "CA 15-3", "units": "U/mL", "ref_high": 30, "associated": ["Breast cancer (monitoring metastatic disease)"], "note": "Follow-up marker, not screening."},
+    "beta_hcg":{"name": "Beta-hCG (tumour)", "units": "IU/L", "ref_high": 5, "associated": ["Gestational trophoblastic disease", "germ-cell tumour", "choriocarcinoma"], "note": "Very high -> molar/choriocarcinoma; also germ-cell staging."},
+    "ldh_tumor":{"name": "LDH (tumour context)", "units": "U/L", "ref_high": 225, "associated": ["Germ-cell tumour staging", "lymphoma bulk", "tumour lysis"], "note": "Prognostic in germ-cell + lymphoma."},
+    "thyroglobulin":{"name": "Thyroglobulin", "units": "µg/L", "ref_high": 55, "associated": ["Differentiated thyroid cancer (post-thyroidectomy monitoring)"], "note": "Should be ~undetectable after total thyroidectomy + RAI; check anti-Tg antibody interference."},
+    "calcitonin":{"name": "Calcitonin", "units": "ng/L", "ref_high": 10, "associated": ["Medullary thyroid carcinoma", "C-cell hyperplasia"], "note": "Screen in MEN2/familial MTC."},
+    "chromogranin_a":{"name": "Chromogranin A", "units": "µg/L", "ref_high": 100, "associated": ["Neuroendocrine tumours (NET)"], "note": "Raised by PPIs + renal impairment."},
+    "b2_microglobulin":{"name": "Beta-2 microglobulin", "units": "mg/L", "ref_high": 3.0, "associated": ["Myeloma staging (ISS)", "lymphoma"], "note": "Renal-dependent; part of myeloma ISS."},
+    "paraprotein":{"name": "Serum paraprotein (M-protein)", "units": "g/L", "ref_high": 0, "associated": ["Myeloma", "MGUS", "Waldenström"], "note": "Any monoclonal band is abnormal; quantify + free light chains + immunofixation. See hematology_neoplasms.json."}
+  }
+}

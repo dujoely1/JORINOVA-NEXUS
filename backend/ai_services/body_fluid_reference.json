@@ -1,0 +1,31 @@
+{
+  "_meta": {
+    "purpose": "Body-fluid analysis interpretation (CSF, pleural/ascitic, synovial) for the rules engine + LLM, including Light's criteria and CSF patterns. Decision support only; culture/cytology confirm.",
+    "significance_levels": ["normal", "significant", "critical"],
+    "source": "Standard body-fluid analysis references + Light's criteria + SAAG. Curated for JORINOVA NEXUS.",
+    "consumed_by": ["clinical_rules.py", "cloud_llm.py"]
+  },
+
+  "csf": {
+    "opening_pressure":{"name": "CSF opening pressure", "units": "cmH2O", "ref_low": 10, "ref_high": 20, "note": "High -> meningitis, SAH, raised ICP, IIH."},
+    "wcc":       {"name": "CSF white cell count", "units": "cells/µL", "ref_high": 5, "significance": "critical", "note": "Neutrophil predominance -> bacterial; lymphocytic -> viral/TB/fungal. >5 abnormal (adult)."},
+    "protein":   {"name": "CSF protein", "units": "g/L", "ref_low": 0.15, "ref_high": 0.45, "note": "High -> infection, inflammation, Guillain-Barré (albuminocytologic dissociation), block."},
+    "glucose_ratio":{"name": "CSF:serum glucose ratio", "units": "ratio", "ref_low": 0.6, "ref_high": 1.0, "significance": "critical", "note": "LOW (<0.4) -> bacterial/TB/fungal meningitis; normal -> viral."},
+    "patterns": {
+      "bacterial":{"finding": "Bacterial meningitis", "csf": "cloudy, neutrophils high, protein high, glucose LOW", "significance": "critical", "note": "EMERGENCY: Gram stain + culture + start empirical antibiotics immediately."},
+      "viral":    {"finding": "Viral meningitis", "csf": "clear, lymphocytes, protein normal/mild, glucose normal"},
+      "tb_fungal":{"finding": "TB / fungal meningitis", "csf": "lymphocytes, protein HIGH, glucose LOW", "note": "India ink/CrAg for Cryptococcus; ZN/GeneXpert for TB."}
+    }
+  },
+
+  "serous_fluid": {
+    "lights_criteria":{"name": "Light's criteria (pleural exudate if ANY)", "criteria": ["fluid:serum protein >0.5", "fluid:serum LDH >0.6", "fluid LDH > 2/3 upper serum limit"], "note": "Exudate -> infection/malignancy/PE/inflammation; transudate -> heart failure/cirrhosis/nephrotic."},
+    "saag":     {"name": "Serum-ascites albumin gradient (SAAG)", "units": "g/L", "note": ">=11 g/L -> portal hypertension (cirrhosis/heart failure); <11 -> malignancy/TB/pancreatic/nephrotic."},
+    "pleural_ph":{"name": "Pleural fluid pH", "units": "", "ref_low": 7.6, "note": "<7.2 in infection -> complicated parapneumonic/empyema -> drain."}
+  },
+
+  "synovial_fluid": {
+    "wcc":      {"name": "Synovial WCC", "units": "cells/µL", "note": "<200 normal; 200-2000 non-inflammatory; 2000-50000 inflammatory; >50000 with neutrophils -> SEPTIC ARTHRITIS.", "significance": "critical"},
+    "crystals": {"name": "Synovial crystals (polarised)", "note": "Negatively birefringent needles -> gout (urate); positively birefringent rhomboids -> pseudogout (CPPD)."}
+  }
+}
