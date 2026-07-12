@@ -1,0 +1,22 @@
+{
+  "_meta": {
+    "purpose": "Bacteriology — Gram stain (+ acid-fast) morphotype -> likely organisms & significance. Keys are YOLO class names from the bacteriology detector. Decision support only; culture + ID/AST confirm. Report morphology + arrangement, not a definitive organism, from the smear.",
+    "significance_levels": ["normal", "significant", "critical"],
+    "source": "Standard clinical microbiology (Koneman; CLSI). Curated for JORINOVA NEXUS."
+  },
+
+  "organisms": {
+    "gram_positive_cocci_clusters": {"name": "Gram-positive cocci in clusters", "aka": ["gpc_clusters", "staph", "gram_positive_cocci"], "significance": "significant", "disease": "Staphylococcus spp. (S. aureus / CoNS)", "note": "Clusters suggest Staphylococcus. Correlate with catalase/coagulase; MRSA risk."},
+    "gram_positive_cocci_chains":   {"name": "Gram-positive cocci in chains", "aka": ["gpc_chains", "strep"], "significance": "significant", "disease": "Streptococcus / Enterococcus spp.", "note": "Chains suggest Streptococcus. Group A (S. pyogenes), viridans, Enterococcus."},
+    "gram_positive_cocci_pairs":    {"name": "Gram-positive diplococci (lancet)", "aka": ["gpc_pairs", "diplococci_gram_positive"], "significance": "significant", "disease": "Streptococcus pneumoniae", "note": "Lancet-shaped diplococci in CSF/sputum -> pneumococcus (urgent in CSF)."},
+    "gram_negative_bacilli":        {"name": "Gram-negative bacilli (rods)", "aka": ["gnr", "gram_negative_rods"], "significance": "significant", "disease": "Enterobacterales (E. coli, Klebsiella...) / Pseudomonas", "note": "Commonest in UTI/sepsis. In blood culture -> notify; ESBL/CRE risk."},
+    "gram_negative_coccobacilli":   {"name": "Gram-negative coccobacilli", "aka": ["gn_coccobacilli"], "significance": "significant", "disease": "Haemophilus / Acinetobacter / Bordetella", "note": "Tiny pleomorphic GN forms."},
+    "gram_negative_diplococci":     {"name": "Gram-negative diplococci", "aka": ["gnd", "diplococci_gram_negative"], "significance": "critical", "disease": "Neisseria meningitidis / N. gonorrhoeae", "note": "Intracellular GN diplococci in CSF -> MENINGOCOCCUS: medical emergency, notify immediately."},
+    "gram_positive_bacilli":        {"name": "Gram-positive bacilli (rods)", "aka": ["gpr", "gram_positive_rods"], "significance": "significant", "disease": "Bacillus / Clostridium / Listeria / Corynebacterium", "note": "Consider Listeria in CSF/neonates; Clostridium if anaerobic/gas."},
+    "gram_variable_bacilli":        {"name": "Gram-variable bacilli", "aka": ["gram_variable"], "significance": "significant", "disease": "Gardnerella / Clostridioides / mixed", "note": "Clue cells + GV rods in vaginal smear -> bacterial vaginosis."},
+    "acid_fast_bacilli":            {"name": "Acid-fast bacilli (Ziehl-Neelsen)", "aka": ["afb", "ziehl_neelsen", " afb_positive", "mycobacterium"], "significance": "critical", "disease": "Mycobacterium tuberculosis (TB) / NTM", "note": "CRITICAL: TB is notifiable — start airborne isolation, confirm GeneXpert/culture, grade AFB load."},
+    "yeast":                        {"name": "Yeast / budding yeast (Gram)", "aka": ["budding_yeast", "candida"], "significance": "significant", "disease": "Candida spp. (see mycology detector)", "note": "Correlate with pus cells; candiduria/candidaemia risk in at-risk hosts."},
+    "pus_cell":                     {"name": "Pus cell (neutrophil)", "aka": ["pus_cells", "leukocyte", "wbc"], "significance": "significant", "disease": "Inflammation / infection", "note": "Many pus cells + organisms + few epithelials = good specimen with infection."},
+    "epithelial_cell":              {"name": "Squamous epithelial cell", "aka": ["epithelial_cells", "squamous"], "significance": "normal", "disease": "Contamination marker", "note": ">10/lpf (esp. sputum) suggests saliva contamination — reject/recollect."}
+  }
+}

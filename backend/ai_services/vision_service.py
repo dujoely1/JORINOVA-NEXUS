@@ -412,6 +412,10 @@ def _local_detect(image_type: str, file_path: str) -> Optional[dict]:
             'protozoa':       ('protozoa_organisms.json',       'Stool protozoa', 'no protozoa detected - confirm on manual O&P (wet prep / trichrome)'),
             'microfilaria':   ('blood_parasite_organisms.json', 'Blood parasites','no blood parasites detected - confirm on thick/thin film'),
             'urine_sediment': ('urine_sediment_findings.json',  'Urine sediment', 'no significant sediment - confirm on manual microscopy'),
+            'bacteriology':   ('bacteriology_organisms.json',   'Bacteriology',   'no organisms seen - confirm on culture'),
+            'mycology':       ('mycology_organisms.json',       'Mycology',       'no fungal elements seen - confirm on culture'),
+            'cytology':       ('cytology_findings.json',        'Cytology',       'no abnormal cells - screening only, cytopathologist reviews'),
+            'histology':      ('histology_findings.json',       'Histology',      'no malignancy identified - pathologist reviews'),
         }
         if key in _ORGMAP:
             omfile, olabel, oempty = _ORGMAP[key]

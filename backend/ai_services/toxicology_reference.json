@@ -1,0 +1,31 @@
+{
+  "_meta": {
+    "purpose": "Toxicology / therapeutic drug monitoring (TDM) reference ranges. INTERPRETATION domain (no image model): the rules engine + LLM read a measured drug/toxin level and this table to flag therapeutic vs toxic. Units are stated per analyte. Decision support only; clinical toxicology + poisons centre guide management.",
+    "significance_levels": ["therapeutic", "subtherapeutic", "toxic", "critical"],
+    "usage": "For a result value V of key K: subtherapeutic if V<therapeutic_low; therapeutic if in [low,high]; toxic if >=toxic; critical if >=critical or a critical_flag applies. Levels are drawn at the stated timing.",
+    "source": "Standard TDM / clinical toxicology references (Micromedex; TIETZ; local poisons guidance). Curated for JORINOVA NEXUS — verify against local assay units."
+  },
+
+  "analytes": {
+    "paracetamol":   {"name": "Paracetamol (acetaminophen)", "units": "mg/L", "therapeutic_low": 10, "therapeutic_high": 20, "toxic": 150, "timing": "4 h post-ingestion (use Rumack-Matthew nomogram)", "note": "Plot 4 h level on nomogram; start N-acetylcysteine if above treatment line or staggered/unknown time.", "critical": true},
+    "salicylate":    {"name": "Salicylate (aspirin)", "units": "mg/L", "therapeutic_low": 150, "therapeutic_high": 300, "toxic": 500, "critical_value": 700, "timing": "repeat 2-hourly until falling", "note": ">500 moderate, >700 severe -> urinary alkalinisation / haemodialysis. Watch mixed acid-base.", "critical": true},
+    "digoxin":       {"name": "Digoxin", "units": "ng/mL", "therapeutic_low": 0.5, "therapeutic_high": 2.0, "toxic": 2.5, "timing": ">=6 h post-dose", "note": "Toxicity worse with hypokalaemia/renal failure; consider DigiFab. Correlate with K+.", "critical": true},
+    "lithium":       {"name": "Lithium", "units": "mmol/L", "therapeutic_low": 0.6, "therapeutic_high": 1.2, "toxic": 1.5, "critical_value": 2.5, "timing": "12 h post-dose (trough)", "note": ">1.5 toxic; >2.5 or symptomatic -> haemodialysis. Check renal function/hydration.", "critical": true},
+    "phenytoin":     {"name": "Phenytoin", "units": "mg/L", "therapeutic_low": 10, "therapeutic_high": 20, "toxic": 30, "timing": "trough", "note": "Correct for albumin; free phenytoin better if hypoalbuminaemia/renal failure."},
+    "carbamazepine": {"name": "Carbamazepine", "units": "mg/L", "therapeutic_low": 4, "therapeutic_high": 12, "toxic": 15, "timing": "trough"},
+    "valproate":     {"name": "Valproic acid", "units": "mg/L", "therapeutic_low": 50, "therapeutic_high": 100, "toxic": 150, "timing": "trough", "note": "Hyperammonaemia can occur even at therapeutic levels."},
+    "phenobarbital": {"name": "Phenobarbital", "units": "mg/L", "therapeutic_low": 15, "therapeutic_high": 40, "toxic": 50, "timing": "trough"},
+    "theophylline":  {"name": "Theophylline", "units": "mg/L", "therapeutic_low": 10, "therapeutic_high": 20, "toxic": 25, "critical_value": 40, "timing": "peak", "note": ">40 -> arrhythmia/seizure; consider haemodialysis.", "critical": true},
+    "vancomycin":    {"name": "Vancomycin (trough)", "units": "mg/L", "therapeutic_low": 10, "therapeutic_high": 20, "toxic": 25, "timing": "trough (pre-dose)", "note": "Target AUC/MIC; troughs >20 raise nephrotoxicity risk."},
+    "gentamicin":    {"name": "Gentamicin (trough)", "units": "mg/L", "therapeutic_low": 0, "therapeutic_high": 1, "toxic": 2, "timing": "trough (pre-dose)", "note": "High trough -> nephro/ototoxicity; use extended-interval dosing nomogram for peak."},
+    "amikacin":      {"name": "Amikacin (trough)", "units": "mg/L", "therapeutic_low": 0, "therapeutic_high": 5, "toxic": 10, "timing": "trough"},
+    "ciclosporin":   {"name": "Ciclosporin", "units": "ng/mL", "therapeutic_low": 100, "therapeutic_high": 300, "toxic": 400, "timing": "C0 trough (assay/indication specific)"},
+    "tacrolimus":    {"name": "Tacrolimus", "units": "ng/mL", "therapeutic_low": 5, "therapeutic_high": 15, "toxic": 20, "timing": "C0 trough"},
+    "ethanol":       {"name": "Ethanol", "units": "mg/dL", "therapeutic_low": 0, "therapeutic_high": 0, "toxic": 80, "critical_value": 400, "timing": "any", "note": ">80 mg/dL legal-impairment range; >400 potentially fatal. Check osmolar gap for co-ingestants.", "critical": true},
+    "methanol":      {"name": "Methanol", "units": "mg/dL", "therapeutic_low": 0, "therapeutic_high": 0, "toxic": 20, "timing": "any", "note": "CRITICAL: raised anion-gap metabolic acidosis + osmolar gap -> fomepizole/ethanol + haemodialysis.", "critical": true},
+    "ethylene_glycol":{"name": "Ethylene glycol", "units": "mg/dL", "therapeutic_low": 0, "therapeutic_high": 0, "toxic": 20, "timing": "any", "note": "CRITICAL: anion-gap acidosis + oxalate crystalluria -> fomepizole + haemodialysis.", "critical": true},
+    "iron":          {"name": "Iron (serum, overdose)", "units": "µg/dL", "therapeutic_low": 50, "therapeutic_high": 150, "toxic": 350, "critical_value": 500, "timing": "4-6 h post-ingestion", "note": ">500 severe -> desferrioxamine.", "critical": true},
+    "carboxyhemoglobin":{"name": "Carboxyhaemoglobin (CO)", "units": "%", "therapeutic_low": 0, "therapeutic_high": 3, "toxic": 15, "critical_value": 25, "timing": "any", "note": "Non-smoker <3%, smoker <10%. >25% or neuro/cardiac -> consider hyperbaric O2.", "critical": true},
+    "methemoglobin": {"name": "Methaemoglobin", "units": "%", "therapeutic_low": 0, "therapeutic_high": 1, "toxic": 15, "critical_value": 30, "timing": "any", "note": ">15% symptomatic; >30% -> methylene blue (avoid in G6PD deficiency).", "critical": true}
+  }
+}

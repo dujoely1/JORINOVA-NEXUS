@@ -1,0 +1,4 @@
+# Cytology (Pap/FNA) classes -> keys in backend/ai_services/cytology_findings.json
+normal: [superficial_intermediate, parabasal, metaplastic]
+squamous_lesions: [koilocyte, dyskeratotic, ascus, asc_h, lsil, hsil, squamous_cell_carcinoma]
+glandular_malignant: [agc, malignant_cell]

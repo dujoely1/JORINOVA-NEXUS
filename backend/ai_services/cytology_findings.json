@@ -1,0 +1,22 @@
+{
+  "_meta": {
+    "purpose": "Cytology (cervical Pap / FNA) cell finding -> Bethesda category & significance. Keys are YOLO class names from the cytology detector (SIPaKMeD-style + Bethesda). Decision support/screening only; a cytopathologist reports.",
+    "significance_levels": ["normal", "significant", "critical"],
+    "source": "SIPaKMeD classes + Bethesda System 2014. Curated for JORINOVA NEXUS."
+  },
+
+  "findings": {
+    "superficial_intermediate": {"name": "Superficial/intermediate squamous cell (normal)", "aka": ["superficial", "intermediate", "normal_squamous"], "significance": "normal", "disease": "NILM — negative for intraepithelial lesion", "note": "Normal mature squamous cell."},
+    "parabasal":               {"name": "Parabasal cell (normal)", "aka": ["parabasal_cell"], "significance": "normal", "disease": "NILM (atrophic/immature pattern)", "note": "Normal; common atrophic/post-menopausal or immature epithelium."},
+    "metaplastic":             {"name": "Squamous metaplastic cell", "aka": ["metaplasia", "metaplastic_cell"], "significance": "normal", "disease": "NILM (metaplasia — benign)", "note": "Benign transformation-zone cell."},
+    "koilocyte":               {"name": "Koilocyte (HPV cytopathic effect)", "aka": ["koilocytosis", "hpv"], "significance": "significant", "disease": "LSIL — HPV / CIN 1", "note": "Perinuclear halo + nuclear atypia = HPV effect (LSIL). Recommend HPV test/follow-up."},
+    "dyskeratotic":            {"name": "Dyskeratotic / dysplastic cell", "aka": ["dyskeratocyte", "dysplastic"], "significance": "critical", "disease": "HSIL — CIN 2/3 (pre-cancer)", "note": "High N:C ratio, hyperchromasia -> HSIL. Refer for colposcopy."},
+    "ascus":                   {"name": "Atypical squamous cells of undetermined significance", "aka": ["asc_us", "atypical_squamous"], "significance": "significant", "disease": "ASC-US", "note": "Reflex HPV testing recommended."},
+    "asc_h":                   {"name": "Atypical squamous cells — cannot exclude HSIL", "aka": ["asch"], "significance": "critical", "disease": "ASC-H", "note": "Refer for colposcopy (HSIL cannot be excluded)."},
+    "lsil":                    {"name": "Low-grade squamous intraepithelial lesion", "aka": ["low_grade_sil", "cin1"], "significance": "significant", "disease": "LSIL (CIN 1)"},
+    "hsil":                    {"name": "High-grade squamous intraepithelial lesion", "aka": ["high_grade_sil", "cin2", "cin3"], "significance": "critical", "disease": "HSIL (CIN 2/3 — pre-cancer)", "note": "Refer for colposcopy + biopsy."},
+    "squamous_cell_carcinoma": {"name": "Squamous cell carcinoma (cytology)", "aka": ["scc", "carcinoma"], "significance": "critical", "disease": "Invasive squamous cell carcinoma", "note": "CRITICAL: tumour diathesis + malignant cells — urgent referral."},
+    "agc":                     {"name": "Atypical glandular cells", "aka": ["atypical_glandular", "adenocarcinoma_in_situ"], "significance": "critical", "disease": "AGC / possible adenocarcinoma", "note": "Investigate endocervix + endometrium; refer."},
+    "malignant_cell":          {"name": "Malignant cell (general cytology/FNA)", "aka": ["malignant", "cancer_cell", "tumor_cell"], "significance": "critical", "disease": "Malignancy — correlate with site/FNA", "note": "CRITICAL: confirm with histology/immunocytochemistry."}
+  }
+}

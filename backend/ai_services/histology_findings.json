@@ -1,0 +1,22 @@
+{
+  "_meta": {
+    "purpose": "Histopathology (tissue section) finding -> significance. Keys are YOLO class names from the histology detector. Broad screening aid across tissue types; a pathologist grades/stages and issues the diagnosis.",
+    "significance_levels": ["normal", "significant", "critical"],
+    "source": "General surgical pathology + WHO tumour classification. Curated for JORINOVA NEXUS."
+  },
+
+  "findings": {
+    "normal_tissue":           {"name": "Normal tissue", "aka": ["normal", "benign_tissue"], "significance": "normal", "disease": "No malignancy identified"},
+    "benign":                  {"name": "Benign lesion", "aka": ["benign_lesion"], "significance": "significant", "disease": "Benign neoplasm / reactive change", "note": "Correlate with clinical/imaging; confirm margins if excised."},
+    "inflammation":            {"name": "Inflammatory infiltrate", "aka": ["inflammatory", "inflammatory_cells"], "significance": "significant", "disease": "Inflammation / infection", "note": "Acute vs chronic; look for granulomas (TB/sarcoid)."},
+    "granuloma":               {"name": "Granuloma", "aka": ["granulomatous"], "significance": "significant", "disease": "Granulomatous disease (TB, sarcoid, fungal)", "note": "Order special stains (ZN, GMS) + correlate."},
+    "necrosis":                {"name": "Necrosis", "aka": ["necrotic", "tumor_necrosis"], "significance": "significant", "disease": "Necrosis (tumour/ischaemic)", "note": "Tumour necrosis affects grading."},
+    "mitotic_figure":          {"name": "Mitotic figure", "aka": ["mitosis", "mitoses"], "significance": "significant", "disease": "Proliferation marker (grading)", "note": "Count per HPF for grade; atypical mitoses favour malignancy."},
+    "dysplasia":               {"name": "Dysplasia", "aka": ["dysplastic", "atypia"], "significance": "significant", "disease": "Dysplasia / pre-malignant change", "note": "Grade low vs high; high-grade needs close follow-up/excision."},
+    "adenocarcinoma":          {"name": "Adenocarcinoma", "aka": ["adeno", "glandular_carcinoma"], "significance": "critical", "disease": "Adenocarcinoma (malignant)", "note": "CRITICAL: grade + margins + IHC; MDT referral."},
+    "squamous_cell_carcinoma": {"name": "Squamous cell carcinoma", "aka": ["scc"], "significance": "critical", "disease": "Squamous cell carcinoma (malignant)", "note": "CRITICAL: keratinisation/grade; MDT referral."},
+    "carcinoma":               {"name": "Carcinoma (unspecified)", "aka": ["malignant_epithelial"], "significance": "critical", "disease": "Malignant epithelial tumour", "note": "CRITICAL: subtype with IHC; MDT referral."},
+    "tumor":                   {"name": "Tumour tissue", "aka": ["tumour", "neoplasm", "malignant"], "significance": "critical", "disease": "Neoplasm — benign vs malignant to confirm", "note": "CRITICAL until characterised — grade/stage + IHC."},
+    "metastasis":              {"name": "Metastatic deposit", "aka": ["metastatic", "mets"], "significance": "critical", "disease": "Metastatic malignancy", "note": "CRITICAL: identify primary (IHC panel); affects staging."}
+  }
+}
