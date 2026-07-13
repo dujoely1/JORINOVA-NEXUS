@@ -419,6 +419,7 @@ _ROUTERS = [
     # Operations
     ('routers.inventory',       'router'),
     ('routers.quality',         'router'),
+    ('routers.quality_engine',  'router'),   # autoverification + full Westgard + critical callback
     ('routers.staffhub',        'router'),
     ('routers.surveillance',    'router'),
     ('routers.dashboard',       'router'),

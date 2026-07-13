@@ -20,77 +20,85 @@ log = logging.getLogger('qc_service')
 class QCService:
     """Quality-control service for ALIS-X laboratory IQC."""
 
+    # Westgard multi-rule set. Any REJECT rule fails the run; 1_2s alone = warning.
+    _REJECT_RULES = ('1_3s', '2_2s', 'R_4s', '4_1s', '10x', '2of3_2s', '3_1s')
+
     @staticmethod
-    def evaluate_westgard(db: Session, lot_number: str, new_value: float) -> dict[str, Any]:
+    def evaluate_westgard(db: Session, lot_number: str, new_value: float,
+                          analyte_name: str | None = None,
+                          control_level: str | None = None,
+                          mean: float | None = None, sd: float | None = None) -> dict[str, Any]:
         """
-        Evaluate a new IQC value against stored Levey-Jennings statistics.
+        Evaluate a new IQC value with the FULL Westgard multi-rule set
+        (1_2s, 1_3s, 2_2s, R_4s, 4_1s, 10x, 2of3_2s, 3_1s), assessed over the
+        ordered z-score series for this lot (+ analyte + control level) with the
+        new value appended. `mean`/`sd` may be supplied for a lot's first point.
 
-        Parameters
-        ----------
-        db         : active SQLAlchemy session
-        lot_number : lot_number on the IQCResult group (e.g. 'LOT-DEMO-001')
-        new_value  : raw measured value
-
-        Returns
-        -------
-        dict with keys: status, violations, z_score, mean, sd
+        Returns: status, violations, rules_checked, z_score, mean, sd, lot_number.
         """
         from models.quality import IQCResult
 
-        # Aggregate stats over all runs in this lot
-        lot_rows = (
-            db.query(IQCResult)
-            .filter(IQCResult.lot_number == lot_number)
-            .filter(IQCResult.target_mean.isnot(None))
-            .filter(IQCResult.sd.isnot(None))
-            .order_by(IQCResult.run_date.desc())
-            .all()
-        )
+        q = (db.query(IQCResult)
+             .filter(IQCResult.lot_number == lot_number)
+             .filter(IQCResult.target_mean.isnot(None), IQCResult.sd.isnot(None)))
+        if analyte_name:
+            q = q.filter(IQCResult.analyte_name == analyte_name)
+        if control_level:
+            q = q.filter(IQCResult.control_level == control_level)
+        rows = q.order_by(IQCResult.run_date.asc(), IQCResult.created_at.asc()).all()
 
-        if not lot_rows:
+        if rows:
+            mean = rows[-1].target_mean if mean is None else mean
+            sd   = rows[-1].sd if sd is None else sd
+        if mean is None or sd is None:
             raise ValueError(f'QC lot not found or has no statistics: {lot_number!r}')
 
-        mean = lot_rows[0].target_mean
-        sd   = lot_rows[0].sd
+        history = [((r.result_value - mean) / sd if sd else 0.0) for r in rows]
+        z_new = (new_value - mean) / sd if sd else 0.0
+        result = QCService._westgard_rules(history + [z_new])
+        result.update({'z_score': round(z_new, 3), 'mean': mean, 'sd': sd,
+                       'lot_number': lot_number, 'n_history': len(history)})
+        return result
 
-        z_score = (new_value - mean) / sd if sd else 0.0
+    @staticmethod
+    def _westgard_rules(series: list[float]) -> dict[str, Any]:
+        """Apply the Westgard rules to an ordered z-score series (newest last)."""
+        z = series[-1]
+        n = len(series)
+        viol: list[str] = []
 
-        violations: list[str] = []
-        status = 'PASS'
+        def same_side(vals, thr):
+            return all(v > thr for v in vals) or all(v < -thr for v in vals)
 
-        # 1-3s Rule (rejection)
-        if abs(z_score) > 3:
-            violations.append('1_3s')
+        if abs(z) > 3:
+            viol.append('1_3s')
+        if n >= 2 and same_side(series[-2:], 2):
+            viol.append('2_2s')
+        if n >= 3:                                    # 2 of last 3 >2s same side (current one of them)
+            last3 = series[-3:]
+            for side in (1, -1):
+                if z * side > 2 and sum(1 for v in last3 if v * side > 2) >= 2:
+                    viol.append('2of3_2s')
+                    break
+        if n >= 2 and (max(series[-2:]) - min(series[-2:])) > 4 and series[-1] * series[-2] < 0:
+            viol.append('R_4s')
+        if n >= 3 and same_side(series[-3:], 1):
+            viol.append('3_1s')
+        if n >= 4 and same_side(series[-4:], 1):
+            viol.append('4_1s')
+        if n >= 10 and (all(v > 0 for v in series[-10:]) or all(v < 0 for v in series[-10:])):
+            viol.append('10x')
+
+        if any(r in QCService._REJECT_RULES for r in viol):
             status = 'REJECT'
-
-        # 1-2s Rule (warning)
-        elif abs(z_score) > 2:
-            violations.append('1_2s')
+        elif abs(z) > 2:
             status = 'WARN'
-
-        # 2-2s Rule (rejection — two consecutive > 2-sigma same side)
-        if len(lot_rows) >= 1:
-            import math
-            prev_z = (lot_rows[0].result_value - mean) / sd if sd else 0
-            if abs(z_score) > 2 and abs(prev_z) > 2 and (z_score * prev_z > 0):
-                violations.append('2_2s')
-                status = 'REJECT'
-
-        # R-4s Rule (rejection — current + prev rand difference > 4 sigma)
-        if len(lot_rows) >= 1:
-            prev_z  = (lot_rows[0].result_value - mean) / sd if sd else 0
-            if abs(z_score - prev_z) > 4:
-                violations.append('R_4s')
-                status = 'REJECT'
-
-        return {
-            'status':      status,
-            'violations':  violations,
-            'z_score':     round(z_score, 3),
-            'mean':        mean,
-            'sd':          sd,
-            'lot_number':  lot_number,
-        }
+            if '1_2s' not in viol:
+                viol.append('1_2s')
+        else:
+            status = 'PASS'
+        return {'status': status, 'violations': viol,
+                'rules_checked': ['1_2s', '1_3s', '2_2s', '2of3_2s', 'R_4s', '3_1s', '4_1s', '10x']}
 
     @staticmethod
     def get_levey_jennings_data(
