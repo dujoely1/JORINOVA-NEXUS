@@ -528,3 +528,18 @@ def glossary(q: str, _u: User = Depends(get_current_user)):
     """Look up a medical term / abbreviation / acronym (English + French)."""
     from ai_services.glossary import lookup
     return lookup(q)
+
+
+@router.get('/knowledge')
+def lab_knowledge(q: Optional[str] = None, topic: Optional[str] = None,
+                  _u: User = Depends(get_current_user)):
+    """Curated lab interpretation knowledge: chemistry, endocrine, tumour markers,
+    coagulation, serology, urinalysis, body-fluid, blood-gas, semen, microbiology
+    AST, toxicology and haematology neoplasms. `q` = keyword search; `topic` = a
+    whole KB; no args = list available topics."""
+    from ai_services.reference_ranges import search_kb, knowledge, KB
+    if q:
+        return {'query': q, 'results': search_kb(q)}
+    if topic:
+        return {'topic': topic, 'knowledge': knowledge(topic)}
+    return {'topics': sorted(KB.keys())}

@@ -7,6 +7,8 @@ should confirm against its own validated ranges.
 interpret(results, sex, age) -> {'results':[...], 'impressions':[...], 'critical':[...]}
 """
 from typing import Optional
+import json
+from pathlib import Path
 
 # analyte: (unit, low, high, crit_low, crit_high)  — use None where N/A.
 # Sex-specific analytes carry {'M': (...), 'F': (...)}.
@@ -74,6 +76,109 @@ ALIASES = {
 }
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Curated JSON knowledge wired into the rules engine. The *_reference.json files
+# EXTEND RANGES (+ notes/panels); the qualitative maps are exposed for the LLM/RAG.
+# All loading is best-effort — the engine still works if a file is missing.
+# ─────────────────────────────────────────────────────────────────────────────
+_AIDIR = Path(__file__).resolve().parent
+
+
+def _load_json(name: str) -> dict:
+    try:
+        return json.loads((_AIDIR / name).read_text(encoding='utf-8'))
+    except Exception:
+        return {}
+
+
+NOTES: dict = {}    # analyte -> interpretation note
+PANELS: dict = {}   # analyte -> panel (renal/lft/cardiac/...)
+
+
+def _merge_numeric_ranges():
+    """Extend RANGES with curated analytes from the reference JSONs (add-only, so
+    the existing tested defaults always win); capture notes + panel tags."""
+    for fname in ('clinical_chemistry_reference.json',
+                  'endocrinology_reference.json',
+                  'coagulation_reference.json'):
+        for key, info in (_load_json(fname).get('analytes') or {}).items():
+            if not isinstance(info, dict):
+                continue
+            RANGES.setdefault(key, (info.get('units', ''), info.get('ref_low'),
+                                    info.get('ref_high'), info.get('critical_low'),
+                                    info.get('critical_high')))
+            if info.get('note'):
+                NOTES.setdefault(key, info['note'])
+            if info.get('panel'):
+                PANELS.setdefault(key, info['panel'])
+    for key, info in (_load_json('tumor_markers_reference.json').get('markers') or {}).items():
+        if isinstance(info, dict):
+            RANGES.setdefault(key, (info.get('units', ''), 0, info.get('ref_high'), None, None))
+            if info.get('note'):
+                NOTES.setdefault(key, info['note'])
+
+
+_merge_numeric_ranges()
+
+# Qualitative interpretation knowledge bases -> consumed by cloud_llm.py / medical_rag.py.
+_KB_FILES = {
+    'clinical_chemistry':   'clinical_chemistry_reference.json',
+    'endocrinology':        'endocrinology_reference.json',
+    'tumor_markers':        'tumor_markers_reference.json',
+    'coagulation':          'coagulation_reference.json',
+    'serology':             'serology_reference.json',
+    'urinalysis':           'urinalysis_chemistry_reference.json',
+    'body_fluid':           'body_fluid_reference.json',
+    'blood_gas':            'blood_gas_reference.json',
+    'semen':                'semen_analysis_reference.json',
+    'microbiology_ast':     'microbiology_ast_reference.json',
+    'toxicology':           'toxicology_reference.json',
+    'hematology_neoplasms': 'hematology_neoplasms.json',
+    # vision detector maps — folded in so RAG/LLM can search their disease knowledge too
+    'pbs_morphology':       'pbs_disorders.json',
+    'leukaemia':            'leukemia_disorders.json',
+    'parasitology':         'parasitology_organisms.json',
+    'protozoa':             'protozoa_organisms.json',
+    'blood_parasites':      'blood_parasite_organisms.json',
+    'urine_sediment':       'urine_sediment_findings.json',
+    'bacteriology':         'bacteriology_organisms.json',
+    'mycology':             'mycology_organisms.json',
+    'cytology':             'cytology_findings.json',
+    'histology':            'histology_findings.json',
+    'tb_cxr':               'tb_cxr_findings.json',
+}
+KB: dict = {topic: _load_json(f) for topic, f in _KB_FILES.items()}
+
+
+def knowledge(topic: Optional[str] = None):
+    """Return a curated interpretation KB (or all of them) for the LLM/RAG layer."""
+    return KB.get(topic) if topic else KB
+
+
+def search_kb(query: str, limit: int = 8) -> list:
+    """Keyword search across all interpretation KBs -> compact hits (topic, key,
+    name, disease, significance, note) for injecting as LLM/RAG context."""
+    q = str(query or '').strip().lower()
+    if not q:
+        return []
+    hits = []
+    for topic, data in KB.items():
+        for group, entries in (data or {}).items():
+            if group == '_meta' or not isinstance(entries, dict):
+                continue
+            for key, info in entries.items():
+                if not isinstance(info, dict):
+                    continue
+                blob = (key + ' ' + json.dumps(info, ensure_ascii=False)).lower()
+                if q in blob:
+                    hits.append({'topic': topic, 'key': key, 'name': info.get('name', key),
+                                 'disease': info.get('disease') or info.get('disorders'),
+                                 'significance': info.get('significance'), 'note': info.get('note')})
+                    if len(hits) >= limit:
+                        return hits
+    return hits
+
+
 def _range_for(key, sex):
     r = RANGES.get(key)
     if isinstance(r, dict):
@@ -107,7 +212,10 @@ def interpret(results: list, sex: Optional[str] = None, age: Optional[int] = Non
         flag = _flag(value, low, high, clo, chi)
         vals[key] = value
         ref = f'{low}-{high} {unit}'.strip()
-        out.append({'test': key, 'value': value, 'unit': unit, 'flag': flag, 'reference': ref})
+        row = {'test': key, 'value': value, 'unit': unit, 'flag': flag, 'reference': ref}
+        if flag != 'NORMAL' and NOTES.get(key):
+            row['note'] = NOTES[key]
+        out.append(row)
         if flag.startswith('CRITICAL'):
             criticals.append(f'{key} {value} {unit} ({flag})')
 
