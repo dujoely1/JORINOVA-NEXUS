@@ -281,6 +281,10 @@ _MODEL_REGISTRY = {
     'fungi': 'fungi', 'koh': 'fungi',
     'cytology': 'cytology', 'histology': 'histology', 'cancer': 'cancer',
     'urine_microscopy': 'urine',
+    'rdt': 'virology_rdt', 'rapid_test': 'virology_rdt', 'lateral_flow': 'virology_rdt',
+    'virology_rdt': 'virology_rdt', 'serology_rdt': 'virology_rdt',
+    'viral_cytopathology': 'virology_cyto', 'inclusion_bodies': 'virology_cyto',
+    'virology_cyto': 'virology_cyto', 'viral_inclusion': 'virology_cyto',
 }
 _MALARIA_STAGES = ('ring', 'trophozoite', 'schizont', 'gametocyte')
 _MODEL_CACHE: dict = {}   # model_key -> loaded YOLO | None
@@ -423,6 +427,37 @@ def _local_detect(image_type: str, file_path: str) -> Optional[dict]:
                 result['confidence'] = 0.8
             if criticals:
                 result['findings'].insert(0, 'CRITICAL: ' + ', '.join(criticals) + ' - urgent haematology review')
+        # Virology RDT (lateral-flow cassette): derive POSITIVE/NEGATIVE/INVALID from the
+        # detected control (C) / test (T) lines (works for detection line-classes OR a
+        # classification model that outputs result classes directly).
+        if key == 'virology_rdt':
+            def _seen(*ks):
+                return any(counts.get(k) for k in ks)
+            def _neg(k):
+                return ('non_reactive' in str(k)) or ('nonreactive' in str(k))
+            c_line = _seen('control_line', 'control', 'c_line', 'c')
+            t_line = _seen('test_line', 'test', 't_line', 't')
+            has_neg = _seen('negative', 'non_reactive', 'nonreactive')
+            has_pos = _seen('positive', 'reactive') or any(
+                (('reactive' in str(k)) or ('positive' in str(k))) and not _neg(k) for k in counts)
+            has_inv = _seen('invalid')
+            if c_line or t_line or has_pos or has_neg or has_inv:
+                if has_inv or (t_line and not c_line):
+                    res, note = 'INVALID', 'no/weak control line — REPEAT with a new device + fresh specimen'
+                elif has_pos or (c_line and t_line):
+                    res, note = 'POSITIVE', 'reactive — apply the confirmatory algorithm before reporting'
+                elif has_neg or (c_line and not t_line):
+                    res, note = 'NEGATIVE', 'non-reactive; control valid (does not exclude window-period infection)'
+                else:
+                    res, note = 'INDETERMINATE', 're-read within the kit time window; repeat if unclear'
+                named = [k for k in counts if (('reactive' in str(k)) or ('positive' in str(k))) and not _neg(k)]
+                result['rdt_result'] = res.lower()
+                label = ('Virology RDT [%s]: ' % ', '.join(named)) if named else 'Virology RDT: '
+                result['findings'] = [label + res + ' — ' + note]
+                result['critical'] = res in ('POSITIVE', 'INVALID')
+                result['confidence'] = 0.8
+            return result
+
         # Organism/finding enrichment: map each detected organism/finding to its disease.
         # Shared by parasitology (ova/cysts), stool protozoa, blood parasites (filariae)
         # and urine sediment — every map uses the same {name, aka, disease, significance,
@@ -437,6 +472,7 @@ def _local_detect(image_type: str, file_path: str) -> Optional[dict]:
             'cytology':       ('cytology_findings.json',        'Cytology',       'no abnormal cells - screening only, cytopathologist reviews'),
             'histology':      ('histology_findings.json',       'Histology',      'no malignancy identified - pathologist reviews'),
             'tb_cxr':         ('tb_cxr_findings.json',          'TB chest X-ray', 'no significant CXR finding - radiologist reviews'),
+            'virology_cyto':  ('virology_cyto_findings.json',   'Viral cytopathology', 'no viral inclusion bodies seen - correlate clinically / PCR'),
         }
         if key in _ORGMAP:
             omfile, olabel, oempty = _ORGMAP[key]

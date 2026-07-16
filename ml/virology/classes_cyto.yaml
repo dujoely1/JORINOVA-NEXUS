@@ -1,0 +1,11 @@
+# ============================================================================
+# JORINOVA NEXUS — Viral cytopathology / inclusion-body YOLO classes
+# Names match keys in backend/ai_services/virology_cyto_findings.json.
+# ============================================================================
+inclusion_bodies:
+  - cmv_inclusion             # CMV 'owl-eye' -> Cytomegalovirus
+  - hsv_inclusion             # HSV/VZV multinucleation (Cowdry A) -> herpes
+  - koilocyte                 # HPV cytopathic effect -> HPV / LSIL
+  - molluscum_body            # Henderson-Paterson body -> Molluscum contagiosum
+  - negri_body                # -> Rabies (notifiable)
+  - viral_cytopathic_effect   # non-specific CPE (ballooning/syncytia/ground-glass)

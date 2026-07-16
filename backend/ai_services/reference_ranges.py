@@ -146,6 +146,8 @@ _KB_FILES = {
     'cytology':             'cytology_findings.json',
     'histology':            'histology_findings.json',
     'tb_cxr':               'tb_cxr_findings.json',
+    'virology_rdt':         'virology_rdt_findings.json',
+    'virology_cyto':        'virology_cyto_findings.json',
 }
 KB: dict = {topic: _load_json(f) for topic, f in _KB_FILES.items()}
 

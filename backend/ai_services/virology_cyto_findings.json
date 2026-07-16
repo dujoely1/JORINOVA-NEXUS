@@ -1,0 +1,16 @@
+{
+  "_meta": {
+    "purpose": "Viral cytopathology / inclusion bodies on histology, cytology (Pap/Tzanck) or smear -> the virus + disease. Keys are YOLO class names from the `virology_cyto` detector. Viruses themselves are sub-microscopic; these are the CELLULAR footprints of viral infection. Decision support only; a pathologist/cytopathologist confirms and molecular (PCR/IHC) proves the virus.",
+    "significance_levels": ["normal", "significant", "critical"],
+    "source": "Diagnostic cytopathology / surgical pathology viral CPE references (CDC, WHO). Curated for JORINOVA NEXUS."
+  },
+
+  "findings": {
+    "cmv_inclusion":         {"name": "CMV 'owl-eye' intranuclear inclusion", "aka": ["cmv", "owl_eye", "cytomegalovirus"], "significance": "critical", "disease": "Cytomegalovirus (CMV) infection", "note": "Large cell with basophilic intranuclear inclusion + halo (owl-eye) ± granular cytoplasmic inclusions. Important in immunocompromised/HIV, transplant, congenital. Confirm IHC/PCR."},
+    "hsv_inclusion":         {"name": "HSV/VZV cytopathic effect (Cowdry A)", "aka": ["hsv", "herpes", "cowdry", "multinucleation", "vzv"], "significance": "significant", "disease": "Herpes simplex / varicella-zoster infection", "note": "3 M's: Multinucleation, nuclear Moulding, Margination of chromatin (ground-glass nuclei); Tzanck smear. Confirm HSV/VZV PCR or DFA."},
+    "koilocyte":             {"name": "Koilocyte (HPV cytopathic effect)", "aka": ["koilocytotic", "koilocytosis", "hpv", "im_koilocytotic"], "significance": "significant", "disease": "HPV infection (LSIL / condyloma)", "note": "Perinuclear halo + raisinoid hyperchromatic nucleus. Cervical HPV -> LSIL; overlaps the cytology detector. HPV test/follow-up."},
+    "molluscum_body":        {"name": "Molluscum (Henderson-Paterson) body", "aka": ["molluscum", "henderson_paterson"], "significance": "significant", "disease": "Molluscum contagiosum (poxvirus)", "note": "Large eosinophilic intracytoplasmic inclusions filling keratinocytes. Extensive lesions -> consider immunosuppression/HIV."},
+    "negri_body":            {"name": "Negri body", "aka": ["negri", "rabies_inclusion"], "significance": "critical", "disease": "Rabies encephalitis", "note": "Eosinophilic intracytoplasmic inclusion in neurons (hippocampus/Purkinje). CRITICAL/notifiable; confirm DFA/PCR."},
+    "viral_cytopathic_effect": {"name": "Non-specific viral cytopathic effect", "aka": ["cpe", "viral_cpe", "viral_inclusion", "inclusion_body"], "significance": "significant", "disease": "Viral infection — type to confirm", "note": "Ballooning, syncytia, ground-glass or smudge cells without a specific signature. Confirm with IHC/PCR/culture."}
+  }
+}
