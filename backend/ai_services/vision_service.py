@@ -280,7 +280,7 @@ _MODEL_REGISTRY = {
     'gram_stain': 'gram', 'afb': 'tb_afb', 'tb_smear': 'tb_afb',
     'fungi': 'fungi', 'koh': 'fungi',
     'cytology': 'cytology', 'histology': 'histology', 'cancer': 'cancer',
-    'urine_microscopy': 'urine',
+    'urine_microscopy': 'urine_sediment', 'urine_sediment': 'urine_sediment', 'urine': 'urine_sediment',
     'rdt': 'virology_rdt', 'rapid_test': 'virology_rdt', 'lateral_flow': 'virology_rdt',
     'virology_rdt': 'virology_rdt', 'serology_rdt': 'virology_rdt',
     'viral_cytopathology': 'virology_cyto', 'inclusion_bodies': 'virology_cyto',
