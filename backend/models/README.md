@@ -11,7 +11,8 @@ the service falls back to Claude vision.
 | key (`models/<key>/<key>.pt`) | image_type(s) that use it |
 |---|---|
 | `malaria` | blood_smear, smear, malaria |
-| `parasitology` | parasitology, stool, ova, urine_parasite |
+| `helminths` | helminths, parasitology, stool, ova, urine_parasite |
+| `protozoa` | protozoa, stool_protozoa |
 | `pbs` | pbs, peripheral_blood_smear |
 | `leukemia` | leukemia, blast |
 | `anemia` | anemia, rbc_morphology |

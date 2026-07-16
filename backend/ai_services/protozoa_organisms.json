@@ -18,6 +18,10 @@
     "dientamoeba_fragilis":   {"name": "Dientamoeba fragilis trophozoite", "aka": ["dientamoeba"], "significance": "significant", "disease": "Dientamoebiasis", "note": "Binucleate trophozoite (no cyst); permanent stain needed. Chronic GI symptoms."},
     "iodamoeba_butschlii":    {"name": "Iodamoeba butschlii cyst/trophozoite", "aka": ["iodamoeba"], "significance": "normal", "disease": "Non-pathogenic commensal", "note": "Large glycogen vacuole in cyst."},
     "endolimax_nana":         {"name": "Endolimax nana cyst/trophozoite", "aka": ["endolimax"], "significance": "normal", "disease": "Non-pathogenic commensal"},
-    "chilomastix_mesnili":    {"name": "Chilomastix mesnili cyst/trophozoite", "aka": ["chilomastix"], "significance": "normal", "disease": "Non-pathogenic flagellate commensal"}
+    "chilomastix_mesnili":    {"name": "Chilomastix mesnili cyst/trophozoite", "aka": ["chilomastix"], "significance": "normal", "disease": "Non-pathogenic flagellate commensal"},
+    "entamoeba_hartmanni":    {"name": "Entamoeba hartmanni cyst/trophozoite", "aka": ["e_hartmanni"], "significance": "normal", "disease": "Non-pathogenic commensal", "note": "Small race (<10 µm) — distinguish from E. histolytica/dispar by size measurement."},
+    "entamoeba_polecki":      {"name": "Entamoeba polecki cyst/trophozoite", "aka": ["e_polecki"], "significance": "normal", "disease": "Usually non-pathogenic; rare intestinal infection", "note": "Single large nucleus; often pig/primate contact."},
+    "pentatrichomonas_hominis": {"name": "Pentatrichomonas hominis trophozoite", "aka": ["trichomonas_hominis", "pentatrichomonas"], "significance": "normal", "disease": "Non-pathogenic intestinal flagellate", "note": "No cyst stage; undulating membrane runs the full body length."},
+    "sarcocystis":            {"name": "Sarcocystis spp. sporocyst/oocyst", "aka": ["sarcocystis_hominis", "sarcocystis_suihominis"], "significance": "significant", "disease": "Intestinal sarcocystosis", "note": "From undercooked beef/pork; passed as sporocysts in stool. Usually self-limiting."}
   }
 }

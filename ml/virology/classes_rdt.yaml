@@ -1,0 +1,25 @@
+# ============================================================================
+# JORINOVA NEXUS — Virology RDT (lateral-flow) recommended YOLO classes
+# Names match keys in backend/ai_services/virology_rdt_findings.json.
+# EITHER style works — the vision service derives POSITIVE/NEGATIVE/INVALID.
+# ============================================================================
+
+# --- Style A: detect the lines (most robust; result derived by the app) ---
+lines:
+  - control_line        # C line present -> test valid
+  - test_line           # T line present -> reactive band
+
+# --- Style B: whole-cassette result classes ---
+results:
+  - positive            # reactive
+  - negative            # non-reactive
+  - invalid             # no control line -> repeat
+
+# --- Optional: per-assay result classes (map to the specific virus) ---
+named_tests:
+  - hiv_reactive          # HIV (confirm per algorithm)
+  - hbsag_reactive        # Hepatitis B
+  - hcv_reactive          # Hepatitis C
+  - covid_positive        # SARS-CoV-2 antigen
+  - dengue_ns1_positive   # Dengue NS1
+  - syphilis_reactive     # Treponemal

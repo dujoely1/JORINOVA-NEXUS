@@ -137,7 +137,7 @@ _KB_FILES = {
     # vision detector maps — folded in so RAG/LLM can search their disease knowledge too
     'pbs_morphology':       'pbs_disorders.json',
     'leukaemia':            'leukemia_disorders.json',
-    'parasitology':         'parasitology_organisms.json',
+    'helminths':            'helminths_organisms.json',
     'protozoa':             'protozoa_organisms.json',
     'blood_parasites':      'blood_parasite_organisms.json',
     'urine_sediment':       'urine_sediment_findings.json',
@@ -146,6 +146,8 @@ _KB_FILES = {
     'cytology':             'cytology_findings.json',
     'histology':            'histology_findings.json',
     'tb_cxr':               'tb_cxr_findings.json',
+    'virology_rdt':         'virology_rdt_findings.json',
+    'virology_cyto':        'virology_cyto_findings.json',
 }
 KB: dict = {topic: _load_json(f) for topic, f in _KB_FILES.items()}
 

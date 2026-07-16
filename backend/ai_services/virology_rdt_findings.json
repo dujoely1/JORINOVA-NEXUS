@@ -1,0 +1,23 @@
+{
+  "_meta": {
+    "purpose": "Virology rapid diagnostic test (RDT / lateral-flow cassette) reading -> result + interpretation. The `virology_rdt` detector locates the control (C) and test (T) lines (or result classes); the vision service derives POSITIVE / NEGATIVE / INVALID. Decision support only; a scientist confirms and the assay's confirmatory algorithm applies (e.g. HIV confirmatory testing, HBsAg neutralisation).",
+    "logic": "C + T lines = REACTIVE (positive); C only = non-reactive (negative); no C line = INVALID (repeat with a new device). Read within the kit's time window (typically 15 min; do not read after 30 min).",
+    "significance_levels": ["normal", "significant", "critical"],
+    "source": "WHO/CDC lateral-flow RDT reading guidance. Curated for JORINOVA NEXUS."
+  },
+
+  "findings": {
+    "control_line":  {"name": "Control (C) line present", "aka": ["control", "c_line", "c"], "significance": "normal", "disease": "Test valid (control line developed)", "note": "No control line = INVALID regardless of the T line."},
+    "test_line":     {"name": "Test (T) line present", "aka": ["test", "t_line", "t"], "significance": "significant", "disease": "Reactive band for the target analyte", "note": "Reactive only if a control line is also present."},
+    "positive":      {"name": "Reactive (positive) result", "aka": ["reactive", "pos"], "significance": "critical", "disease": "Target antigen/antibody DETECTED", "note": "CRITICAL: apply the confirmatory algorithm before reporting/diagnosing."},
+    "negative":      {"name": "Non-reactive (negative) result", "aka": ["non_reactive", "nonreactive", "neg"], "significance": "normal", "disease": "Target not detected (control valid)", "note": "A negative RDT does not exclude early/window-period infection."},
+    "invalid":       {"name": "Invalid result", "aka": ["inv", "no_control"], "significance": "significant", "disease": "Invalid — repeat test", "note": "No/weak control line, or a test line without a control line. REPEAT with a new device + fresh specimen."},
+
+    "hiv_reactive":        {"name": "HIV RDT reactive", "aka": ["hiv_positive", "hiv"], "significance": "critical", "disease": "HIV infection (presumptive)", "note": "CRITICAL: confirm per national HIV testing algorithm (2nd/3rd assay); never diagnose on one RDT."},
+    "hbsag_reactive":      {"name": "HBsAg RDT reactive", "aka": ["hbsag_positive", "hbsag", "hepatitis_b"], "significance": "critical", "disease": "Hepatitis B (HBsAg positive)", "note": "Confirm with HBsAg neutralisation / HBV serology + viral load."},
+    "hcv_reactive":        {"name": "Anti-HCV RDT reactive", "aka": ["hcv_positive", "hcv", "hepatitis_c"], "significance": "critical", "disease": "Hepatitis C exposure", "note": "Confirm with HCV RNA (viraemia)."},
+    "covid_positive":      {"name": "SARS-CoV-2 antigen RDT positive", "aka": ["covid_reactive", "covid19", "sars_cov_2"], "significance": "significant", "disease": "COVID-19 (SARS-CoV-2 antigen detected)", "note": "Antigen RDT; correlate clinically, PCR if discordant."},
+    "dengue_ns1_positive": {"name": "Dengue NS1 RDT positive", "aka": ["dengue_ns1", "ns1", "dengue"], "significance": "significant", "disease": "Acute dengue (NS1 antigen)", "note": "NS1 positive = acute infection; pair with IgM/IgG."},
+    "syphilis_reactive":   {"name": "Syphilis (Treponemal) RDT reactive", "aka": ["syphilis_positive", "tp_reactive", "syphilis"], "significance": "significant", "disease": "Treponemal antibody reactive", "note": "Treponemal test stays reactive for life; confirm activity with RPR/VDRL titre."}
+  }
+}

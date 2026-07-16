@@ -1,13 +1,16 @@
 # ============================================================================
-# JORINOVA NEXUS — Stool/Urine Parasitology (O&P) unified class map
+# JORINOVA NEXUS — Stool/Urine Helminths (worm eggs) class map
 # ============================================================================
-# Recommended YOLO detection classes for the `parasitology` model. Class NAMES
-# here match the keys in backend/ai_services/parasitology_organisms.json, so every
-# detected ovum/cyst resolves to its disease + significance in the app.
+# Recommended YOLO detection classes for the `helminths` model. Class NAMES
+# here match the keys in backend/ai_services/helminths_organisms.json, so every
+# detected ovum/larva resolves to its disease + significance in the app.
 #
 # The 11 core classes are the Chula-ParasiteEgg-11 set (stool ova). The extra
-# ones (schistosoma, protozoa) are ready in the disorder map for when you add a
-# urine-schistosomiasis or protozoa dataset — no code change needed.
+# ones (schistosoma, clonorchis) are ready in the disorder map for when you add
+# a urine-schistosomiasis or fluke dataset — no code change needed.
+#
+# Intestinal PROTOZOA (Entamoeba, Giardia, Cryptosporidium…) live in the
+# separate `protozoa` model — see backend/ai_services/protozoa_organisms.json.
 # ============================================================================
 
 # --- Chula-ParasiteEgg-11 (stool helminth ova) ---
@@ -31,6 +34,4 @@ urine:
 # --- Extras already in the disorder map (add datasets to enable) ---
 extra:
   - schistosoma_mansoni       # Intestinal/hepatic schistosomiasis
-  - entamoeba_histolytica     # Amoebiasis -> liver abscess
-  - giardia_lamblia           # Giardiasis
-  - clonorchis_sinensis       # Clonorchiasis (liver fluke)
+  - clonorchis_sinensis       # Clonorchiasis (liver fluke) -> cholangiocarcinoma risk
