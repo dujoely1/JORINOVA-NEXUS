@@ -2,7 +2,7 @@
 # JORINOVA NEXUS ALIS-X — OPTIONAL local vision models (YOLOv8)
 # ════════════════════════════════════════════════════════════════════════════
 # Installs the local trained detectors (backend/models/<key>/<key>.pt — malaria,
-# parasitology, etc.). The vision service auto-loads them when `ultralytics` is
+# helminths, etc.). The vision service auto-loads them when `ultralytics` is
 # importable; otherwise it falls back to Claude vision (ANTHROPIC_API_KEY).
 #
 # HEAVY: ~1 GB installed (torch + torchvision + ultralytics) and ~1 GB RAM to run

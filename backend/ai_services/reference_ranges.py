@@ -137,7 +137,7 @@ _KB_FILES = {
     # vision detector maps — folded in so RAG/LLM can search their disease knowledge too
     'pbs_morphology':       'pbs_disorders.json',
     'leukaemia':            'leukemia_disorders.json',
-    'parasitology':         'parasitology_organisms.json',
+    'helminths':            'helminths_organisms.json',
     'protozoa':             'protozoa_organisms.json',
     'blood_parasites':      'blood_parasite_organisms.json',
     'urine_sediment':       'urine_sediment_findings.json',

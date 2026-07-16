@@ -1,12 +1,11 @@
 {
   "_meta": {
-    "purpose": "Stool/urine parasitology (O&P) organism -> disease. Keys are YOLO class names (snake_case) from the parasitology detector. The vision service resolves each detected ovum/cyst/organism to its disease + significance. Decision support only; a microscopist/clinician validates.",
+    "purpose": "Stool/urine HELMINTH (worm egg / larva) -> disease. Keys are YOLO class names (snake_case) from the helminths detector. The vision service resolves each detected ovum/larva to its disease + significance. Intestinal protozoa live in protozoa_organisms.json (separate detector). Decision support only; a microscopist/clinician validates.",
     "significance_levels": ["normal", "significant", "critical"],
     "groups": {
       "nematode": "roundworms (Ascaris, Trichuris, hookworm, Enterobius, Capillaria)",
       "cestode": "tapeworms (Hymenolepis, Taenia)",
-      "trematode": "flukes (Opisthorchis, Clonorchis, Fasciolopsis, Paragonimus, Schistosoma)",
-      "protozoa": "intestinal protozoa (Entamoeba, Giardia)"
+      "trematode": "flukes (Opisthorchis, Clonorchis, Fasciolopsis, Paragonimus, Schistosoma)"
     },
     "source": "Chula-ParasiteEgg-11 species + common stool/urine parasites (WHO, CDC DPDx). Curated for JORINOVA NEXUS."
   },
@@ -26,9 +25,6 @@
     "capillaria_philippinensis":{"name": "Capillaria philippinensis ovum", "aka": ["capillaria"], "type": "helminth_egg", "group": "nematode", "significance": "critical", "disease": "Intestinal capillariasis", "note": "Severe malabsorption / protein-losing enteropathy; can be FATAL if untreated. Treat: albendazole."},
 
     "schistosoma_haematobium":  {"name": "Schistosoma haematobium ovum (terminal spine)", "aka": ["s_haematobium", "urinary_schistosomiasis", "bilharzia"], "type": "helminth_egg", "group": "trematode", "specimen": "urine", "significance": "significant", "disease": "Urinary schistosomiasis (bilharzia)", "note": "Terminal haematuria; chronic -> BLADDER SQUAMOUS-CELL CARCINOMA risk. Treat: praziquantel."},
-    "schistosoma_mansoni":      {"name": "Schistosoma mansoni ovum (lateral spine)", "aka": ["s_mansoni"], "type": "helminth_egg", "group": "trematode", "significance": "significant", "disease": "Intestinal/hepatic schistosomiasis", "note": "Chronic -> periportal fibrosis, portal hypertension. Treat: praziquantel."},
-
-    "entamoeba_histolytica":    {"name": "Entamoeba histolytica cyst/trophozoite", "aka": ["e_histolytica", "amoeba"], "type": "protozoa", "group": "protozoa", "significance": "significant", "disease": "Amoebiasis", "note": "Amoebic dysentery; can cause LIVER ABSCESS. Distinguish from non-pathogenic E. dispar. Treat: metronidazole + luminal agent."},
-    "giardia_lamblia":          {"name": "Giardia lamblia cyst/trophozoite", "aka": ["giardia", "giardia_duodenalis", "giardia_intestinalis"], "type": "protozoa", "group": "protozoa", "significance": "significant", "disease": "Giardiasis", "note": "Malabsorption, chronic diarrhoea. Treat: metronidazole/tinidazole."}
+    "schistosoma_mansoni":      {"name": "Schistosoma mansoni ovum (lateral spine)", "aka": ["s_mansoni"], "type": "helminth_egg", "group": "trematode", "significance": "significant", "disease": "Intestinal/hepatic schistosomiasis", "note": "Chronic -> periportal fibrosis, portal hypertension. Treat: praziquantel."}
   }
 }
