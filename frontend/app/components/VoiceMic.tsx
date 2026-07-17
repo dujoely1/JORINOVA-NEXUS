@@ -160,6 +160,24 @@ function matchCommand(text: string): { kw: typeof KEYWORDS[number]; corrected?: 
   return { kw: best.kw, corrected: best.tok !== best.kw.word ? best.kw.word : undefined }
 }
 
+// ── Wake word ("Hello Nexus") — touchless activation ─────────────────────────
+// In touchless mode the assistant IGNORES ambient speech until it hears the wake
+// phrase, so it only acts when addressed (distinguishing it from other voices).
+const WAKE_WORDS = ['hello nexus', 'hi nexus', 'hey nexus', 'ok nexus', 'okay nexus',
+                    'muraho nexus', 'nexus hello', 'nexus']
+function hasWake(text: string): boolean {
+  const s = text.toLowerCase()
+  return WAKE_WORDS.some(w => s.includes(w))
+}
+function stripWake(text: string): string {
+  const s = text.toLowerCase()
+  for (const w of WAKE_WORDS) {
+    const i = s.indexOf(w)
+    if (i >= 0) return s.slice(i + w.length).trim()
+  }
+  return s.trim()
+}
+
 // ── Component ───────────────────────────────────────────────────────────────
 
 declare global {
@@ -170,6 +188,11 @@ declare global {
 }
 
 const LOCALE: Record<Lang, string> = { en: 'en-US', fr: 'fr-FR', rw: 'rw-RW' }
+const WAKE_ACK:  Record<Lang, string> = { en: 'Yes?', fr: 'Oui ?', rw: 'Yego?' }
+const SAY_WAKE:  Record<Lang, string> = { en: 'Say “Hello Nexus”…', fr: 'Dites « Hello Nexus »…', rw: 'Vuga «Hello Nexus»…' }
+const ARMED_TXT: Record<Lang, string> = { en: 'Listening — say your command', fr: 'À l’écoute — votre commande', rw: 'Ndumva — vuga icyo ushaka' }
+const SEND_TXT:  Record<Lang, string> = { en: 'Send', fr: 'Envoyer', rw: 'Ohereza' }
+const MODE_TT:   Record<Lang, string> = { en: 'Touchless: needs “Hello Nexus”. Click to switch to tap-to-command.', fr: 'Mains libres : « Hello Nexus ». Cliquez pour passer en mode tactile.', rw: 'Nta gukanda: «Hello Nexus». Kanda uhindure ujye ku bwa gukanda.' }
 
 export default function VoiceMic() {
   const router = useRouter()
@@ -181,12 +204,19 @@ export default function VoiceMic() {
   const [transcript, setTranscript] = useState('')
   const [feedback, setFeedback]     = useState('')
   const [corrected, setCorrected]   = useState<string | null>(null)
+  const [armed,     setArmed]       = useState(false)   // wake-word heard, ready for a command
+  const [wakeMode,  setWakeMode]    = useState(true)    // true = touchless (needs "Hello Nexus"); false = normal
 
   const recRef       = useRef<any>(null)
   const listeningRef = useRef(false)
   const localeRef    = useRef<string>(LOCALE[lang] ?? 'en-US')
   const langRef      = useRef<Lang>(lang)
   const lastExecRef  = useRef<{ text: string; at: number }>({ text: '', at: 0 })
+  const armedRef     = useRef(false)
+  const wakeModeRef  = useRef(true)
+  const armTimer     = useRef<any>(null)
+
+  useEffect(() => { wakeModeRef.current = wakeMode }, [wakeMode])
 
   // Keep refs in sync with the active language.
   useEffect(() => {
@@ -263,17 +293,50 @@ export default function VoiceMic() {
     }
   }
 
+  function arm() {
+    armedRef.current = true; setArmed(true)
+    if (armTimer.current) clearTimeout(armTimer.current)
+    armTimer.current = setTimeout(() => { armedRef.current = false; setArmed(false) }, 8000)
+  }
+  function disarm() {
+    armedRef.current = false; setArmed(false)
+    if (armTimer.current) { clearTimeout(armTimer.current); armTimer.current = null }
+  }
+
   function handleFinal(alts: string[]) {
     const top = alts.find(Boolean) || ''
     if (top) setTranscript(top)
-    for (const tt of alts) {
-      const m = matchCommand(tt)
-      if (m) { runMatch(tt, m); return }
+
+    // Normal (always-on) mode: act on any recognised command.
+    if (!wakeModeRef.current) {
+      for (const tt of alts) { const m = matchCommand(tt); if (m) { runMatch(tt, m); return } }
+      setCorrected(null); setFeedback(''); return
     }
-    // No command — keep the heard text visible but stay quiet (hands-free
-    // mode hears ambient speech; we must not nag on every phrase).
-    setCorrected(null)
-    setFeedback('')
+
+    // Touchless mode — only respond once addressed with the wake word "Hello Nexus".
+    if (alts.some(hasWake)) {
+      // "Hello Nexus, open patients" in one breath → act immediately.
+      for (const tt of alts) { const m = matchCommand(stripWake(tt)); if (m) { disarm(); runMatch(tt, m); return } }
+      // Wake word alone → arm + acknowledge, then wait for the command.
+      arm(); speak(WAKE_ACK[langRef.current] ?? 'Yes?')
+      setCorrected(null); setFeedback(ARMED_TXT[langRef.current] ?? '')
+      return
+    }
+    if (armedRef.current) {
+      for (const tt of alts) { const m = matchCommand(tt); if (m) { disarm(); runMatch(tt, m); return } }
+      return   // stay armed, keep waiting for a valid command
+    }
+    // Not addressed → ignore ambient speech.
+    setCorrected(null); setFeedback('')
+  }
+
+  // "Send" button — execute the current transcript's command regardless of the
+  // wake word (the non-touchless way to submit exactly what was heard).
+  function sendNow() {
+    const text = transcript.trim()
+    if (!text) return
+    const m = matchCommand(wakeModeRef.current ? stripWake(text) : text) || matchCommand(text)
+    if (m) { disarm(); runMatch(text, m) }
   }
 
   function startRec() {
@@ -330,9 +393,10 @@ export default function VoiceMic() {
       listeningRef.current = false
       try { recRef.current?.stop() } catch { /* noop */ }
       setListening(false)
+      disarm()
       return
     }
-    setTranscript(''); setFeedback(''); setCorrected(null)
+    setTranscript(''); setFeedback(''); setCorrected(null); disarm()
     listeningRef.current = true
     setListening(true)
     startRec()
@@ -351,20 +415,38 @@ export default function VoiceMic() {
 
   return (
     <div className="flex flex-col items-end gap-1">
-      <button
-        onClick={toggle}
-        title={listening ? t('voice.listening_hf') : t('voice.tap_hint')}
-        className={`inline-flex items-center justify-center h-11 w-11 rounded-full border transition-all ${
-          listening
-            ? 'bg-rose-500/30 border-rose-400 text-rose-100 animate-pulse shadow-[0_0_20px_rgba(244,63,94,0.6)]'
-            : 'bg-sky-500/20 border-sky-400/60 text-sky-200 hover:bg-sky-500/40 hover:scale-105'
-        }`}
-        aria-label={t('voice.click')}
-      ><span className="text-xl">🎙</span></button>
+      <div className="flex items-center gap-1.5">
+        {/* Send (button-triggered) — the non-touchless way to submit what was heard */}
+        {listening && transcript && (
+          <button onClick={sendNow} title={SEND_TXT[lang]}
+            className="h-9 px-3 rounded-full border border-emerald-400/60 bg-emerald-500/20 text-emerald-100 text-xs font-semibold hover:bg-emerald-500/40">
+            ➤ {SEND_TXT[lang]}
+          </button>
+        )}
+        {/* Touchless (wake word) ↔ normal (tap) toggle */}
+        <button onClick={() => setWakeMode(m => !m)} title={MODE_TT[lang]}
+          className={`h-9 px-2.5 rounded-full border text-xs font-semibold transition-colors ${
+            wakeMode ? 'border-violet-400/60 bg-violet-500/20 text-violet-100' : 'border-slate-600 bg-slate-800/60 text-slate-300'}`}>
+          {wakeMode ? '🌊 Hello Nexus' : '👆 Tap'}
+        </button>
+        {/* Mic — green pulse when armed (wake word heard), rose while just listening */}
+        <button
+          onClick={toggle}
+          title={listening ? t('voice.listening_hf') : t('voice.tap_hint')}
+          className={`inline-flex items-center justify-center h-11 w-11 rounded-full border transition-all ${
+            listening
+              ? (armed
+                  ? 'bg-emerald-500/30 border-emerald-400 text-emerald-100 animate-pulse shadow-[0_0_20px_rgba(16,185,129,0.6)]'
+                  : 'bg-rose-500/30 border-rose-400 text-rose-100 animate-pulse shadow-[0_0_20px_rgba(244,63,94,0.6)]')
+              : 'bg-sky-500/20 border-sky-400/60 text-sky-200 hover:bg-sky-500/40 hover:scale-105'
+          }`}
+          aria-label={t('voice.click')}
+        ><span className="text-xl">🎙</span></button>
+      </div>
 
       {listening && !transcript && !feedback && (
-        <div className="max-w-[260px] text-right text-[10px] text-sky-300/80 italic">
-          {t('voice.listening_hf')}
+        <div className="max-w-[260px] text-right text-[10px] italic text-sky-300/80">
+          {wakeMode ? (armed ? ARMED_TXT[lang] : SAY_WAKE[lang]) : t('voice.listening_hf')}
         </div>
       )}
 

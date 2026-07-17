@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthProvider'
 import { useI18n } from '../contexts/I18nProvider'
 import Logo from '../components/Logo'
 import QrLoginPanel from '../components/QrLoginPanel'
+import VoiceLoginPanel from '../components/VoiceLoginPanel'
 import { landingPathFor } from '../lib/role-routes'
 import { TwoFactorRequiredError } from '../lib/api'
 
@@ -26,6 +27,7 @@ const STRINGS: Record<Lang, {
   online: string; offline: string;
   idle: string; showPwd: string; hidePwd: string; loginFailed: string;
   twoFa: string; twoFaHint: string; bad2fa: string;
+  voiceSignIn: string; staySignedIn: string;
 }> = {
   en: {
     welcome:    'WELCOME TO JORINOVA NEXUS ALIS-X',
@@ -47,6 +49,8 @@ const STRINGS: Record<Lang, {
     twoFa:      'Authentication code',
     twoFaHint:  'Enter the 6-digit code from your authenticator app.',
     bad2fa:     'Invalid authentication code. Try again.',
+    voiceSignIn:'🎙 Sign in with voice',
+    staySignedIn:'✓ Stays signed in on this device',
   },
   fr: {
     welcome:    'BIENVENUE À JORINOVA NEXUS ALIS-X',
@@ -68,6 +72,8 @@ const STRINGS: Record<Lang, {
     twoFa:      'Code d’authentification',
     twoFaHint:  'Entrez le code à 6 chiffres de votre application d’authentification.',
     bad2fa:     'Code d’authentification invalide. Réessayez.',
+    voiceSignIn:'🎙 Se connecter par la voix',
+    staySignedIn:'✓ Reste connecté sur cet appareil',
   },
   rw: {
     welcome:    'MURAKAZA NEZA KURI JORINOVA NEXUS ALIS-X',
@@ -89,6 +95,8 @@ const STRINGS: Record<Lang, {
     twoFa:      'Kode yo kwemeza',
     twoFaHint:  'Andika kode y’imibare 6 iri muri app yawe ya authenticator.',
     bad2fa:     'Kode yo kwemeza si yo. Ongera ugerageze.',
+    voiceSignIn:'🎙 Injira ukoresheje ijwi',
+    staySignedIn:'✓ Ukomeza kuba winjiye kuri iyi mudasobwa',
   },
 }
 
@@ -122,6 +130,7 @@ function LoginInner() {
   const [now,        setNow]        = useState<Date | null>(null)
   const [online,     setOnline]     = useState<boolean>(true)
   const [qrMode,     setQrMode]     = useState<boolean>(false)
+  const [voiceMode,  setVoiceMode]  = useState<boolean>(false)
 
   const { login } = useAuth()
   const router = useRouter()
@@ -384,6 +393,8 @@ function LoginInner() {
               {loading ? t.signingIn : t.signIn}
             </button>
 
+            <div className="text-center text-[11px] font-medium text-emerald-700">{t.staySignedIn}</div>
+
             <div className="flex justify-center">
               <Link
                 href="/forgot-password"
@@ -394,9 +405,13 @@ function LoginInner() {
               </Link>
             </div>
 
-            <div className="pt-3 border-t border-zinc-200 text-center">
+            <div className="pt-3 border-t border-zinc-200 text-center space-y-2">
+              <button type="button" onClick={() => setVoiceMode(true)}
+                      className="block w-full text-sm font-semibold hover:underline" style={{ color: NEXUS_BLUE }}>
+                {t.voiceSignIn}
+              </button>
               <button type="button" onClick={() => setQrMode(true)}
-                      className="text-sm font-semibold hover:underline" style={{ color: NEXUS_BLUE }}>
+                      className="block w-full text-sm font-semibold hover:underline" style={{ color: NEXUS_BLUE }}>
                 📱 Sign in with phone (QR)
               </button>
             </div>
@@ -407,6 +422,18 @@ function LoginInner() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setQrMode(false)}>
             <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
               <QrLoginPanel onCancel={() => setQrMode(false)} />
+            </div>
+          </div>
+        )}
+
+        {voiceMode && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setVoiceMode(false)}>
+            <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
+              <VoiceLoginPanel
+                lang={lang}
+                onCancel={() => setVoiceMode(false)}
+                onDone={(role) => router.replace(landingPathFor(role))}
+              />
             </div>
           </div>
         )}
