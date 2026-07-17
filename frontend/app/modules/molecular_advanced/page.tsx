@@ -144,11 +144,61 @@ function NovelTab() {
   )
 }
 
+// Reuse the MedGenome ClinVar/AI lookup here as an advisory variant classifier.
+function VariantClassifier() {
+  const [gene, setGene]     = useState('')
+  const [variant, setVar]   = useState('')
+  const [busy, setBusy]     = useState(false)
+  const [res, setRes]       = useState<any>(null)
+  const [err, setErr]       = useState<string | null>(null)
+  const CODE2ACMG: Record<string, string> = { pathogenic: 'Pathogenic', likely_pathogenic: 'Likely Pathogenic', vus: 'VUS', benign: 'Benign' }
+  async function run() {
+    if (!gene && !variant) { setErr('Enter a gene and/or variant / rsID'); return }
+    setBusy(true); setErr(null); setRes(null)
+    try {
+      const body: any = { gene, variant }
+      if (/^rs\d+$/i.test(variant.trim())) { body.rsid = variant.trim(); body.variant = '' }
+      const r = await fetch(`${API}/api/v1/ops/genomics/lookup`, {
+        method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      })
+      if (!r.ok) { setErr(`HTTP ${r.status}`); return }
+      setRes(await r.json())
+    } catch (e: any) { setErr(String(e)) } finally { setBusy(false) }
+  }
+  return (
+    <div className="mb-4 rounded-xl border border-sky-400/30 bg-slate-900/60 p-4">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-sm font-semibold text-sky-200">🔎 Classify variant</span>
+        <input placeholder="Gene (e.g. BRCA1)" value={gene} onChange={e => setGene(e.target.value)}
+          className="bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-sm text-slate-100" />
+        <input placeholder="Variant c./p. or rsID" value={variant} onChange={e => setVar(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && run()}
+          className="bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-sm text-slate-100" />
+        <button onClick={run} disabled={busy}
+          className="px-3 py-1.5 rounded bg-sky-600 text-white text-sm font-semibold hover:bg-sky-500 disabled:opacity-50">{busy ? '…' : 'Classify'}</button>
+        <span className="text-[11px] text-slate-500">ClinVar (NCBI) → AI fallback · advisory, verify before reporting</span>
+      </div>
+      {err && <div className="mt-2 text-xs text-rose-300">⚠ {err}</div>}
+      {res && (
+        <div className="mt-3 flex items-start gap-3 text-sm">
+          <ACMGPill v={CODE2ACMG[res.classification] || '—'} />
+          <div className="text-slate-300">
+            <div>{res.interpretation}</div>
+            <div className="text-[11px] text-slate-500 mt-0.5">Source: {res.source}</div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function PredTab() {
   const t = useT()
   const { rows, err } = useList<Pred>('/api/v1/molecular-advanced/predictions?limit=200')
-  if (err) return <Err msg={err} />
+  if (err) return <><VariantClassifier /><Err msg={err} /></>
   return (
+    <>
+    <VariantClassifier />
     <Table headers={[t('mol.h.prediction'),t('mol.h.analysis'),t('mol.h.gene'),t('mol.h.mutation'),t('mol.h.acmg'),t('mol.h.risk'),t('mol.h.significance'),t('tbl.status')]}>
       {rows.map(r => (
         <tr key={r.id} className="border-t border-slate-800/60 hover:bg-slate-800/30">
@@ -164,6 +214,7 @@ function PredTab() {
       ))}
       {rows.length === 0 && <tr><td colSpan={8} className="px-3 py-10 text-center text-slate-400">{t('mol.empty.pred')}</td></tr>}
     </Table>
+    </>
   )
 }
 
