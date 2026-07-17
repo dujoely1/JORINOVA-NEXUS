@@ -104,6 +104,50 @@ async def is_available() -> bool:
     return _last_status
 
 
+def configured_models() -> list[str]:
+    """Distinct Ollama models the router can use (fast/deep/chat/general/fallback)."""
+    s = settings
+    names = [s.ollama_model_fast, s.ollama_model_deep, s.ollama_model_chat,
+             s.ollama_model_general, s.ollama_model_fallback, s.ollama_model]
+    out: list[str] = []
+    for n in names:
+        if n and n not in out:
+            out.append(n)
+    return out
+
+
+async def available_models() -> list[str]:
+    """Model names currently present in the local Ollama (empty if it's down)."""
+    try:
+        async with httpx.AsyncClient(timeout=3.0) as c:
+            tags = (await c.get(f'{settings.ollama_url}/api/tags')).json()
+        return [m.get('name', '') for m in tags.get('models', [])]
+    except Exception:
+        return []
+
+
+async def pull_all_models() -> dict[str, bool]:
+    """Pull every configured router model that is missing. Heavy — call from the
+    setup script or a gated startup, never per-request. Returns {model: ok}."""
+    present = await available_models()
+    results: dict[str, bool] = {}
+    for target in configured_models():
+        if any(target in m for m in present):
+            results[target] = True
+            continue
+        try:
+            logger.info('Pulling Ollama model %s …', target)
+            async with httpx.AsyncClient(timeout=1800.0) as c:
+                await c.post(f'{settings.ollama_url}/api/pull',
+                             json={'name': target, 'stream': False})
+            results[target] = True
+            logger.info('Model %s ready.', target)
+        except Exception as e:
+            logger.warning('Pull %s failed (non-critical): %s', target, e)
+            results[target] = False
+    return results
+
+
 async def pull_model_if_missing() -> bool:
     """
     Pull the configured Ollama model if not already present.
