@@ -272,9 +272,11 @@ _MODEL_REGISTRY = {
     'blood_smear': 'malaria', 'smear': 'malaria', 'malaria': 'malaria',
     'parasitology': 'helminths', 'stool': 'helminths', 'ova': 'helminths',
     'urine_parasite': 'helminths', 'helminths': 'helminths', 'helminth': 'helminths',
-    # per-category worm names all route to the one combined 11-class helminths detector
-    'trematode': 'helminths', 'fluke': 'helminths', 'cestode': 'helminths',
-    'tapeworm': 'helminths', 'nematode': 'helminths', 'roundworm': 'helminths',
+    # per-category egg specialists (single worm group) — combined `helminths` stays the
+    # default full-screen; these serve callers who already know the worm group.
+    'trematode': 'trematode', 'fluke': 'trematode',
+    'cestode': 'cestode', 'tapeworm': 'cestode',
+    'nematode': 'nematode', 'roundworm': 'nematode',
     'protozoa': 'protozoa', 'stool_protozoa': 'protozoa',
     'pbs': 'pbs', 'peripheral_blood_smear': 'pbs',
     'leukemia': 'leukemia', 'blast': 'leukemia',
@@ -468,6 +470,9 @@ def _local_detect(image_type: str, file_path: str) -> Optional[dict]:
         # note} schema under an 'organisms' or 'findings' group.
         _ORGMAP = {
             'helminths':      ('helminths_organisms.json',      'Helminths',      'no helminth ova/larvae detected - confirm on manual O&P'),
+            'trematode':      ('helminths_organisms.json',      'Trematodes (flukes)',    'no fluke ova detected - confirm on manual O&P'),
+            'cestode':        ('helminths_organisms.json',      'Cestodes (tapeworms)',   'no tapeworm ova detected - confirm on manual O&P'),
+            'nematode':       ('helminths_organisms.json',      'Nematodes (roundworms)', 'no roundworm ova/larvae detected - confirm on manual O&P'),
             'protozoa':       ('protozoa_organisms.json',       'Stool protozoa', 'no protozoa detected - confirm on manual O&P (wet prep / trichrome)'),
             'microfilaria':   ('blood_parasite_organisms.json', 'Blood parasites','no blood parasites detected - confirm on thick/thin film'),
             'urine_sediment': ('urine_sediment_findings.json',  'Urine sediment', 'no significant sediment - confirm on manual microscopy'),
