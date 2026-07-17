@@ -65,7 +65,30 @@ def extract_embedding(audio_bytes: bytes, sample_rate: int = 16000,
 
 
 def _decode_audio(audio_bytes: bytes, target_sr: int = 16000) -> Optional[np.ndarray]:
-    """Decode audio bytes (WebM/OGG/WAV) to float32 numpy array."""
+    """Decode audio bytes (WAV/WebM/OGG) to a float32 mono numpy array."""
+    # Fast path: RIFF/WAV via the stdlib `wave` module — no third-party deps.
+    # The browser now uploads 16 kHz mono WAV (see voice-training page), so this
+    # path handles enrollment + verification without soundfile/ffmpeg/librosa.
+    try:
+        if audio_bytes[:4] == b'RIFF':
+            import wave
+            with wave.open(io.BytesIO(audio_bytes), 'rb') as w:
+                nframes, sw, ch, fr = w.getnframes(), w.getsampwidth(), w.getnchannels(), w.getframerate()
+                raw = w.readframes(nframes)
+            dt = {1: np.uint8, 2: np.int16, 4: np.int32}.get(sw, np.int16)
+            data = np.frombuffer(raw, dtype=dt).astype(np.float32)
+            if sw == 1:                      # 8-bit PCM is unsigned
+                data = (data - 128.0) / 128.0
+            else:
+                data = data / float(1 << (8 * sw - 1))
+            if ch > 1:
+                data = data.reshape(-1, ch).mean(axis=1)
+            if fr != target_sr:
+                data = _resample(data, fr, target_sr)
+            return data
+    except Exception as e:
+        logger.debug('wave decode failed: %s', e)
+
     try:
         import soundfile as sf
         buf = io.BytesIO(audio_bytes)
@@ -144,6 +167,60 @@ def _get_encoder():
     return _encoder_cache
 
 
+def _hz_to_mel(f: float) -> float:
+    return 2595.0 * math.log10(1.0 + f / 700.0)
+
+
+def _mel_to_hz(m: np.ndarray) -> np.ndarray:
+    return 700.0 * (10.0 ** (m / 2595.0) - 1.0)
+
+
+def _mel_filterbank(n_filters: int, n_fft: int, sr: int) -> np.ndarray:
+    """Triangular mel filterbank, shape (n_filters, n_fft//2 + 1)."""
+    mels = np.linspace(_hz_to_mel(0.0), _hz_to_mel(sr / 2.0), n_filters + 2)
+    bins = np.floor((n_fft + 1) * _mel_to_hz(mels) / sr).astype(int)
+    bins = np.clip(bins, 0, n_fft // 2)
+    fb = np.zeros((n_filters, n_fft // 2 + 1), dtype=np.float32)
+    for m in range(1, n_filters + 1):
+        l, c, r = bins[m - 1], bins[m], bins[m + 1]
+        c = max(c, l + 1); r = max(r, c + 1)
+        for k in range(l, min(c, fb.shape[1])):
+            fb[m - 1, k] = (k - l) / float(c - l)
+        for k in range(c, min(r, fb.shape[1])):
+            fb[m - 1, k] = (r - k) / float(r - c)
+    return fb
+
+
+def _numpy_mfcc_embedding(y: np.ndarray, sr: int, n_mfcc: int = 13,
+                          n_fft: int = 512, hop: int = 256, n_mels: int = 26) -> Optional[np.ndarray]:
+    """Speaker embedding from MFCCs, pure numpy. Drops C0 (log-energy, which
+    otherwise dominates cosine similarity and washes out speaker identity), then
+    mean+std pools MFCC+delta+delta2 over frames for better discrimination."""
+    y = np.asarray(y, dtype=np.float32)
+    if y.size < n_fft:
+        y = np.pad(y, (0, n_fft - y.size))
+    y = np.append(y[0], y[1:] - 0.97 * y[:-1])            # pre-emphasis
+    n_frames = 1 + (len(y) - n_fft) // hop
+    if n_frames < 2:
+        return None
+    idx = np.arange(n_fft)[None, :] + hop * np.arange(n_frames)[:, None]
+    frames = y[idx] * np.hanning(n_fft)[None, :]
+    power = (np.abs(np.fft.rfft(frames, n=n_fft)) ** 2) / n_fft
+    mel = np.maximum(power @ _mel_filterbank(n_mels, n_fft, sr).T, 1e-10)
+    logmel = np.log(mel)
+    # DCT-II -> cepstral coefficients, then drop C0 (energy) -> keep 1..n_mfcc-1
+    dct = np.cos(np.pi / n_mels * (np.arange(n_mels)[None, :] + 0.5) * np.arange(n_mfcc)[:, None])
+    mfcc = (logmel @ dct.T)[:, 1:]                         # (frames, n_mfcc-1), C0 dropped
+
+    def _delta(x: np.ndarray) -> np.ndarray:
+        return np.vstack([x[1:] - x[:-1], np.zeros((1, x.shape[1]), np.float32)])
+
+    d1 = _delta(mfcc); d2 = _delta(d1)
+    feat = np.hstack([mfcc, d1, d2])                      # (frames, 3*(n_mfcc-1))
+    emb = np.concatenate([feat.mean(axis=0), feat.std(axis=0)]).astype(np.float32)
+    return emb                                            # (6*(n_mfcc-1),) = 72-dim
+
+
 def _extract_mfcc(waveform: np.ndarray, sr: int) -> tuple[Optional[np.ndarray], str]:
     """
     Extract 39-dim MFCC+delta+delta2 feature vector.
@@ -161,6 +238,15 @@ def _extract_mfcc(waveform: np.ndarray, sr: int) -> tuple[Optional[np.ndarray], 
         return emb, 'mfcc'
     except ImportError:
         pass
+
+    # numpy-only MFCC (no librosa/scipy) — mel filterbank + DCT-II, mean+delta
+    # pooled. This is the default path on the server (librosa is not installed).
+    try:
+        emb = _numpy_mfcc_embedding(waveform, sr)
+        if emb is not None and emb.size:
+            return emb, 'mfcc_numpy'
+    except Exception as e:
+        logger.debug('numpy mfcc failed: %s', e)
 
     # Ultra-fallback: ZCR + spectral centroid (no librosa)
     try:
