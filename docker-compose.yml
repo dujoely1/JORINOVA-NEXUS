@@ -22,7 +22,6 @@
 #     docker compose --profile full up -d
 #
 ###############################################################################
-version: '3.9'
 
 # ── Common API service definition ─────────────────────────────────────────────
 x-api-common: &api-common
@@ -290,13 +289,18 @@ services:
     depends_on:
       ollama:
         condition: service_healthy
+    # Lean offline set: phi3:mini (fast/JSON) + nous-hermes (chat/narration).
+    # The router falls back to these for deep/general tasks. For the full pool
+    # (mistral/llama3/tinyllama) on a powerful host, run deploy/setup_ollama.sh.
     command: >
       sh -c "
-        echo '>>> Pulling phi3:mini (offline LLM)...' &&
-        curl -s -X POST http://ollama:11434/api/pull
-          -H 'Content-Type: application/json'
-          -d '{\"name\":\"phi3:mini\",\"stream\":false}' &&
-        echo '>>> Model ready.'
+        for m in phi3:mini nous-hermes; do
+          echo \">>> Pulling $$m ...\" &&
+          curl -s -X POST http://ollama:11434/api/pull
+            -H 'Content-Type: application/json'
+            -d \"{\\\"name\\\":\\\"$$m\\\",\\\"stream\\\":false}\";
+        done &&
+        echo '>>> Offline models ready.'
       "
     networks:
       - alis_net

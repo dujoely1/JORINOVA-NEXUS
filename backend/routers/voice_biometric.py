@@ -25,7 +25,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc
 
 from core.database import get_db
-from core.security import get_current_user
+from core.security import get_current_user, create_access_token
 from models.user import User
 from models.voice_biometric import (
     VoiceEnrollment, VoiceVerificationLog, VoiceTrainingSession,
@@ -34,7 +34,7 @@ from models.voice_biometric import (
 from ai_services.voice_biometric import (
     extract_embedding, verify_speaker, check_voice_access,
     compute_enrollment_quality, average_embeddings, get_enrollment_phrases,
-    method_from_dim, recommended_threshold,
+    method_from_dim, recommended_threshold, cosine_similarity,
 )
 
 import numpy as np
@@ -509,6 +509,90 @@ def _log_attempt(db, user_id, enrollment_id, similarity, passed,
         db.flush()
     except Exception as e:
         logger.warning('Could not write verification log: %s', e)
+
+
+# ── Voice login (1:N) — speak to sign in as yourself ──────────────────────────
+
+_VOICEPRINTS_CACHE = None
+
+
+def _load_voiceprints() -> dict:
+    """Load backend/models/voice/voiceprints.json (resemblyzer centroids exported
+    by the Colab training notebook). Cached; {} if absent."""
+    global _VOICEPRINTS_CACHE
+    if _VOICEPRINTS_CACHE is None:
+        from pathlib import Path
+        p = Path(__file__).resolve().parents[1] / 'models' / 'voice' / 'voiceprints.json'
+        try:
+            _VOICEPRINTS_CACHE = json.loads(p.read_text(encoding='utf-8')) if p.exists() else {}
+        except Exception:
+            _VOICEPRINTS_CACHE = {}
+    return _VOICEPRINTS_CACHE
+
+
+@router.post('/login')
+async def voice_login(audio: UploadFile = File(...), db: Session = Depends(get_db)) -> dict:
+    """
+    Voice sign-in (1:N): match a spoken sample to an enrolled staff member and
+    return THAT user's own token + role — no username/password typed. Compares
+    against the accurate resemblyzer voiceprints (voiceprints.json) when present
+    AND every active DB enrolment whose embedding dimension matches. Unauthenticated
+    by design (this IS the sign-in); every attempt is logged to the app log.
+    """
+    audio_bytes = await audio.read()
+    if len(audio_bytes) < 1000:
+        raise HTTPException(400, 'Audio too short — record about 3-4 seconds.')
+    try:
+        emb, method = extract_embedding(audio_bytes)
+    except Exception as e:
+        raise HTTPException(422, f'Could not read the audio: {e}')
+    dim = int(len(emb))
+
+    best_score, best_user, best_thr = -1.0, None, 0.80
+
+    # 1) resemblyzer voiceprints.json (accurate) — only when its dim matches ours
+    vp = _load_voiceprints()
+    if vp and int(vp.get('dim', 0)) == dim:
+        thr = float(vp.get('threshold', 0.75))
+        for uname, vec in (vp.get('voiceprints') or {}).items():
+            s = cosine_similarity(emb, np.array(vec, dtype=np.float32))
+            if s > best_score:
+                u = db.query(User).filter(User.username == uname, User.is_active == True).first()
+                if u:
+                    best_score, best_user, best_thr = s, u, thr
+
+    # 2) DB enrolments (active) whose stored embedding dimension matches ours
+    for enr in db.query(VoiceEnrollment).filter(VoiceEnrollment.is_active == True).all():
+        try:
+            stored = json.loads(enr.embedding or '[]')
+        except Exception:
+            continue
+        vecs = stored if (stored and isinstance(stored[0], list)) else [stored]
+        vecs = [np.array(v, dtype=np.float32) for v in vecs if len(v) == dim]
+        if not vecs:
+            continue
+        s = max(cosine_similarity(emb, v) for v in vecs)
+        if s > best_score:
+            u = db.query(User).filter(User.id == enr.user_id, User.is_active == True).first()
+            if u:
+                best_score = s
+                best_user  = u
+                best_thr   = enr.verification_threshold or recommended_threshold(method)
+
+    if best_user is None or best_score < best_thr:
+        sim = round(max(best_score, 0.0), 3)
+        logger.warning('Voice LOGIN denied: best=%s sim=%.3f', best_user.username if best_user else '—', sim)
+        raise HTTPException(401, f'Voice not recognised (best match {sim:.0%}). '
+                            'Sign in with username + password instead.')
+
+    token = create_access_token({'sub': str(best_user.id), 'role': best_user.role})
+    logger.info('Voice LOGIN: user=%s sim=%.3f method=%s', best_user.username, best_score, method)
+    return {
+        'access_token': token, 'token_type': 'bearer',
+        'user_id': best_user.id, 'username': best_user.username,
+        'full_name': best_user.full_name, 'role': best_user.role,
+        'similarity': round(best_score, 3), 'method': method, 'via': 'voice',
+    }
 
 
 # ── Admin endpoints ─────────────────────────────────────────────────────────
