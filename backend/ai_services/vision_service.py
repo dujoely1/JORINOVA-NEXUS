@@ -217,7 +217,12 @@ async def _cloud_vision_analysis(
             ),
         }
 
-        prompt_text = prompts.get(image_type, prompts['microscopy'])
+        # CXR image types all use the TB-screening prompt. The trained tb_cxr
+        # detector may be absent (training didn't converge) — TB CXR then runs
+        # entirely on this AI recommendation layer.
+        _CXR = {'tb_cxr', 'cxr', 'chest_xray', 'tb'}
+        prompt_key  = 'xray_cxr' if image_type in _CXR else image_type
+        prompt_text = prompts.get(prompt_key, prompts['microscopy'])
         system_prompt = (
             'You are a laboratory image-interpretation assistant for a hospital lab in Rwanda. '
             'You provide DECISION SUPPORT ONLY — never an autonomous diagnosis; a qualified '
@@ -255,6 +260,21 @@ async def _cloud_vision_analysis(
         result['layer']      = 'cloud_vision'
         result['latency_ms'] = int((time.time()-t0)*1000)
         result['requires_human_review'] = True
+        # Chest X-ray: surface TB likelihood + the recommendation as findings, so
+        # the clinician gets a clear recommendation even without a trained detector.
+        if prompt_key == 'xray_cxr' and isinstance(result, dict):
+            like = result.get('tb_likelihood')
+            rec  = result.get('recommendation') or result.get('suggested_followup')
+            base = result.get('findings') or result.get('other_findings') or []
+            base = [base] if isinstance(base, str) else list(base)
+            if like:
+                base = [f'TB likelihood: {like}'] + base
+            if rec:
+                base = base + [f'Recommendation: {rec}']
+            if base:
+                result['findings'] = base
+            if str(like).lower() == 'high':
+                result['critical'] = True
         return result
 
     except Exception as e:
