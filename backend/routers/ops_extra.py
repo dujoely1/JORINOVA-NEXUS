@@ -488,6 +488,23 @@ def add_genomic(body: GenomicIn, db: Session = Depends(get_db), user: User = Dep
     return {'id': g.id}
 
 
+class GenomicLookupIn(BaseModel):
+    gene: str = ''
+    variant: Optional[str] = ''
+    rsid: Optional[str] = ''
+
+
+@router.post('/genomics/lookup')
+async def lookup_genomic(body: GenomicLookupIn, _u: User = Depends(get_current_user)):
+    """Auto-classify a variant from ClinVar (NCBI, keyless), with a Claude LLM
+    ACMG-style fallback. Only the gene symbol + variant notation are sent
+    externally — never patient data. The UI pre-fills these; a human still saves."""
+    if not (body.gene or '').strip() and not (body.rsid or '').strip():
+        raise HTTPException(400, 'gene or rsID is required')
+    from ai_services.genomic_lookup import lookup_variant
+    return await lookup_variant(body.gene or '', body.variant or '', body.rsid or '')
+
+
 # ─────────────────────────── RECENT ACTIVITY (per user) ──────────────────────
 
 @router.get('/recent-activity')

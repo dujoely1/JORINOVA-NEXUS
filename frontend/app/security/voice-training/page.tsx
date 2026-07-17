@@ -27,6 +27,50 @@ function authHeaders(): HeadersInit {
   const t = getToken(); return t ? { Authorization: `Bearer ${t}` } : {}
 }
 
+// Encode a mono Float32 PCM buffer as a 16-bit WAV blob (RIFF).
+function encodeWav(samples: Float32Array, sampleRate: number): Blob {
+  const buf = new ArrayBuffer(44 + samples.length * 2)
+  const view = new DataView(buf)
+  const ws = (off: number, s: string) => { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)) }
+  ws(0, 'RIFF'); view.setUint32(4, 36 + samples.length * 2, true); ws(8, 'WAVE')
+  ws(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true)
+  view.setUint32(24, sampleRate, true); view.setUint32(28, sampleRate * 2, true)
+  view.setUint16(32, 2, true); view.setUint16(34, 16, true)
+  ws(36, 'data'); view.setUint32(40, samples.length * 2, true)
+  let o = 44
+  for (let i = 0; i < samples.length; i++) {
+    const s = Math.max(-1, Math.min(1, samples[i]))
+    view.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7fff, true); o += 2
+  }
+  return new Blob([buf], { type: 'audio/wav' })
+}
+
+// Decode a recorded blob (WebM/Opus) and re-encode as 16 kHz mono WAV, which the
+// backend can read with the stdlib `wave` module (no server-side codec needed).
+async function blobToWav(blob: Blob, targetSr = 16000): Promise<Blob> {
+  const AC = (window.AudioContext || (window as any).webkitAudioContext)
+  const ac = new AC()
+  try {
+    const decoded = await ac.decodeAudioData(await blob.arrayBuffer())
+    const { numberOfChannels: ch, length: len, sampleRate: srcSr } = decoded
+    const mono = new Float32Array(len)
+    for (let c = 0; c < ch; c++) {
+      const d = decoded.getChannelData(c)
+      for (let i = 0; i < len; i++) mono[i] += d[i] / ch
+    }
+    const outLen = Math.max(1, Math.round(len * targetSr / srcSr))
+    const out = new Float32Array(outLen)
+    for (let i = 0; i < outLen; i++) {
+      const t = i * srcSr / targetSr
+      const i0 = Math.floor(t), i1 = Math.min(i0 + 1, len - 1)
+      out[i] = mono[i0] + (mono[i1] - mono[i0]) * (t - i0)
+    }
+    return encodeWav(out, targetSr)
+  } finally {
+    try { await ac.close() } catch { /* noop */ }
+  }
+}
+
 interface Session { token: string; phrases: string[]; samplesNeeded: number }
 
 export default function VoiceTrainingPage() {
@@ -114,13 +158,18 @@ function Inner() {
     setLevel(0)
     setRecording(null)
 
-    const blob = new Blob(chunks, { type: 'audio/webm' })
+    const recorded = new Blob(chunks, { type: rec.mimeType || 'audio/webm' })
     setUploading(idx)
+    // Prefer 16 kHz mono WAV (server decodes it with no codec deps); fall back to
+    // the raw recording if the browser can't decode it for re-encoding.
+    let audioBlob: Blob = recorded, ext = 'webm'
+    try { audioBlob = await blobToWav(recorded, 16000); ext = 'wav' }
+    catch { /* keep the original recording */ }
     try {
       const fd = new FormData()
       fd.append('session_token', session.token)
       fd.append('phrase_index', String(idx))
-      fd.append('audio', blob, `sample_${idx}.webm`)
+      fd.append('audio', audioBlob, `sample_${idx}.${ext}`)
       const r = await fetch(`${API}/api/v1/voice-bio/enroll/sample`, { method: 'POST', headers: authHeaders(), body: fd })
       if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || `HTTP ${r.status}`)
       setDone(d => { const n = [...d]; n[idx] = true; return n })

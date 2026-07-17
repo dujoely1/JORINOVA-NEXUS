@@ -23,8 +23,25 @@ function Inner(){
   const [rows,setRows]=useState<Gene[]>([])
   const [f,setF]=useState({pid:'',gene:'',variant:'',zygosity:'het',classification:'VUS',method:'manual',interpretation:''})
   const [msg,setMsg]=useState<string|null>(null)
+  const [looking,setLooking]=useState(false)
   const load=useCallback(async()=>{ try{ const r=await fetch(`${API}/api/v1/ops/genomics`,{headers:H()}); if(r.ok) setRows(await r.json()) }catch{} },[])
   useEffect(()=>{ void load() },[load])
+  const CODE2LABEL:Record<string,string>={ pathogenic:'Pathogenic', likely_pathogenic:'Likely_pathogenic', vus:'VUS', benign:'Benign' }
+  async function lookup(){
+    if(!f.gene && !f.variant){ setMsg('Enter a gene (and ideally a variant / rsID) first'); return }
+    setLooking(true); setMsg('🔎 Querying ClinVar…')
+    try{
+      const body:any={ gene:f.gene, variant:f.variant }
+      if(/^rs\d+$/i.test(f.variant.trim())){ body.rsid=f.variant.trim(); body.variant='' }
+      const r=await fetch(`${API}/api/v1/ops/genomics/lookup`,{method:'POST',headers:H(true),body:JSON.stringify(body)})
+      if(!r.ok){ setMsg('⚠ lookup failed'); return }
+      const j=await r.json()
+      setF(prev=>({ ...prev, classification: CODE2LABEL[j.classification]??prev.classification,
+        interpretation: j.interpretation??prev.interpretation, method:'ai' }))
+      setMsg(`${j.found?'✅':'ℹ️'} ${j.source}${j.condition?` — ${j.condition}`:''}. Review, then Add entry.`)
+    }catch{ setMsg('⚠ backend not reachable') }
+    finally{ setLooking(false) }
+  }
   async function add(){
     if(!f.gene){ setMsg('Gene is required'); return }
     try{ const r=await fetch(`${API}/api/v1/ops/genomics`,{method:'POST',headers:H(true),body:JSON.stringify({...f, classification:f.classification.toLowerCase()})})
@@ -34,7 +51,7 @@ function Inner(){
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-6 space-y-5">
       <div>
         <h1 className="text-2xl font-extrabold text-fuchsia-200">🧬 MedGenome</h1>
-        <p className="text-xs text-slate-400 mt-1">Genomic findings — by AI or manual entry.</p>
+        <p className="text-xs text-slate-400 mt-1">Genomic findings — <b>Auto-lookup</b> (ClinVar / AI) or manual entry. Enter a gene + variant (c./p.) or an rsID.</p>
       </div>
 
       <div className="rounded-xl border border-fuchsia-400/30 bg-slate-900/60 p-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -50,7 +67,10 @@ function Inner(){
         <select value={f.method} onChange={e=>setF({...f,method:e.target.value})} className="bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-sm text-slate-100">
           <option value="manual">Manual</option><option value="ai">By AI</option>
         </select>
-        <input placeholder="Interpretation" value={f.interpretation} onChange={e=>setF({...f,interpretation:e.target.value})} className="col-span-1 sm:col-span-1 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-sm text-slate-100"/>
+        <input placeholder="Interpretation" value={f.interpretation} onChange={e=>setF({...f,interpretation:e.target.value})} className="col-span-2 sm:col-span-2 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-sm text-slate-100"/>
+        <button onClick={lookup} disabled={looking} title="Query ClinVar / AI to auto-fill classification + interpretation"
+          className="px-3 py-1.5 rounded bg-sky-600 text-white text-sm font-semibold hover:bg-sky-500 disabled:opacity-50">
+          {looking?'…':'🔎 Auto-lookup'}</button>
         <button onClick={add} className="px-3 py-1.5 rounded bg-fuchsia-600 text-white text-sm font-semibold hover:bg-fuchsia-500">Add entry</button>
       </div>
       {msg && <div className="text-xs text-slate-300">{msg}</div>}
