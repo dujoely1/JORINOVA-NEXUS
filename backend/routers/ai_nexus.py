@@ -383,3 +383,32 @@ async def cache_info(
         'local_llm': local_cache(),
         'cloud_llm': cloud_cache(),
     }
+
+
+class AIModeIn(BaseModel):
+    mode: str
+
+
+@router.get('/ai-mode')
+async def get_ai_mode_ep(_u: User = Depends(get_current_user)) -> dict:
+    """Current hybrid AI mode + which local Ollama models are configured/present."""
+    from ai_services import orchestrator, local_llm, cloud_llm
+    return {
+        'mode':              orchestrator.get_ai_mode(),
+        'options':           ['auto', 'offline', 'cloud'],
+        'cloud_reachable':   await cloud_llm.is_available(),
+        'local_reachable':   await local_llm.is_available(),
+        'configured_models': local_llm.configured_models(),
+        'available_models':  await local_llm.available_models(),
+    }
+
+
+@router.post('/ai-mode')
+async def set_ai_mode_ep(body: AIModeIn, user: User = Depends(get_current_user)) -> dict:
+    """Force the AI route — 'auto' (internet-aware: cloud when online, else local),
+    'offline' (local Ollama only, even with internet), or 'cloud' (prefer Claude).
+    Admin only."""
+    if user.role not in ('super_admin', 'it_admin', 'lab_manager'):
+        raise HTTPException(403, 'Admin access required to change AI mode')
+    from ai_services import orchestrator
+    return {'mode': orchestrator.set_ai_mode(body.mode)}

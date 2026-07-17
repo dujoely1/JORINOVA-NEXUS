@@ -71,6 +71,16 @@ class Settings(BaseSettings):
     ollama_model_fallback:     str = 'tinyllama'           # ultra-light fallback
     local_ai_timeout:          int = 15
 
+    # Hybrid routing mode (internet-aware):
+    #   'auto'    — cloud (Claude) when the internet/API is reachable, else local Ollama
+    #   'offline' — force local Ollama even when the internet is up
+    #   'cloud'   — prefer cloud whenever reachable
+    # Runtime-overridable via POST /api/v1/ai/ai-mode (admin).
+    ai_mode:              str  = 'auto'
+    # Pull ALL router models (phi3:mini, mistral, nous-hermes, llama3, tinyllama)
+    # on startup. Heavy (~16 GB) — enable only on a real host, never Render free.
+    ai_autopull_models:   bool = False
+
     # AI — Cloud
     anthropic_api_key: str = ''
     claude_model:      str = 'claude-haiku-4-5-20251001'

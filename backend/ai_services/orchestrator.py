@@ -174,6 +174,33 @@ def settings():
     return get_settings()
 
 
+# ── Hybrid AI mode (internet-aware, offline-first) ────────────────────────────
+_MODE_OVERRIDE = None   # runtime override of settings.ai_mode (set via /ai/ai-mode)
+
+
+def get_ai_mode() -> str:
+    """Current AI mode: 'auto' | 'offline' | 'cloud'. Runtime override wins."""
+    return (_MODE_OVERRIDE or getattr(settings(), 'ai_mode', 'auto') or 'auto').lower()
+
+
+def set_ai_mode(mode: str) -> str:
+    """Set the runtime AI mode ('auto'|'offline'|'cloud'; anything else clears it)."""
+    global _MODE_OVERRIDE
+    m = (mode or '').lower().strip()
+    _MODE_OVERRIDE = m if m in ('auto', 'offline', 'cloud') else None
+    return get_ai_mode()
+
+
+async def _cloud_usable() -> bool:
+    """True only when NOT forced offline AND the Claude API is reachable (which
+    needs both the key and live internet). This is what makes the orchestrator
+    fall to local Ollama automatically the moment the internet drops, and lets
+    us force local with mode='offline' even while online."""
+    if get_ai_mode() == 'offline':
+        return False
+    return await cloud_llm.is_available()
+
+
 # ── Core dispatch ─────────────────────────────────────────────────────────────
 
 async def dispatch(request: AIRequest, db=None, lang: str = 'en') -> dict[str, Any]:
@@ -431,9 +458,27 @@ async def _dispatch_local_preferred(task: TaskType, payload: dict, db) -> dict:
     return {'error': f'No local handler for {task}', 'layer': 'local'}
 
 
+def _panel_prompt(payload: dict) -> str:
+    """Build an offline interpretation prompt from a payload (prompt or results)."""
+    if payload.get('prompt'):
+        return payload['prompt']
+    lines = '\n'.join(
+        f"- {r.get('test_name', r.get('test_code', '?'))}: {r.get('value', '?')} "
+        f"{r.get('unit', '')} [{r.get('flag', '')}]"
+        for r in (payload.get('results') or [])[:15]
+    )
+    return (
+        'Interpret these laboratory results. Give a concise clinical summary, the top '
+        'differentials, and one recommended next step. Decision support only.\n'
+        f'Results:\n{lines or "(none)"}\nContext: {payload.get("context") or "none"}'
+    )
+
+
 async def _dispatch_cloud_preferred(task: TaskType, payload: dict, db) -> dict:
-    """Try cloud LLM; fall back to local LLM; then rules engine."""
-    cloud_available = await cloud_llm.is_available()
+    """Cloud (Claude) when reachable and not forced offline; otherwise the local
+    Ollama router (task-appropriate model); rules engine as the final floor."""
+    from ai_services import local_llm_router
+    cloud_available = await _cloud_usable()
 
     if task == TaskType.CLINICAL_REASON or task == TaskType.ADVANCED_SUMMARY:
         if cloud_available:
@@ -443,9 +488,10 @@ async def _dispatch_cloud_preferred(task: TaskType, payload: dict, db) -> dict:
                 patient_age      = payload.get('age', 0),
                 patient_sex      = payload.get('sex', ''),
             )
-        # Local fallback
-        resp = await local_llm.generate(payload.get('prompt', ''))
-        return {'content': resp.content, 'layer': 'local_llm_fallback', 'cloud_unavailable': True}
+        # Offline: deep-reasoning model via the router
+        resp = await local_llm_router.route('deep', _panel_prompt(payload), max_tokens=700)
+        return {'content': resp.content, 'layer': resp.layer_used, 'model': resp.model,
+                'offline': True, 'cloud_unavailable': True, 'error': resp.error}
 
     if task == TaskType.EPIDEMIC_ANALYSIS:
         rules_signal = payload.get('count_7d', 0) > payload.get('baseline', 1) * 2
@@ -457,7 +503,8 @@ async def _dispatch_cloud_preferred(task: TaskType, payload: dict, db) -> dict:
                 count_7d   = payload.get('count_7d', 0),
                 baseline   = payload.get('baseline', 1.0),
             )
-        return {'outbreak_signal': rules_signal, 'layer': 'rules_only', 'cloud_unavailable': True}
+        return {'outbreak_signal': rules_signal, 'layer': 'rules_only', 'offline': True,
+                'cloud_unavailable': True}
 
     if task == TaskType.DRUG_INTERACTION:
         if cloud_available:
@@ -466,13 +513,24 @@ async def _dispatch_cloud_preferred(task: TaskType, payload: dict, db) -> dict:
                 proposed_medication = payload.get('proposed_medication', ''),
                 patient_context     = payload.get('context', ''),
             )
-        return {'available': False, 'message': 'Drug interaction check requires cloud. Use pharmacist review offline.'}
+        prompt = (
+            f'Check clinically significant interactions between current medications '
+            f'{payload.get("current_medications", [])} and the proposed medication '
+            f'"{payload.get("proposed_medication", "")}". List each interaction with '
+            f'severity and management. Context: {payload.get("context", "") or "none"}.'
+        )
+        resp = await local_llm_router.route('deep', prompt, max_tokens=500)
+        return {'content': resp.content, 'layer': resp.layer_used, 'model': resp.model,
+                'available': bool(resp.content), 'offline': True,
+                'message': 'Offline AI advisory — a pharmacist must verify.', 'error': resp.error}
 
     if task == TaskType.RESEARCH_ASSIST:
         if cloud_available:
             resp = await cloud_llm.generate(payload.get('prompt', ''), max_tokens=1200)
             return {'content': resp.content, 'layer': 'cloud_llm'}
-        return {'content': '', 'error': 'Research assistant requires cloud connectivity', 'layer': 'unavailable'}
+        resp = await local_llm_router.route('general', payload.get('prompt', ''), max_tokens=1000)
+        return {'content': resp.content, 'layer': resp.layer_used, 'model': resp.model,
+                'offline': True, 'error': resp.error}
 
     return {'error': f'No cloud handler for {task}'}
 

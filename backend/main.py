@@ -96,19 +96,26 @@ async def _probe_ai_services():
     import asyncio
     await asyncio.sleep(2)   # let app fully start first
     try:
-        from ai_services.local_llm import is_available as ollama_ok, pull_model_if_missing
+        from ai_services.local_llm import (is_available as ollama_ok,
+                                            pull_model_if_missing, pull_all_models)
         from ai_services.cloud_llm import is_available as cloud_ok
+        from core.config import get_settings
 
         local_up = await ollama_ok()
         cloud_up = await cloud_ok()
 
-        logger.info('AI Status — Local(Ollama): %s | Cloud(Claude): %s',
+        logger.info('AI Status — Local(Ollama): %s | Cloud(Claude): %s | mode=%s',
                     '✓ Online' if local_up else '✗ Offline',
-                    '✓ Online' if cloud_up  else '✗ Offline (using local/rules)')
+                    '✓ Online' if cloud_up  else '✗ Offline (using local/rules)',
+                    getattr(get_settings(), 'ai_mode', 'auto'))
 
         if local_up:
-            # Pull model in background if not already present
-            asyncio.create_task(pull_model_if_missing())
+            # Ensure the router's models are present. Pull ALL of them only when
+            # explicitly enabled (heavy ~16 GB); otherwise just the default model.
+            if getattr(get_settings(), 'ai_autopull_models', False):
+                asyncio.create_task(pull_all_models())
+            else:
+                asyncio.create_task(pull_model_if_missing())
         else:
             logger.info('System running in OFFLINE mode — rules engine + coded responses active')
 
