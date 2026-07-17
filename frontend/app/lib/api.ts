@@ -14,10 +14,11 @@ function getToken(): string | null {
 }
 
 function setToken(t: string) {
-  // Persistent session cookie (7 days) + localStorage fallback so the operator
-  // is not forced to re-login during a shift / demo.
+  // "Stay signed in forever": a 10-year cookie (matches the 10-year JWT) plus a
+  // localStorage copy, so the operator is never forced to re-login. Sign-out /
+  // admin device-revocation still clear it immediately.
   try {
-    document.cookie = `access_token=${t}; path=/; max-age=604800; SameSite=Lax`
+    document.cookie = `access_token=${t}; path=/; max-age=315360000; SameSite=Lax`
   } catch {
     /* IE<11 fallback — no-op */
   }

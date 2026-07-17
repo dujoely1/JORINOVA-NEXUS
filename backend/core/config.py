@@ -54,7 +54,9 @@ class Settings(BaseSettings):
 
     # JWT
     jwt_algorithm:       str = 'HS256'
-    access_token_expire: int = 10080  # minutes (7 days) — pilot: stay signed in across the day/shift
+    access_token_expire: int = 5256000  # minutes (10 years) — "stay signed in forever";
+    # a session is still revocable without waiting for expiry: deactivate the user
+    # (User.is_active) or revoke the trusted device (get_current_user checks both).
 
     # AI — Local (Ollama hybrid worker pool)
     # `ollama_model` is the default workhorse; the task router

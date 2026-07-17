@@ -14,7 +14,8 @@ import { landingPathFor } from '../lib/role-routes'
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 
 function storeToken(t: string) {
-  document.cookie = `access_token=${t}; path=/; max-age=604800; SameSite=Lax`
+  // 10-year cookie — stay signed in forever (matches the JWT lifetime).
+  document.cookie = `access_token=${t}; path=/; max-age=315360000; SameSite=Lax`
   try { localStorage.setItem('access_token', t) } catch { /* ignore */ }
 }
 function roleFromToken(t: string): string {

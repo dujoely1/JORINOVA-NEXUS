@@ -34,6 +34,7 @@ from models.voice_biometric import (
 from ai_services.voice_biometric import (
     extract_embedding, verify_speaker, check_voice_access,
     compute_enrollment_quality, average_embeddings, get_enrollment_phrases,
+    method_from_dim, recommended_threshold,
 )
 
 import numpy as np
@@ -297,30 +298,39 @@ def confirm_enrollment(
     # Store all individual embeddings too (for richer comparison)
     avg_emb = average_embeddings(embeddings)
 
+    # Derive the method + verification threshold from the embedding actually
+    # produced (the server runs numpy MFCC unless resemblyzer/librosa are
+    # installed). Each method has its own cosine scale, so the bar is method-
+    # specific — not a fixed 0.75 that only suited resemblyzer.
+    method    = method_from_dim(len(embeddings[0])) if embeddings else 'mfcc_numpy'
+    threshold = recommended_threshold(method)
+
     # Create or update enrollment
     existing = db.query(VoiceEnrollment).filter(VoiceEnrollment.user_id == user.id).first()
     if existing:
-        existing.embedding          = json.dumps([e.tolist() for e in embeddings])
-        existing.embedding_method   = 'mfcc'
-        existing.samples_count      = len(embeddings)
-        existing.enrollment_quality = quality
-        existing.enrolled_at        = datetime.now(timezone.utc)
-        existing.is_active          = False   # needs admin approval
-        existing.approved_by_id     = None
-        existing.failed_attempts    = 0
-        existing.locked_until       = None
-        existing.enrollment_phrases = session.phrases
+        existing.embedding              = json.dumps([e.tolist() for e in embeddings])
+        existing.embedding_method       = method
+        existing.verification_threshold = threshold
+        existing.samples_count          = len(embeddings)
+        existing.enrollment_quality     = quality
+        existing.enrolled_at            = datetime.now(timezone.utc)
+        existing.is_active              = False   # needs admin approval
+        existing.approved_by_id         = None
+        existing.failed_attempts        = 0
+        existing.locked_until           = None
+        existing.enrollment_phrases     = session.phrases
         enr = existing
     else:
         enr = VoiceEnrollment(
-            user_id             = user.id,
-            embedding           = json.dumps([e.tolist() for e in embeddings]),
-            embedding_method    = 'mfcc',
-            samples_count       = len(embeddings),
-            enrollment_quality  = quality,
-            enrolled_at         = datetime.now(timezone.utc),
-            is_active           = False,  # needs approval
-            enrollment_phrases  = session.phrases,
+            user_id                = user.id,
+            embedding              = json.dumps([e.tolist() for e in embeddings]),
+            embedding_method       = method,
+            verification_threshold = threshold,
+            samples_count          = len(embeddings),
+            enrollment_quality     = quality,
+            enrolled_at            = datetime.now(timezone.utc),
+            is_active              = False,  # needs approval
+            enrollment_phrases     = session.phrases,
         )
         db.add(enr)
 
@@ -339,6 +349,8 @@ def confirm_enrollment(
         'enrollment_id': enr.id,
         'quality':       quality,
         'samples':       len(embeddings),
+        'method':        method,
+        'threshold':     threshold,
         'status':        'PENDING_APPROVAL',
         'message':       (
             f'Voice enrollment submitted! Quality: {quality:.1%}. '
@@ -459,10 +471,10 @@ async def verify_voice(
                 'due to repeated verification failures.'
             )
 
-    # 6. Write audit log
+    # 6. Write audit log (record the enrollment's own threshold, not a constant)
     _log_attempt(db, user.id, enr.id, result['similarity'], result['passed'],
                  result.get('failure_reason'), command_hint, '0.0.0.0',
-                 result['duration_s'])
+                 result['duration_s'], threshold=result.get('threshold', enr.verification_threshold))
 
     db.commit()
 
@@ -484,11 +496,11 @@ async def verify_voice(
 
 
 def _log_attempt(db, user_id, enrollment_id, similarity, passed,
-                 failure_reason, command, ip, duration=0.0):
+                 failure_reason, command, ip, duration=0.0, threshold=0.75):
     try:
         log = VoiceVerificationLog(
             user_id=user_id, enrollment_id=enrollment_id,
-            similarity_score=similarity, threshold=0.75,
+            similarity_score=similarity, threshold=threshold,
             passed=passed, failure_reason=failure_reason,
             command_attempted=command[:200] if command else None,
             ip_address=ip, audio_duration_s=duration,

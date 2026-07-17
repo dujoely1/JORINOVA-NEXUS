@@ -397,6 +397,33 @@ def average_embeddings(embeddings: list[np.ndarray]) -> np.ndarray:
     return avg.astype(np.float32)
 
 
+# ── Per-method verification thresholds ────────────────────────────────────────
+# Each embedding method has its own cosine-similarity scale, so a single global
+# threshold is wrong. These are calibrated defaults — tune per site from the logs.
+_METHOD_THRESHOLDS = {
+    'resemblyzer':    0.75,   # GE2E d-vector, ~2% EER at 0.75
+    'mfcc':           0.85,   # librosa 39-dim mean — cosine runs high
+    'mfcc_numpy':     0.82,   # 72-dim mean+std, C0 dropped
+    'basic_features': 0.90,   # 3-dim crude fallback — high bar, low trust
+}
+
+
+def recommended_threshold(method: str) -> float:
+    """Verification threshold appropriate for the embedding method used."""
+    return _METHOD_THRESHOLDS.get(method, 0.80)
+
+
+def method_from_dim(dim: int) -> str:
+    """Infer the embedding method from a stored vector's dimensionality."""
+    if dim >= 200:
+        return 'resemblyzer'     # 256
+    if dim == 39:
+        return 'mfcc'            # librosa MFCC+delta mean
+    if dim >= 60:
+        return 'mfcc_numpy'      # 72 (mean+std, C0 dropped)
+    return 'basic_features'      # 3
+
+
 # ── Role access control ───────────────────────────────────────────────────────
 
 def check_voice_access(role: str) -> dict:
