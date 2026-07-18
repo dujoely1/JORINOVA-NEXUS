@@ -83,14 +83,10 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -sf http://localhost:8000/api/v1/health || exit 1
 
-# Default: production gunicorn
-CMD ["gunicorn", "main:app", \
-     "--workers", "4", \
-     "--worker-class", "uvicorn.workers.UvicornWorker", \
-     "--bind", "0.0.0.0:8000", \
-     "--timeout", "120", \
-     "--keep-alive", "5", \
-     "--access-logfile", "/app/logs/access.log", \
-     "--error-logfile",  "/app/logs/error.log", \
-     "--log-level", "warning", \
-     "--forwarded-allow-ips=*"]
+# Default: production gunicorn.
+# Shell form so ${PORT} expands: Cloud Run / Render inject PORT (usually 8080);
+# locally it falls back to 8000 so docker-compose keeps working unchanged.
+# Logs go to stdout/stderr (-) so Cloud Run / Render capture them. Workers are
+# tunable via WEB_CONCURRENCY (set it to 1 on a small Cloud Run instance so
+# torch + the vision models don't OOM).
+CMD gunicorn main:app --workers ${WEB_CONCURRENCY:-4} --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT:-8000} --timeout 120 --keep-alive 5 --access-logfile - --error-logfile - --log-level warning --forwarded-allow-ips=*
