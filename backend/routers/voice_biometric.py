@@ -22,7 +22,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 
 from core.database import get_db
 from core.security import get_current_user, create_access_token
@@ -557,7 +557,7 @@ async def voice_login(audio: UploadFile = File(...), db: Session = Depends(get_d
         for uname, vec in (vp.get('voiceprints') or {}).items():
             s = cosine_similarity(emb, np.array(vec, dtype=np.float32))
             if s > best_score:
-                u = db.query(User).filter(User.username == uname, User.is_active == True).first()
+                u = db.query(User).filter(func.lower(User.username) == uname.lower(), User.is_active == True).first()
                 if u:
                     best_score, best_user, best_thr = s, u, thr
 
