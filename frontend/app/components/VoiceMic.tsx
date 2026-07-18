@@ -25,11 +25,31 @@ import { useRouter } from 'next/navigation'
 import { useI18n, useT } from '../contexts/I18nProvider'
 import type { Lang } from '../lib/i18n'
 
+const API = process.env.NEXT_PUBLIC_API_URL ?? ''
+function voiceToken(): string | null {
+  if (typeof window === 'undefined') return null
+  return document.cookie.split('; ').find(r => r.startsWith('access_token='))?.split('=')[1]
+    ?? localStorage.getItem('access_token')
+}
+
+// Find the first visible button / link whose text, title or aria-label contains
+// one of the given words, and return it (for hands-free "validate", "print", …).
+function findClickable(words: string[]): HTMLElement | null {
+  const low = words.map(w => w.toLowerCase())
+  for (const el of Array.from(document.querySelectorAll<HTMLElement>('button,[role="button"],a'))) {
+    if (el.offsetParent === null || (el as HTMLButtonElement).disabled) continue
+    const txt = `${el.textContent || ''} ${el.getAttribute('title') || ''} ${el.getAttribute('aria-label') || ''}`.toLowerCase()
+    if (low.some(w => txt.includes(w))) return el
+  }
+  return null
+}
+
 // ── Command catalogue: word → action ─────────────────────────────────────────
 
 type Action =
   | { kind: 'nav';   path: string }
   | { kind: 'focus'; selector: string }
+  | { kind: 'click'; match: string[] }
   | { kind: 'logout' }
 
 const KEYWORDS: { word: string; action: Action }[] = [
@@ -75,6 +95,20 @@ const KEYWORDS: { word: string; action: Action }[] = [
   { word: 'scan',          action: { kind: 'focus', selector: 'input[placeholder*="Scan" i],input[placeholder*="barcode" i],input[placeholder*="sample" i],input[placeholder*="sikana" i],input[placeholder*="scanner" i]' } },
   { word: 'barcode',       action: { kind: 'focus', selector: 'input[placeholder*="Scan" i],input[placeholder*="barcode" i]' } },
   { word: 'sikana',        action: { kind: 'focus', selector: 'input[placeholder*="Scan" i],input[placeholder*="barcode" i],input[placeholder*="sikana" i]' } },
+  { word: 'medgenome',     action: { kind: 'nav', path: '/modules/medgenome' } },
+  { word: 'genome',        action: { kind: 'nav', path: '/modules/medgenome' } },
+  // Action verbs — click the matching on-page button, hands-free
+  { word: 'validate',      action: { kind: 'click', match: ['validate', 'authorize', 'valider', 'autoriser', 'emeza'] } },
+  { word: 'authorize',     action: { kind: 'click', match: ['authorize', 'validate', 'release', 'emeza'] } },
+  { word: 'emeza',         action: { kind: 'click', match: ['emeza', 'validate', 'authorize'] } },
+  { word: 'approve',       action: { kind: 'click', match: ['approve', 'accept', 'approuver', 'kwemeza'] } },
+  { word: 'reject',        action: { kind: 'click', match: ['reject', 'decline', 'rejeter', 'anga'] } },
+  { word: 'print',         action: { kind: 'click', match: ['print', 'pdf', 'imprimer', 'sohora', 'chapisha'] } },
+  { word: 'save',          action: { kind: 'click', match: ['save', 'submit', 'enregistrer', 'bika'] } },
+  { word: 'critical',      action: { kind: 'click', match: ['critical', 'notify', 'critique', 'byihutirwa'] } },
+  { word: 'flag',          action: { kind: 'click', match: ['flag', 'critical', 'notify'] } },
+  { word: 'search',        action: { kind: 'focus', selector: 'input[type="search"],input[placeholder*="search" i],input[placeholder*="find" i],input[placeholder*="rechercher" i],input[placeholder*="shakisha" i]' } },
+  { word: 'shakisha',      action: { kind: 'focus', selector: 'input[type="search"],input[placeholder*="search" i],input[placeholder*="shakisha" i]' } },
   { word: 'logout',        action: { kind: 'logout' } },
   { word: 'signout',       action: { kind: 'logout' } },
   { word: 'gusohoka',      action: { kind: 'logout' } },
@@ -193,6 +227,9 @@ const SAY_WAKE:  Record<Lang, string> = { en: 'Say “Hello Nexus”…', fr: 'D
 const ARMED_TXT: Record<Lang, string> = { en: 'Listening — say your command', fr: 'À l’écoute — votre commande', rw: 'Ndumva — vuga icyo ushaka' }
 const SEND_TXT:  Record<Lang, string> = { en: 'Send', fr: 'Envoyer', rw: 'Ohereza' }
 const MODE_TT:   Record<Lang, string> = { en: 'Touchless: needs “Hello Nexus”. Click to switch to tap-to-command.', fr: 'Mains libres : « Hello Nexus ». Cliquez pour passer en mode tactile.', rw: 'Nta gukanda: «Hello Nexus». Kanda uhindure ujye ku bwa gukanda.' }
+const DONE_TXT:  Record<Lang, string> = { en: 'Done', fr: 'Fait', rw: 'Byakozwe' }
+const NOT_FOUND: Record<Lang, string> = { en: 'Not available on this screen', fr: 'Indisponible sur cet écran', rw: 'Ntibiboneka kuri iyi paji' }
+const NO_UNDER:  Record<Lang, string> = { en: 'Sorry, I didn’t catch that', fr: 'Désolé, je n’ai pas compris', rw: 'Mbabarira, sinabyumvise' }
 
 export default function VoiceMic() {
   const router = useRouter()
@@ -270,12 +307,28 @@ export default function VoiceMic() {
     lastExecRef.current = { text: m.kw.word, at: now }
 
     const a = m.kw.action
+
+    // For a click action, resolve the on-page button first so we can say
+    // "not available on this screen" instead of pretending it worked.
+    let clickEl: HTMLElement | null = null
+    if (a.kind === 'click') {
+      clickEl = findClickable(a.match)
+      if (!clickEl) {
+        setCorrected(m.corrected || null)
+        setFeedback(NOT_FOUND[langRef.current] ?? 'Not available')
+        speak(NOT_FOUND[langRef.current] ?? '')
+        return
+      }
+    }
+
     let spoken = ''
     if (a.kind === 'nav') {
       const label = PATH_LABEL[a.path]?.[langRef.current] ?? PATH_LABEL[a.path]?.en ?? m.kw.word
       spoken = t('voice.opening', { x: label })
     } else if (a.kind === 'focus') {
       spoken = t('voice.ready_scan')
+    } else if (a.kind === 'click') {
+      spoken = `${DONE_TXT[langRef.current] ?? 'Done'} — ${m.kw.word}`
     } else {
       spoken = t('voice.signing_out')
     }
@@ -288,6 +341,8 @@ export default function VoiceMic() {
     else if (a.kind === 'focus') {
       const el = document.querySelector<HTMLElement>(a.selector)
       el?.focus?.()
+    } else if (a.kind === 'click') {
+      clickEl?.click()
     } else if (a.kind === 'logout') {
       document.querySelector<HTMLButtonElement>('button[title="Sign out"],button[aria-label="Sign out"]')?.click()
     }
@@ -303,40 +358,105 @@ export default function VoiceMic() {
     if (armTimer.current) { clearTimeout(armTimer.current); armTimer.current = null }
   }
 
+  // Map a backend-parsed action ({action, entity, …}) to a UI action.
+  function executeAiAction(j: any) {
+    const action = String(j?.action || '').toLowerCase()
+    const entity = String(j?.entity || j?.parameters?.name || '').trim()
+    const say = (s: string) => { setFeedback(s); speak(s) }
+
+    if (!action || action === 'unknown') { say(NO_UNDER[langRef.current] ?? ''); return }
+
+    if (action === 'open_module' || action === 'navigate' || action === 'open') {
+      const m = matchCommand(entity) || matchCommand(String(j?.raw_text || ''))
+      if (m) { runMatch(entity || m.kw.word, m); return }
+    }
+    if (action === 'search_patient' || action === 'open_patient' || action === 'find_patient') {
+      const el = document.querySelector<HTMLInputElement>(
+        'input[type="search"],input[placeholder*="search" i],input[placeholder*="patient" i],input[placeholder*="shakisha" i],input[placeholder*="rechercher" i]')
+      if (el) {
+        el.focus()
+        if (entity) { el.value = entity; el.dispatchEvent(new Event('input', { bubbles: true })) }
+        say(DONE_TXT[langRef.current] ?? 'Done'); return
+      }
+      router.push('/modules/patients'); say(DONE_TXT[langRef.current] ?? 'Done'); return
+    }
+    const CLICKS: Record<string, string[]> = {
+      validate_result: ['validate', 'authorize', 'emeza'],
+      authorize:       ['authorize', 'validate', 'emeza'],
+      print_report:    ['print', 'pdf', 'sohora'],
+      flag_critical:   ['critical', 'notify', 'byihutirwa'],
+      save:            ['save', 'submit', 'bika'],
+      reject:          ['reject', 'decline', 'anga'],
+    }
+    if (CLICKS[action]) {
+      const btn = findClickable(CLICKS[action])
+      say(btn ? (DONE_TXT[langRef.current] ?? 'Done') : (NOT_FOUND[langRef.current] ?? ''))
+      btn?.click(); return
+    }
+    if (action === 'add_note') {
+      document.querySelector<HTMLElement>('textarea,[placeholder*="note" i]')?.focus?.()
+      say(DONE_TXT[langRef.current] ?? 'Done'); return
+    }
+    if (action === 'logout' || action === 'signout') {
+      const kw = KEYWORDS.find(k => k.word === 'logout'); if (kw) runMatch('logout', { kw }); return
+    }
+    const m = matchCommand(entity)
+    if (m) runMatch(entity, m); else say(NO_UNDER[langRef.current] ?? '')
+  }
+
+  // Free-form speech → backend NL parser (rules + local LLM), then execute.
+  async function aiFallback(text: string) {
+    const clean = (wakeModeRef.current ? stripWake(text) : text).trim()
+    if (!clean) return
+    setFeedback('…')
+    try {
+      const tok = voiceToken()
+      const r = await fetch(`${API}/api/v1/ai/speech/command`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(tok ? { Authorization: `Bearer ${tok}` } : {}) },
+        body: JSON.stringify({ text: clean }),
+      })
+      if (!r.ok) { setFeedback(''); return }
+      executeAiAction(await r.json())
+    } catch { setFeedback('') }
+  }
+
   function handleFinal(alts: string[]) {
     const top = alts.find(Boolean) || ''
     if (top) setTranscript(top)
 
-    // Normal (always-on) mode: act on any recognised command.
+    // Normal (always-on) mode: keyword → else backend NL parser.
     if (!wakeModeRef.current) {
       for (const tt of alts) { const m = matchCommand(tt); if (m) { runMatch(tt, m); return } }
-      setCorrected(null); setFeedback(''); return
+      aiFallback(top); return
     }
 
-    // Touchless mode — only respond once addressed with the wake word "Hello Nexus".
+    // Touchless mode — only respond once addressed with "Hello Nexus".
     if (alts.some(hasWake)) {
-      // "Hello Nexus, open patients" in one breath → act immediately.
       for (const tt of alts) { const m = matchCommand(stripWake(tt)); if (m) { disarm(); runMatch(tt, m); return } }
-      // Wake word alone → arm + acknowledge, then wait for the command.
-      arm(); speak(WAKE_ACK[langRef.current] ?? 'Yes?')
+      const rest = stripWake(top)
+      if (rest) { disarm(); aiFallback(rest); return }   // "Hello Nexus, <free command>"
+      arm(); speak(WAKE_ACK[langRef.current] ?? 'Yes?')   // wake word alone → arm
       setCorrected(null); setFeedback(ARMED_TXT[langRef.current] ?? '')
       return
     }
     if (armedRef.current) {
       for (const tt of alts) { const m = matchCommand(tt); if (m) { disarm(); runMatch(tt, m); return } }
-      return   // stay armed, keep waiting for a valid command
+      disarm(); aiFallback(top); return
     }
     // Not addressed → ignore ambient speech.
     setCorrected(null); setFeedback('')
   }
 
-  // "Send" button — execute the current transcript's command regardless of the
-  // wake word (the non-touchless way to submit exactly what was heard).
+  // "Send" button — submit exactly what was heard (keyword → else NL parser),
+  // the non-touchless way, without needing the wake word.
   function sendNow() {
     const text = transcript.trim()
     if (!text) return
-    const m = matchCommand(wakeModeRef.current ? stripWake(text) : text) || matchCommand(text)
-    if (m) { disarm(); runMatch(text, m) }
+    const clean = wakeModeRef.current ? stripWake(text) : text
+    const m = matchCommand(clean) || matchCommand(text)
+    disarm()
+    if (m) runMatch(text, m); else aiFallback(clean || text)
   }
 
   function startRec() {
