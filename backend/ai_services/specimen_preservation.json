@@ -1,0 +1,59 @@
+{
+  "_meta": {
+    "purpose": "Specimen collection / preservation / transport rules per discipline -> tube/additive, purpose, ratio, timing, storage. Feeds the AI interpretation + pre-analytical checks so rejection/quality reasoning is module-correct. Decision support; the lab SOP governs.",
+    "consumed_by": ["reference_ranges.KB", "cloud_llm", "medical_rag", "module interpretation", "sample rejection"],
+    "significance_levels": ["ok", "caution", "reject"],
+    "source": "CLSI H03/GP41, WHO specimen handling, discipline SOPs."
+  },
+
+  "hematology": {
+    "edta_k2":       {"name": "EDTA (lavender)", "additive": "K2/K3 EDTA", "specimen": "Whole blood", "use": "CBC, HbA1c, reticulocytes, blood group", "purpose": "Chelates calcium — preserves cell morphology", "note": "Under-fill -> shrinkage/pseudo-values; run <6 h (or refrigerate) for accurate indices; clots -> REJECT."},
+    "esr_citrate":   {"name": "ESR tube (black)", "additive": "3.8% sodium citrate 1:4", "specimen": "Whole blood", "use": "Westergren ESR", "purpose": "Correct dilution for the column", "note": "Exact fill line required."}
+  },
+
+  "coagulation": {
+    "sodium_citrate_3_2":{"name": "Sodium citrate (blue)", "additive": "3.2% buffered sodium citrate 9:1", "specimen": "Platelet-poor plasma", "use": "PT/INR, APTT, fibrinogen, D-dimer, factors", "purpose": "Reversible calcium chelation for clotting assays", "note": "Fill EXACT (9:1); under-fill or Hct >55% falsely prolongs; process <4 h; a clot = REJECT."}
+  },
+
+  "biochemistry": {
+    "serum_sst":     {"name": "Serum separator (gold/SST)", "additive": "Clot activator + gel", "specimen": "Serum", "use": "Most chemistry, hormones, markers, serology", "purpose": "Clean serum separated from cells", "note": "Let clot 30 min; separate <2 h — delay -> falsely high K+/LDH/phosphate from cells."},
+    "lithium_heparin":{"name": "Lithium heparin (green)", "additive": "Li-heparin", "specimen": "Plasma", "use": "STAT chemistry, ammonia (on ice), electrolytes", "purpose": "Anticoagulant, no clotting delay", "note": "Do NOT use for lithium-level testing."},
+    "fluoride_oxalate":{"name": "Fluoride oxalate (grey)", "additive": "Sodium fluoride + K-oxalate", "specimen": "Plasma", "use": "Glucose, lactate", "purpose": "Fluoride inhibits glycolysis", "note": "Without it, glucose falls ~5-7%/h at room temp."},
+    "light_protected":{"name": "Light-protected / on-ice analytes", "additive": "context", "specimen": "Serum/plasma", "use": "Bilirubin (light), ammonia/lactate/blood gas/ACTH (ice)", "purpose": "Prevent photodegradation / ex-vivo metabolism", "note": "Bilirubin drops in light; ammonia rises if warm/delayed."}
+  },
+
+  "microbiology": {
+    "blood_culture": {"name": "Blood culture bottles", "additive": "SPS broth (aerobic + anaerobic)", "specimen": "Blood", "use": "Bacteraemia/sepsis", "purpose": "Neutralises complement/abx, supports growth", "note": "Adequate volume + 2 sets from separate sites BEFORE antibiotics; antisepsis to avoid contaminants."},
+    "amies_stuart":  {"name": "Amies/Stuart transport swab", "additive": "Semisolid transport medium", "specimen": "Swab", "use": "Wound/throat/genital culture", "purpose": "Keeps organisms viable without overgrowth", "note": "Transport <24 h; charcoal for fastidious organisms."},
+    "cary_blair":    {"name": "Cary–Blair", "additive": "Buffered transport", "specimen": "Stool", "use": "Enteric pathogen culture (Salmonella, Shigella, Campylobacter, Vibrio)", "purpose": "Preserves enteric bacteria", "note": "Use when culture delayed >2 h."},
+    "boric_acid_urine":{"name": "Boric acid (urine, grey-top)", "additive": "Boric acid", "specimen": "Urine", "use": "Urine culture when transport delayed", "purpose": "Bacteriostatic — prevents overgrowth/false counts", "note": "Fill to line; otherwise refrigerate <=4 h."}
+  },
+
+  "parasitology": {
+    "fresh_unpreserved":{"name": "Fresh stool (unpreserved)", "additive": "none", "specimen": "Stool", "use": "Trophozoite motility (amoebic dysentery)", "purpose": "Motility seen only fresh", "note": "Examine <30 min (warm) for trophozoites; watery = trophs, formed = cysts."},
+    "formalin_10":   {"name": "10% formalin", "additive": "Formalin", "specimen": "Stool", "use": "Ova + cysts preservation (concentration)", "purpose": "Preserves morphology of ova/cysts/larvae", "note": "Does NOT preserve trophozoite motility; good for permanent concentration."},
+    "pva":           {"name": "PVA (polyvinyl alcohol)", "additive": "PVA fixative", "specimen": "Stool", "use": "Permanent trichrome smears", "purpose": "Adhesive fixative for protozoa detail", "note": "Two-vial system with formalin; contains mercury/zinc base — handle per SOP."},
+    "saf":           {"name": "SAF (sodium acetate–acetic acid–formalin)", "additive": "SAF", "specimen": "Stool", "use": "Concentration + permanent stain (mercury-free)", "purpose": "Single-vial alternative to formalin+PVA", "note": "Safer than PVA; iron-haematoxylin preferred over trichrome on SAF."}
+  },
+
+  "histology": {
+    "nbf_10":        {"name": "10% neutral buffered formalin", "additive": "Buffered formaldehyde", "specimen": "Tissue", "use": "Routine histology + IHC", "purpose": "Cross-links proteins, preserves architecture", "note": "Volume 10:1 fixative:tissue; under-fixation/large blocks -> poor IHC; over-fixation masks antigens (may need retrieval)."},
+    "bouin":         {"name": "Bouin's fluid", "additive": "Picric acid/formalin/acetic", "specimen": "Tissue", "use": "Testis, GI mucosa, fine nuclear detail", "purpose": "Superb nuclear/trichrome detail", "note": "Do NOT use before IHC/molecular (picric acid damages DNA)."},
+    "glutaraldehyde":{"name": "Glutaraldehyde", "additive": "2.5% glutaraldehyde", "specimen": "Tissue", "use": "Electron microscopy", "purpose": "Ultrastructural preservation", "note": "Tiny (~1 mm) pieces, cold, immediate."}
+  },
+
+  "cytology": {
+    "ethanol_95":    {"name": "95% ethanol (wet fixation)", "additive": "Ethanol", "specimen": "Smear", "use": "Pap + non-gynae cytology for Papanicolaou stain", "purpose": "Preserves nuclear detail for Pap", "note": "Fix IMMEDIATELY — air-drying artefact ruins nuclear morphology."},
+    "cytolyt_preservcyt":{"name": "Liquid-based (CytoLyt/PreservCyt)", "additive": "Methanol-based", "specimen": "Liquid-based cytology", "use": "ThinPrep/SurePath, HPV co-test", "purpose": "Preserves + enables monolayer + molecular", "note": "Same vial can run HPV/molecular reflex."},
+    "air_dried_mgg": {"name": "Air-dried (for MGG)", "additive": "none", "specimen": "Smear", "use": "May–Grünwald–Giemsa / haematolymphoid FNA", "purpose": "Romanowsky needs air-drying (opposite of Pap)", "note": "Keep at least one air-dried + one wet-fixed smear per FNA."}
+  },
+
+  "blood_bank": {
+    "edta_crossmatch":{"name": "EDTA (lavender)", "additive": "K2 EDTA", "specimen": "Whole blood", "use": "Group & screen, crossmatch, DAT", "purpose": "Anticoagulated cells + plasma for serology", "note": "Positive patient ID + 2-sample rule for the ABO check; label at the bedside."}
+  },
+
+  "molecular": {
+    "edta_molecular":{"name": "EDTA (molecular)", "additive": "K2 EDTA", "specimen": "Whole blood", "use": "DNA/most PCR, viral load (per assay)", "purpose": "Heparin INHIBITS PCR — never use heparin", "note": "Separate/freeze plasma promptly for viral load."},
+    "paxgene":       {"name": "PAXgene / RNA tube", "additive": "RNA stabiliser", "specimen": "Whole blood", "use": "RNA / expression / some viral RNA", "purpose": "Stabilises labile RNA", "note": "Follow fill + mixing exactly; RNA degrades fast otherwise."}
+  }
+}

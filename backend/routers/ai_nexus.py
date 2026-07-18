@@ -412,3 +412,136 @@ async def set_ai_mode_ep(body: AIModeIn, user: User = Depends(get_current_user))
         raise HTTPException(403, 'Admin access required to change AI mode')
     from ai_services import orchestrator
     return {'mode': orchestrator.set_ai_mode(body.mode)}
+
+
+# ── SOP library (upload → compress → module AI knowledge) ─────────────────────
+
+_SOP_ADMIN = {'super_admin', 'it_admin', 'lab_manager', 'quality_officer'}
+
+
+@router.post('/sop')
+async def upload_sop(
+    file:   UploadFile = File(...),
+    title:  str = Form(...),
+    module: str = Form(''),
+    db:     Session = Depends(get_db),
+    user:   User = Depends(get_current_user),
+) -> dict:
+    """Upload an SOP → extract text → COMPRESS (gzip+base64) → store as module
+    knowledge the AI can use for principles / procedures / interpretation."""
+    from ai_services import sop_service
+    from models.nexus_ops import SopDocument
+    data = await file.read()
+    text = sop_service.extract_text(file.filename or 'sop', data)
+    if not text or len(text) < 20:
+        raise HTTPException(422, 'Could not extract readable text from this file.')
+    doc = SopDocument(
+        title=(title or file.filename or 'SOP').strip(),
+        module=((module or '').strip().lower() or None),
+        filename=file.filename,
+        summary=sop_service.summarize(text),
+        content_gz=sop_service.compress_text(text),
+        char_count=len(text),
+        created_by_id=user.id,
+    )
+    db.add(doc); db.commit(); db.refresh(doc)
+    return {'id': doc.id, 'title': doc.title, 'module': doc.module, 'chars': doc.char_count,
+            'stored_pct': round(len(doc.content_gz or '') / max(1, len(text)) * 100),
+            'summary': doc.summary}
+
+
+@router.get('/sop')
+def list_sop(module: Optional[str] = None, db: Session = Depends(get_db), _u: User = Depends(get_current_user)) -> list:
+    from models.nexus_ops import SopDocument
+    q = db.query(SopDocument)
+    if module:
+        q = q.filter(SopDocument.module == module.lower())
+    rows = q.order_by(SopDocument.created_at.desc()).limit(200).all()
+    return [{'id': r.id, 'title': r.title, 'module': r.module, 'filename': r.filename,
+             'chars': r.char_count, 'summary': r.summary,
+             'created_at': r.created_at.isoformat() if r.created_at else None} for r in rows]
+
+
+@router.get('/sop/{sop_id}')
+def get_sop(sop_id: int, db: Session = Depends(get_db), _u: User = Depends(get_current_user)) -> dict:
+    from ai_services import sop_service
+    from models.nexus_ops import SopDocument
+    r = db.query(SopDocument).filter(SopDocument.id == sop_id).first()
+    if not r:
+        raise HTTPException(404, 'SOP not found')
+    return {'id': r.id, 'title': r.title, 'module': r.module, 'filename': r.filename,
+            'content': sop_service.decompress_text(r.content_gz), 'chars': r.char_count}
+
+
+@router.delete('/sop/{sop_id}')
+def delete_sop(sop_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)) -> dict:
+    from models.nexus_ops import SopDocument
+    if user.role not in _SOP_ADMIN:
+        raise HTTPException(403, 'Admin / quality role required to delete an SOP')
+    r = db.query(SopDocument).filter(SopDocument.id == sop_id).first()
+    if not r:
+        raise HTTPException(404, 'SOP not found')
+    db.delete(r); db.commit()
+    return {'deleted': sop_id}
+
+
+# ── Module-aware interpretation (all disciplines) ─────────────────────────────
+
+class ModuleInterpretIn(BaseModel):
+    module:  str
+    results: list[dict]           # [{test, value, unit?, flag?}, ...]
+    sex:     str = ''
+    age:     int = 0
+    context: str = ''
+
+
+@router.post('/interpret/module')
+async def interpret_module(
+    body: ModuleInterpretIn,
+    db:   Session = Depends(get_db),
+    _u:   User = Depends(get_current_user),
+) -> dict:
+    """Interpretation for ANY module (haematology, coagulation, biochemistry,
+    serology, hormones, markers, …): deterministic ranges + flags, module
+    knowledge (staining/preservation + the interpretation KBs) + uploaded SOPs,
+    and an AI narrative (rules → local Ollama → Claude, honouring the AI mode)."""
+    from ai_services import reference_ranges, sop_service
+    module = (body.module or '').strip().lower()
+
+    # 1) deterministic flags + pattern impressions (works for every known analyte)
+    det = reference_ranges.interpret(body.results, body.sex or None, body.age or None)
+
+    # 2) module knowledge — KB (ranges/staining/preservation/disease maps) + SOPs
+    test_names = ' '.join(str(r.get('test') or r.get('test_name') or '') for r in body.results)
+    kb_hits  = reference_ranges.search_kb(f'{module} {test_names}', limit=6)
+    sop_hits = sop_service.retrieve(db, f'{module} {test_names} {body.context}', module=module or None, limit=3)
+
+    # 3) AI narrative with the knowledge injected (RESEARCH_ASSIST passes the full
+    #    prompt to both the cloud and local layers, so SOP/KB context is used).
+    flags = '; '.join(f"{r['test']} {r.get('value')} {r.get('unit','')} [{r.get('flag')}]" for r in det['results'])
+    know = ''
+    if kb_hits:
+        know += 'Reference knowledge: ' + '; '.join(
+            f"{h.get('name')}: {h.get('disease') or h.get('note') or ''}" for h in kb_hits) + '\n'
+    if sop_hits:
+        know += 'From the lab SOPs:\n' + '\n'.join(f"- [{h['title']}] {h['excerpt']}" for h in sop_hits) + '\n'
+    prompt = (
+        f'You are a laboratory interpretation assistant for the {module or "laboratory"} module. '
+        f'Give a concise clinical interpretation, the key differentials, and one recommended next '
+        f'step. Decision support only — a scientist validates.\n'
+        f'Results: {flags or "(none numeric)"}\n'
+        f'Patient: sex={body.sex or "?"} age={body.age or "?"}. Context: {body.context or "none"}\n{know}'
+    )
+    ai = await dispatch(AIRequest(task_type=TaskType.RESEARCH_ASSIST, payload={'prompt': prompt}))
+
+    return {
+        'module':       module,
+        'results':      det['results'],
+        'impressions':  det['impressions'],
+        'critical':     det['critical'],
+        'ai': {'narrative': ai.get('content', ''), 'layer': ai.get('layer'),
+               'offline': ai.get('offline', False), 'error': ai.get('error')},
+        'knowledge_used': [h.get('name') or h.get('key') for h in kb_hits],
+        'sop_used':       [h['title'] for h in sop_hits],
+        'requires_human_review': True,
+    }

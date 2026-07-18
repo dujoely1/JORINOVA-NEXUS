@@ -29,6 +29,22 @@ class GenomicEntry(Base):
     created_at     = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+class SopDocument(Base):
+    """A Standard Operating Procedure the lab uploads. Extracted text is stored
+    gzip+base64-COMPRESSED (system compresses on upload); the AI uses it as
+    module knowledge (principles / procedures / interpretation) via RAG."""
+    __tablename__ = 'sop_documents'
+    id:            Mapped[int]           = mapped_column(Integer, primary_key=True)
+    title:         Mapped[str]           = mapped_column(String(200))
+    module:        Mapped[Optional[str]] = mapped_column(String(40), index=True, nullable=True)  # hematology|micro|histology...
+    filename:      Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    summary:       Mapped[Optional[str]] = mapped_column(Text, nullable=True)   # AI/preview summary
+    content_gz:    Mapped[Optional[str]] = mapped_column(Text, nullable=True)   # gzip+base64 of extracted text
+    char_count:    Mapped[int]           = mapped_column(Integer, default=0)
+    created_by_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('users.id'), nullable=True)
+    created_at     = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 class ReflexSuggestion(Base):
     """An additional test the Lab AI suggests; a doctor approves → LabRequest + SMS."""
     __tablename__ = 'reflex_suggestions'

@@ -1,0 +1,65 @@
+{
+  "_meta": {
+    "purpose": "Staining / preparation methods per laboratory discipline -> principle, use, key result, interpretation. Feeds the AI interpretation + RAG so the model knows the correct stain for each module (fungi vs parasitology vs histology vs cytology differ). Decision support; the SOP + a qualified scientist govern practice.",
+    "consumed_by": ["reference_ranges.KB", "cloud_llm", "medical_rag", "module interpretation"],
+    "source": "Standard laboratory methods (Bailey & Scott, Dacie & Lewis, Bancroft histotechnology, CDC DPDx, WHO)."
+  },
+
+  "hematology": {
+    "wright_giemsa":     {"name": "Wright–Giemsa (Romanowsky)", "principle": "Polychrome eosin–methylene blue; acidic vs basic cell components stain differently", "use": "Peripheral blood + bone marrow smears — cell morphology, differential, parasites", "interpretation": "Nucleus purple, cytoplasm pink/blue; basis of the manual differential and PBS review", "note": "pH 6.8 buffer critical; too-blue = alkaline, too-pink = acidic."},
+    "perls_prussian_blue":{"name": "Perls' Prussian blue (iron)", "principle": "Ferric iron + potassium ferrocyanide -> blue ferric ferrocyanide", "use": "Marrow iron stores, ring sideroblasts, siderocytes", "interpretation": "Absent stainable iron -> iron-deficiency; ring sideroblasts (>=15%) -> sideroblastic anaemia / MDS-RS"},
+    "reticulocyte_nmb":  {"name": "Reticulocyte (new methylene blue / brilliant cresyl blue)", "principle": "Supravital precipitation of residual ribosomal RNA", "use": "Reticulocyte count — marrow response", "interpretation": "High retic -> haemolysis/blood loss response; low -> hypoproliferative (e.g. aplasia, deficiency)"},
+    "mpo":               {"name": "Myeloperoxidase (MPO)", "principle": "Peroxidase in primary granules oxidises substrate", "use": "Acute leukaemia lineage", "interpretation": "MPO+ -> myeloid (AML); MPO-negative blasts -> lymphoid (ALL) — correlate with flow"},
+    "sudan_black_b":     {"name": "Sudan Black B", "principle": "Lipophilic dye binds phospholipids/granules", "use": "AML vs ALL (parallels MPO)", "interpretation": "SBB+ -> myeloid"},
+    "pas_heme":          {"name": "PAS (haematology)", "principle": "Periodic acid oxidises glycogen -> Schiff magenta", "use": "ALL, erythroleukaemia", "interpretation": "Block/coarse PAS positivity -> lymphoblasts (ALL) or erythroid precursors"},
+    "nse":               {"name": "Non-specific esterase (NSE)", "principle": "Esterase hydrolyses substrate (fluoride-inhibited)", "use": "Monocytic differentiation", "interpretation": "NSE+ fluoride-sensitive -> monocytic (AML-M4/M5)"}
+  },
+
+  "microbiology": {
+    "gram":              {"name": "Gram stain", "principle": "Crystal violet–iodine retained by thick peptidoglycan after decolourisation", "use": "Bacteria + yeast on smears (pus, CSF, sputum...)", "interpretation": "Gram-positive purple / Gram-negative pink; morphology + arrangement guide empiric therapy", "note": "Over-decolourisation makes GPos read as GNeg."},
+    "ziehl_neelsen":     {"name": "Ziehl–Neelsen (AFB, hot)", "principle": "Carbol fuchsin retained by mycolic-acid wall despite acid-alcohol", "use": "Mycobacteria (TB, leprosy), Nocardia (modified)", "interpretation": "Acid-fast bacilli red on blue background; grade Neg/Scanty/1+/2+/3+"},
+    "auramine_rhodamine":{"name": "Auramine–rhodamine (fluorochrome)", "principle": "Fluorochrome binds mycolic acids", "use": "Sensitive AFB screening", "interpretation": "AFB fluoresce yellow-green; confirm positives by ZN"},
+    "albert":            {"name": "Albert's stain", "principle": "Metachromatic staining of volutin granules", "use": "Corynebacterium diphtheriae", "interpretation": "Green bacilli with bluish-black metachromatic (Babes–Ernst) granules"},
+    "india_ink":         {"name": "India ink (negative)", "principle": "Ink excluded by the capsule", "use": "Cryptococcus neoformans in CSF", "interpretation": "Clear halo (capsule) around budding yeast -> cryptococcal meningitis (confirm CrAg)"},
+    "spore_stain":       {"name": "Spore stain (Schaeffer–Fulton)", "principle": "Malachite green driven into spores with heat", "use": "Bacillus / Clostridium spores", "interpretation": "Green spores, pink vegetative cells"}
+  },
+
+  "mycology": {
+    "koh":               {"name": "KOH wet mount (+/- DMSO)", "principle": "KOH digests keratin/host cells, leaving fungal elements", "use": "Skin/nail/hair, sputum, any specimen for hyphae/yeast", "interpretation": "Septate/aseptate hyphae, budding yeast, pseudohyphae, spherules"},
+    "lactophenol_cotton_blue":{"name": "Lactophenol cotton blue (LPCB)", "principle": "Cotton blue stains chitin; lactophenol preserves + clears", "use": "Mould identification from culture (tease/tape mount)", "interpretation": "Blue hyphae + conidia/spore morphology -> genus (Aspergillus, Penicillium...)"},
+    "calcofluor_white":  {"name": "Calcofluor white", "principle": "Fluorochrome binds chitin/cellulose", "use": "Rapid sensitive fungal screen (with KOH)", "interpretation": "Fungal walls fluoresce bright blue-white under UV"},
+    "gms":               {"name": "Gomori methenamine silver (GMS)", "principle": "Silver impregnation of fungal cell-wall polysaccharides", "use": "Fungi in tissue (incl. Pneumocystis)", "interpretation": "Black fungal elements on green background"},
+    "pas_fungi":         {"name": "PAS (fungi)", "principle": "Schiff stains cell-wall polysaccharides magenta", "use": "Fungi in tissue/smears", "interpretation": "Magenta hyphae/yeast; good for dimorphic fungi"},
+    "mucicarmine":       {"name": "Mucicarmine", "principle": "Stains acidic mucopolysaccharide capsule", "use": "Cryptococcus in tissue", "interpretation": "Rose-red capsule around yeast"},
+    "india_ink":         {"name": "India ink", "principle": "Negative stain of the capsule", "use": "Cryptococcus in CSF", "interpretation": "Capsular halo around budding yeast"}
+  },
+
+  "parasitology": {
+    "saline_wet_mount":  {"name": "Saline wet mount", "principle": "Motility + refractile morphology in isotonic saline", "use": "Stool O&P — trophozoite motility, larvae, ova", "interpretation": "Motile trophozoites/larvae; ova + cysts seen"},
+    "iodine_wet_mount":  {"name": "Lugol's iodine wet mount", "principle": "Glycogen + nuclei stain brown", "use": "Stool O&P — cyst detail", "interpretation": "Highlights nuclei/karyosome + glycogen of protozoan cysts (kills motility)"},
+    "trichrome":         {"name": "Trichrome (Wheatley/Gomori)", "principle": "Permanent stain of fixed smear", "use": "Intestinal protozoa confirmation", "interpretation": "Cytoplasm blue-green, nuclei/inclusions red — Entamoeba, Giardia detail"},
+    "modified_ziehl_neelsen":{"name": "Modified Ziehl–Neelsen (cold/Kinyoun)", "principle": "Weak acid-fastness of oocyst walls", "use": "Coccidia — Cryptosporidium, Cyclospora, Cystoisospora", "interpretation": "Red acid-fast oocysts on blue; size distinguishes species"},
+    "giemsa_thick_thin": {"name": "Giemsa (thick + thin films)", "principle": "Romanowsky stain of blood parasites", "use": "Malaria, trypanosomes, microfilariae, Babesia, Leishmania", "interpretation": "Thick = detection + parasitaemia; thin = species + stage; pH 7.2 buffer for stippling"},
+    "field_stain":       {"name": "Field's stain", "principle": "Rapid Romanowsky for thick films", "use": "Rapid malaria screening", "interpretation": "Fast blood-parasite detection"},
+    "kato_katz":         {"name": "Kato–Katz (prep, not a stain)", "principle": "Glycerol-cleared thick faecal smear, quantitative", "use": "Soil-transmitted helminths, schistosomiasis egg counts", "interpretation": "Eggs per gram -> WHO intensity category"}
+  },
+
+  "histology": {
+    "h_and_e":           {"name": "Haematoxylin & Eosin (H&E)", "principle": "Haematoxylin (basic) -> nuclei blue; eosin (acidic) -> cytoplasm pink", "use": "Routine tissue architecture", "interpretation": "Baseline for all histopathology; malignancy features assessed on H&E first"},
+    "ihc":               {"name": "Immunohistochemistry (IHC)", "principle": "Labelled antibody -> antigen (chromogen/DAB)", "use": "Tumour lineage, prognostic/predictive markers", "interpretation": "e.g. CK (epithelial), LCA/CD45 (lymphoid), ER/PR/HER2 (breast), Ki-67 (proliferation)"},
+    "pas_histo":         {"name": "PAS (+/- diastase)", "principle": "Schiff stains glycogen/basement membrane/fungi", "use": "Glycogen, BM, fungi, mucin", "interpretation": "Diastase removes glycogen -> distinguishes glycogen from other PAS+ material"},
+    "gms_histo":         {"name": "GMS (tissue)", "principle": "Silver impregnation", "use": "Fungi + Pneumocystis in tissue", "interpretation": "Black organisms on green"},
+    "ziehl_neelsen_histo":{"name": "ZN (tissue)", "principle": "Acid-fast", "use": "Mycobacteria in tissue (granulomas)", "interpretation": "Red bacilli within caseating granulomas"},
+    "congo_red":         {"name": "Congo red", "principle": "Binds beta-pleated sheets", "use": "Amyloid", "interpretation": "Apple-green birefringence under polarised light = amyloid"},
+    "masson_trichrome":  {"name": "Masson trichrome", "principle": "Differential collagen vs muscle staining", "use": "Fibrosis, cirrhosis, muscle", "interpretation": "Collagen blue/green, muscle/cytoplasm red -> quantify fibrosis"},
+    "reticulin":         {"name": "Reticulin (silver)", "principle": "Silver on reticulin fibres", "use": "Marrow fibrosis, liver architecture", "interpretation": "Increased reticulin -> myelofibrosis grade"},
+    "perls_histo":       {"name": "Perls (tissue iron)", "principle": "Ferric iron -> blue", "use": "Haemosiderosis/haemochromatosis", "interpretation": "Blue iron in hepatocytes/macrophages"}
+  },
+
+  "cytology": {
+    "papanicolaou":      {"name": "Papanicolaou (Pap)", "principle": "Polychrome; nuclear haematoxylin + OG-6/EA cytoplasmic counterstains", "use": "Gynae (cervical) + non-gynae cytology", "interpretation": "Nuclear detail + keratinisation for Bethesda reporting (NILM/ASC-US/LSIL/HSIL/SCC)", "note": "Requires WET fixation (95% ethanol) immediately — air-drying ruins nuclear detail."},
+    "mgg":               {"name": "May–Grünwald–Giemsa (MGG)", "principle": "Romanowsky on air-dried smears", "use": "FNA, effusions, haematolymphoid cytology", "interpretation": "Complements Pap; better for cytoplasm, background, organisms"},
+    "diff_quik":         {"name": "Diff-Quik", "principle": "Rapid Romanowsky", "use": "Rapid on-site adequacy (ROSE) for FNA", "interpretation": "Immediate adequacy + preliminary read at the bedside"},
+    "h_and_e_cyto":      {"name": "H&E (cell block)", "principle": "As histology on the cell block", "use": "FNA/effusion cell blocks + IHC", "interpretation": "Architecture + enables IHC panels on cytology material"}
+  }
+}
