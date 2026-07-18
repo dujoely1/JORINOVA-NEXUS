@@ -120,6 +120,8 @@ const D = {
   'nav.receive_tests':  { en: 'Receive Tests', fr: 'Recevoir demandes', rw: 'Kwakira ibipimo' },
   'nav.reflex':         { en: 'AI Reflex Tests', fr: 'Tests réflexes IA', rw: 'Ibipimo bya AI' },
   'nav.medgenome':      { en: 'MedGenome', fr: 'MedGenome', rw: 'MedGenome' },
+  'nav.interpret':      { en: 'AI Interpretation', fr: 'Interprétation IA', rw: 'Isesengura rya AI' },
+  'nav.sop':            { en: 'SOP Library', fr: 'Bibliothèque SOP', rw: 'Ububiko bwa SOP' },
   'nav.forecast':       { en: 'Forecast', fr: 'Prévision', rw: 'Iteganya' },
   'nav.inventory':      { en: 'Smart Inventory', fr: 'Inventaire intelligent', rw: 'Ububiko bw’ubwenge' },
   'nav.billing':        { en: 'Billing & MoMo', fr: 'Facturation & MoMo', rw: 'Ifatura & MoMo' },
