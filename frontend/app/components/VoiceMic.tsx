@@ -121,6 +121,35 @@ const KEYWORDS: { word: string; action: Action }[] = [
   { word: 'abakozi',       action: { kind: 'nav', path: '/modules/staffhub' } },
   { word: 'ifatura',       action: { kind: 'nav', path: '/modules/billing' } },
   { word: 'amahugurwa',    action: { kind: 'nav', path: '/modules/training' } },
+  // French module aliases
+  { word: 'tableau',       action: { kind: 'nav', path: '/dashboard' } },
+  { word: 'biochimie',     action: { kind: 'nav', path: '/modules/biochemistry' } },
+  { word: 'hematologie',   action: { kind: 'nav', path: '/modules/hematology' } },
+  { word: 'hématologie',   action: { kind: 'nav', path: '/modules/hematology' } },
+  { word: 'microbiologie', action: { kind: 'nav', path: '/modules/microbiology' } },
+  { word: 'serologie',     action: { kind: 'nav', path: '/modules/serology' } },
+  { word: 'sérologie',     action: { kind: 'nav', path: '/modules/serology' } },
+  { word: 'sang',          action: { kind: 'nav', path: '/modules/blood_bank' } },
+  { word: 'inventaire',    action: { kind: 'nav', path: '/modules/inventory' } },
+  { word: 'facturation',   action: { kind: 'nav', path: '/modules/billing' } },
+  { word: 'qualite',       action: { kind: 'nav', path: '/modules/quality' } },
+  { word: 'qualité',       action: { kind: 'nav', path: '/modules/quality' } },
+  { word: 'parametres',    action: { kind: 'nav', path: '/modules/settings' } },
+  { word: 'paramètres',    action: { kind: 'nav', path: '/modules/settings' } },
+  { word: 'aide',          action: { kind: 'nav', path: '/modules/help-support' } },
+  { word: 'formation',     action: { kind: 'nav', path: '/modules/training' } },
+  { word: 'deconnexion',   action: { kind: 'logout' } },
+  { word: 'déconnexion',   action: { kind: 'logout' } },
+  { word: 'imprimer',      action: { kind: 'click', match: ['print', 'pdf', 'imprimer', 'sohora'] } },
+  { word: 'valider',       action: { kind: 'click', match: ['validate', 'authorize', 'valider', 'emeza'] } },
+  { word: 'enregistrer',   action: { kind: 'click', match: ['save', 'submit', 'enregistrer', 'bika'] } },
+  // more Kinyarwanda aliases
+  { word: 'ubuziranenge',  action: { kind: 'nav', path: '/modules/quality' } },
+  { word: 'igenamiterere', action: { kind: 'nav', path: '/modules/settings' } },
+  { word: 'ubufasha',      action: { kind: 'nav', path: '/modules/help-support' } },
+  { word: 'imenyesha',     action: { kind: 'nav', path: '/modules/notifications' } },
+  { word: 'bika',          action: { kind: 'click', match: ['save', 'submit', 'bika', 'enregistrer'] } },
+  { word: 'sohora',        action: { kind: 'click', match: ['print', 'pdf', 'sohora', 'imprimer'] } },
 ]
 
 // Localized name spoken / written back for each destination path.
@@ -242,7 +271,7 @@ export default function VoiceMic() {
   const [feedback, setFeedback]     = useState('')
   const [corrected, setCorrected]   = useState<string | null>(null)
   const [armed,     setArmed]       = useState(false)   // wake-word heard, ready for a command
-  const [wakeMode,  setWakeMode]    = useState(true)    // true = touchless (needs "Hello Nexus"); false = normal
+  const [wakeMode,  setWakeMode]    = useState(false)   // false = normal (direct commands); true = touchless (needs "Hello Nexus")
 
   const recRef       = useRef<any>(null)
   const listeningRef = useRef(false)
@@ -250,7 +279,7 @@ export default function VoiceMic() {
   const langRef      = useRef<Lang>(lang)
   const lastExecRef  = useRef<{ text: string; at: number }>({ text: '', at: 0 })
   const armedRef     = useRef(false)
-  const wakeModeRef  = useRef(true)
+  const wakeModeRef  = useRef(false)
   const armTimer     = useRef<any>(null)
 
   useEffect(() => { wakeModeRef.current = wakeMode }, [wakeMode])
