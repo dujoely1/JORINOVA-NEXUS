@@ -50,6 +50,8 @@ const NAV: readonly NavItem[] = [
   { href: '/modules/molecular_advanced', icon: '🧬', labelKey: 'nav.molecular', roles: ['lab_manager', 'scientist', 'pathologist', 'super_admin'], groupKey: 'nav.group.clinical' },
   { href: '/modules/medgenome',     icon: '🧬', labelKey: 'nav.medgenome',   roles: ['pathologist', 'scientist', 'lab_manager', 'super_admin'], groupKey: 'nav.group.clinical' },
   { href: '/modules/reflex',        icon: '🤖', labelKey: 'nav.reflex',      roles: ['doctor', 'scientist', 'lab_manager', 'super_admin'], groupKey: 'nav.group.clinical' },
+  { href: '/modules/interpret',     icon: '🧠', labelKey: 'nav.interpret',   roles: ['lab_manager', 'scientist', 'pathologist', 'doctor', 'super_admin'], groupKey: 'nav.group.clinical' },
+  { href: '/modules/sop',           icon: '📄', labelKey: 'nav.sop',         roles: ['lab_manager', 'scientist', 'quality_officer', 'super_admin'], groupKey: 'nav.group.clinical' },
 
   // ── Operations ─────────────────────────────────────────────────────────
   { href: '/modules/quality',       icon: '📐', labelKey: 'nav.quality',      roles: ['lab_manager', 'scientist', 'super_admin'], groupKey: 'nav.group.ops' },
