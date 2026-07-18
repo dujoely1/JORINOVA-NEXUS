@@ -474,45 +474,67 @@ def _panel_prompt(payload: dict) -> str:
     )
 
 
+def _cloud_failed(res) -> bool:
+    """True if a cloud call did not return usable content — e.g. Claude billing/
+    quota/rate errors ('insufficient credit', 402, 429) or a network drop MID-call.
+    When True we transparently fall back to the local Ollama model WITHOUT the
+    operator having to disconnect the internet or switch AI mode."""
+    if not isinstance(res, dict):
+        return res is None
+    if res.get('error'):
+        return True
+    if 'content' in res and not (res.get('content') or '').strip():
+        return True
+    return False
+
+
 async def _dispatch_cloud_preferred(task: TaskType, payload: dict, db) -> dict:
-    """Cloud (Claude) when reachable and not forced offline; otherwise the local
-    Ollama router (task-appropriate model); rules engine as the final floor."""
+    """Cloud (Claude) when reachable and not forced offline; if the cloud CALL then
+    fails (billing/quota/error) it auto-falls back to the local Ollama router while
+    still online; rules engine is the final floor."""
     from ai_services import local_llm_router
     cloud_available = await _cloud_usable()
 
     if task == TaskType.CLINICAL_REASON or task == TaskType.ADVANCED_SUMMARY:
         if cloud_available:
-            return await cloud_llm.advanced_interpretation(
+            res = await cloud_llm.advanced_interpretation(
                 panel_results    = payload.get('results', []),
                 clinical_context = payload.get('context', ''),
                 patient_age      = payload.get('age', 0),
                 patient_sex      = payload.get('sex', ''),
             )
-        # Offline: deep-reasoning model via the router
+            if not _cloud_failed(res):
+                return res
+            logger.warning('Cloud interpretation failed (%s) — falling back to local Ollama',
+                           str(res.get('error'))[:100])
         resp = await local_llm_router.route('deep', _panel_prompt(payload), max_tokens=700)
         return {'content': resp.content, 'layer': resp.layer_used, 'model': resp.model,
-                'offline': True, 'cloud_unavailable': True, 'error': resp.error}
+                'offline': True, 'cloud_fell_back': cloud_available, 'error': resp.error}
 
     if task == TaskType.EPIDEMIC_ANALYSIS:
         rules_signal = payload.get('count_7d', 0) > payload.get('baseline', 1) * 2
         if cloud_available:
-            return await cloud_llm.epidemic_intelligence(
+            res = await cloud_llm.epidemic_intelligence(
                 department = payload.get('department', ''),
                 test_code  = payload.get('test_code', ''),
                 flag       = payload.get('flag', ''),
                 count_7d   = payload.get('count_7d', 0),
                 baseline   = payload.get('baseline', 1.0),
             )
+            if not _cloud_failed(res):
+                return res
         return {'outbreak_signal': rules_signal, 'layer': 'rules_only', 'offline': True,
-                'cloud_unavailable': True}
+                'cloud_fell_back': cloud_available}
 
     if task == TaskType.DRUG_INTERACTION:
         if cloud_available:
-            return await cloud_llm.drug_interaction_check(
+            res = await cloud_llm.drug_interaction_check(
                 current_medications = payload.get('current_medications', []),
                 proposed_medication = payload.get('proposed_medication', ''),
                 patient_context     = payload.get('context', ''),
             )
+            if not _cloud_failed(res):
+                return res
         prompt = (
             f'Check clinically significant interactions between current medications '
             f'{payload.get("current_medications", [])} and the proposed medication '
@@ -521,16 +543,19 @@ async def _dispatch_cloud_preferred(task: TaskType, payload: dict, db) -> dict:
         )
         resp = await local_llm_router.route('deep', prompt, max_tokens=500)
         return {'content': resp.content, 'layer': resp.layer_used, 'model': resp.model,
-                'available': bool(resp.content), 'offline': True,
+                'available': bool(resp.content), 'offline': True, 'cloud_fell_back': cloud_available,
                 'message': 'Offline AI advisory — a pharmacist must verify.', 'error': resp.error}
 
     if task == TaskType.RESEARCH_ASSIST:
         if cloud_available:
             resp = await cloud_llm.generate(payload.get('prompt', ''), max_tokens=1200)
-            return {'content': resp.content, 'layer': 'cloud_llm'}
+            if resp.content and not resp.error:
+                return {'content': resp.content, 'layer': 'cloud_llm'}
+            logger.warning('Cloud LLM failed (%s) — falling back to local Ollama',
+                           (resp.error or 'empty')[:100])
         resp = await local_llm_router.route('general', payload.get('prompt', ''), max_tokens=1000)
         return {'content': resp.content, 'layer': resp.layer_used, 'model': resp.model,
-                'offline': True, 'error': resp.error}
+                'offline': True, 'cloud_fell_back': cloud_available, 'error': resp.error}
 
     return {'error': f'No cloud handler for {task}'}
 
