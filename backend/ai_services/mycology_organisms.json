@@ -1,24 +1,201 @@
 {
   "_meta": {
     "purpose": "Mycology — fungal element/morphotype on microscopy (KOH, Gram, GMS, India ink, lactophenol) -> likely fungus & significance. Keys are YOLO class names from the mycology detector. Decision support only; culture/MALDI-TOF confirm.",
-    "significance_levels": ["normal", "significant", "critical"],
+    "significance_levels": [
+      "normal",
+      "significant",
+      "critical"
+    ],
     "source": "Standard medical mycology (Larone; CLSI M54). Curated for JORINOVA NEXUS."
   },
-
   "organisms": {
-    "budding_yeast":              {"name": "Budding yeast cell", "aka": ["yeast", "blastoconidia"], "significance": "significant", "disease": "Candida / other yeast", "note": "Correlate with pseudohyphae + host risk."},
-    "yeast_with_pseudohyphae":    {"name": "Yeast with pseudohyphae", "aka": ["pseudohyphae", "candida_pseudohyphae"], "significance": "significant", "disease": "Candida albicans (and related)", "note": "Budding yeast + pseudohyphae = Candida; invasive if in sterile site."},
-    "germ_tube":                  {"name": "Germ tube", "aka": ["germ_tube_positive"], "significance": "significant", "disease": "Candida albicans / dubliniensis", "note": "Germ-tube-positive presumptively identifies C. albicans."},
-    "septate_hyphae_acute_angle": {"name": "Septate hyphae, acute (45°) branching", "aka": ["septate_hyphae", "aspergillus_hyphae"], "significance": "critical", "disease": "Aspergillus (invasive aspergillosis)", "note": "CRITICAL in sterile sites/immunocompromised — narrow, septate, dichotomous 45° branching."},
-    "aseptate_hyphae_wide_angle": {"name": "Aseptate/pauciseptate ribbon hyphae, wide (90°) branching", "aka": ["aseptate_hyphae", "mucor_hyphae", "mucormycosis"], "significance": "critical", "disease": "Mucorales (mucormycosis)", "note": "CRITICAL EMERGENCY: broad ribbon-like aseptate hyphae -> angioinvasive mucormycosis (diabetics/immunocompromised). Urgent surgery + amphotericin."},
-    "true_septate_hyphae":        {"name": "Septate hyphae (dermatophyte, KOH)", "aka": ["dermatophyte_hyphae", "koh_hyphae"], "significance": "significant", "disease": "Dermatophyte (tinea) / mould", "note": "Branching septate hyphae + arthroconidia in skin/nail/hair KOH."},
-    "arthroconidia":              {"name": "Arthroconidia", "aka": ["arthrospores"], "significance": "significant", "disease": "Dermatophyte / Coccidioides (culture-form)", "note": "Barrel-shaped; handle Coccidioides cultures in BSL-3."},
-    "narrow_based_budding_yeast": {"name": "Narrow-based budding encapsulated yeast", "aka": ["cryptococcus", "india_ink"], "significance": "critical", "disease": "Cryptococcus neoformans/gattii", "note": "CRITICAL: capsule (India ink halo) in CSF -> cryptococcal meningitis. Confirm CrAg."},
-    "broad_based_budding_yeast":  {"name": "Broad-based budding yeast", "aka": ["blastomyces"], "significance": "critical", "disease": "Blastomyces dermatitidis", "note": "Thick-walled, broad-based single bud."},
-    "spherule":                   {"name": "Spherule with endospores", "aka": ["coccidioides_spherule"], "significance": "critical", "disease": "Coccidioides immitis/posadasii", "note": "Diagnostic tissue form; culture is highly infectious (BSL-3)."},
-    "small_intracellular_yeast":  {"name": "Small intracellular yeast (macrophages)", "aka": ["histoplasma"], "significance": "critical", "disease": "Histoplasma capsulatum", "note": "Tiny narrow-based budding yeast inside macrophages."},
-    "macroconidia":               {"name": "Macroconidia", "aka": ["macroconidium"], "significance": "significant", "disease": "Dermatophyte identification (culture)", "note": "Shape/wall aids Microsporum/Trichophyton/Epidermophyton ID."},
-    "microconidia":               {"name": "Microconidia", "aka": ["microconidium"], "significance": "significant", "disease": "Dermatophyte identification (culture)"},
-    "spores":                     {"name": "Fungal spores/conidia", "aka": ["conidia", "spore"], "significance": "normal", "disease": "Environmental mould vs contaminant", "note": "Interpret with clinical picture; airborne contaminant is common."}
+    "budding_yeast": {
+      "name": "Budding yeast cell",
+      "aka": [
+        "yeast",
+        "blastoconidia"
+      ],
+      "significance": "significant",
+      "disease": "Candida / other yeast",
+      "note": "Correlate with pseudohyphae + host risk."
+    },
+    "yeast_with_pseudohyphae": {
+      "name": "Yeast with pseudohyphae",
+      "aka": [
+        "pseudohyphae",
+        "candida_pseudohyphae"
+      ],
+      "significance": "significant",
+      "disease": "Candida albicans (and related)",
+      "note": "Budding yeast + pseudohyphae = Candida; invasive if in sterile site."
+    },
+    "germ_tube": {
+      "name": "Germ tube",
+      "aka": [
+        "germ_tube_positive"
+      ],
+      "significance": "significant",
+      "disease": "Candida albicans / dubliniensis",
+      "note": "Germ-tube-positive presumptively identifies C. albicans."
+    },
+    "septate_hyphae_acute_angle": {
+      "name": "Septate hyphae, acute (45°) branching",
+      "aka": [
+        "septate_hyphae",
+        "aspergillus_hyphae"
+      ],
+      "significance": "critical",
+      "disease": "Aspergillus (invasive aspergillosis)",
+      "note": "CRITICAL in sterile sites/immunocompromised — narrow, septate, dichotomous 45° branching."
+    },
+    "aseptate_hyphae_wide_angle": {
+      "name": "Aseptate/pauciseptate ribbon hyphae, wide (90°) branching",
+      "aka": [
+        "aseptate_hyphae",
+        "mucor_hyphae",
+        "mucormycosis"
+      ],
+      "significance": "critical",
+      "disease": "Mucorales (mucormycosis)",
+      "note": "CRITICAL EMERGENCY: broad ribbon-like aseptate hyphae -> angioinvasive mucormycosis (diabetics/immunocompromised). Urgent surgery + amphotericin."
+    },
+    "true_septate_hyphae": {
+      "name": "Septate hyphae (dermatophyte, KOH)",
+      "aka": [
+        "dermatophyte_hyphae",
+        "koh_hyphae"
+      ],
+      "significance": "significant",
+      "disease": "Dermatophyte (tinea) / mould",
+      "note": "Branching septate hyphae + arthroconidia in skin/nail/hair KOH."
+    },
+    "arthroconidia": {
+      "name": "Arthroconidia",
+      "aka": [
+        "arthrospores"
+      ],
+      "significance": "significant",
+      "disease": "Dermatophyte / Coccidioides (culture-form)",
+      "note": "Barrel-shaped; handle Coccidioides cultures in BSL-3."
+    },
+    "narrow_based_budding_yeast": {
+      "name": "Narrow-based budding encapsulated yeast",
+      "aka": [
+        "cryptococcus",
+        "india_ink"
+      ],
+      "significance": "critical",
+      "disease": "Cryptococcus neoformans/gattii",
+      "note": "CRITICAL: capsule (India ink halo) in CSF -> cryptococcal meningitis. Confirm CrAg."
+    },
+    "broad_based_budding_yeast": {
+      "name": "Broad-based budding yeast",
+      "aka": [
+        "blastomyces"
+      ],
+      "significance": "critical",
+      "disease": "Blastomyces dermatitidis",
+      "note": "Thick-walled, broad-based single bud."
+    },
+    "spherule": {
+      "name": "Spherule with endospores",
+      "aka": [
+        "coccidioides_spherule"
+      ],
+      "significance": "critical",
+      "disease": "Coccidioides immitis/posadasii",
+      "note": "Diagnostic tissue form; culture is highly infectious (BSL-3)."
+    },
+    "small_intracellular_yeast": {
+      "name": "Small intracellular yeast (macrophages)",
+      "aka": [
+        "histoplasma"
+      ],
+      "significance": "critical",
+      "disease": "Histoplasma capsulatum",
+      "note": "Tiny narrow-based budding yeast inside macrophages."
+    },
+    "macroconidia": {
+      "name": "Macroconidia",
+      "aka": [
+        "macroconidium"
+      ],
+      "significance": "significant",
+      "disease": "Dermatophyte identification (culture)",
+      "note": "Shape/wall aids Microsporum/Trichophyton/Epidermophyton ID."
+    },
+    "microconidia": {
+      "name": "Microconidia",
+      "aka": [
+        "microconidium"
+      ],
+      "significance": "significant",
+      "disease": "Dermatophyte identification (culture)"
+    },
+    "spores": {
+      "name": "Fungal spores/conidia",
+      "aka": [
+        "conidia",
+        "spore"
+      ],
+      "significance": "normal",
+      "disease": "Environmental mould vs contaminant",
+      "note": "Interpret with clinical picture; airborne contaminant is common."
+    },
+    "candida_albicans": {
+      "name": "Candida albicans",
+      "aka": [
+        "candida",
+        "h1"
+      ],
+      "type": "yeast",
+      "significance": "significant",
+      "disease": "Candidiasis (thrush / invasive candidiasis)",
+      "note": "Budding yeast + pseudohyphae; germ-tube positive. Treat per site (azoles/echinocandins)."
+    },
+    "aspergillus_niger": {
+      "name": "Aspergillus spp.",
+      "aka": [
+        "aspergillus",
+        "h2"
+      ],
+      "type": "mould",
+      "significance": "significant",
+      "disease": "Aspergillosis",
+      "note": "Septate hyphae with acute-angle (45 deg) branching. Voriconazole for invasive disease."
+    },
+    "trichophyton_mentagrophytes": {
+      "name": "Trichophyton mentagrophytes",
+      "aka": [
+        "trichophyton",
+        "dermatophyte",
+        "h3"
+      ],
+      "type": "dermatophyte",
+      "significance": "significant",
+      "disease": "Dermatophytosis (tinea)",
+      "note": "Septate hyphae + spherical microconidia; terbinafine/azoles."
+    },
+    "trichophyton_rubrum": {
+      "name": "Trichophyton rubrum",
+      "aka": [
+        "h5"
+      ],
+      "type": "dermatophyte",
+      "significance": "significant",
+      "disease": "Dermatophytosis (tinea) - commonest cause",
+      "note": "Tear/pencil-shaped microconidia along the hyphae."
+    },
+    "epidermophyton_floccosum": {
+      "name": "Epidermophyton floccosum",
+      "aka": [
+        "epidermophyton",
+        "h6"
+      ],
+      "type": "dermatophyte",
+      "significance": "significant",
+      "disease": "Tinea corporis / cruris / pedis",
+      "note": "Club-shaped smooth macroconidia in clusters; no microconidia."
+    }
   }
 }
