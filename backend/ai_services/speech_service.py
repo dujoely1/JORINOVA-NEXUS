@@ -55,13 +55,36 @@ def _load_whisper(model_name: str = 'base'):
         return None
 
 
-def whisper_available() -> bool:
-    """Check if Whisper package is installed (does not load model)."""
+_faster_model = None
+
+
+def _load_faster(model_name: str = 'base'):
+    """Load faster-whisper (ctranslate2 backend) — lighter + faster than
+    openai-whisper on CPU. Cached; None if not installed."""
+    global _faster_model
+    if _faster_model is not None:
+        return _faster_model
     try:
-        import whisper  # noqa: F401
-        return True
+        from faster_whisper import WhisperModel
+        logger.info('Loading faster-whisper "%s" (int8/CPU)…', model_name)
+        _faster_model = WhisperModel(model_name, device='cpu', compute_type='int8')
+        return _faster_model
     except ImportError:
-        return False
+        return None
+    except Exception as e:
+        logger.error('faster-whisper load failed: %s', e)
+        return None
+
+
+def whisper_available() -> bool:
+    """True if EITHER faster-whisper or openai-whisper is installed (no model load)."""
+    for mod in ('faster_whisper', 'whisper'):
+        try:
+            __import__(mod)
+            return True
+        except ImportError:
+            continue
+    return False
 
 
 # ── Offline STT ───────────────────────────────────────────────────────────────
@@ -78,6 +101,29 @@ def transcribe_audio(
     All processing is LOCAL — no network call.
     """
     result = {'text': '', 'language': language, 'confidence': 0.0, 'error': '', 'model': model_name}
+
+    # Preferred: faster-whisper (lighter, ~4x faster on CPU).
+    fm = _load_faster(model_name)
+    if fm is not None:
+        try:
+            t0 = time.time()
+            segments, info = fm.transcribe(str(audio_path), language=(language or None),
+                                           task=task, vad_filter=True)
+            segs = list(segments)
+            text = ' '.join(s.text for s in segs).strip()
+            if segs:
+                avg = sum(getattr(s, 'avg_logprob', -1.0) for s in segs) / len(segs)
+                conf = round(min(1.0, max(0.0, 1.0 + avg)), 3)
+            else:
+                conf = 0.5 if text else 0.0
+            result.update({'text': text, 'language': getattr(info, 'language', language),
+                           'confidence': conf, 'engine': 'faster-whisper',
+                           'latency_ms': int((time.time()-t0)*1000)})
+            logger.info('faster-whisper: "%s" (%.1fs)', text[:80], time.time()-t0)
+            return result
+        except Exception as e:
+            logger.warning('faster-whisper failed (%s) — trying openai-whisper', e)
+
     model = _load_whisper(model_name)
     if model is None:
         result['error'] = 'Whisper not available — install openai-whisper'
