@@ -545,3 +545,25 @@ async def interpret_module(
         'sop_used':       [h['title'] for h in sop_hits],
         'requires_human_review': True,
     }
+
+
+@router.post('/stt')
+async def speech_to_text(
+    audio:    UploadFile = File(...),
+    language: str = Form('en'),
+    _u:       User = Depends(get_current_user),
+) -> dict:
+    """Offline speech-to-text via local Whisper (faster-whisper preferred, else
+    openai-whisper). The audio never leaves the server — fully offline. Returns
+    {text, language, confidence, engine}. Enable with: pip install faster-whisper."""
+    from ai_services import speech_service
+    if not speech_service.whisper_available():
+        raise HTTPException(503, 'Offline STT engine not installed on this host. '
+                            'Run: pip install faster-whisper (or openai-whisper).')
+    data = await audio.read()
+    if len(data) < 500:
+        raise HTTPException(400, 'Audio too short.')
+    res = speech_service.transcribe_bytes(data, language=language or 'en')
+    if res.get('error') and not res.get('text'):
+        raise HTTPException(503, res['error'])
+    return res
