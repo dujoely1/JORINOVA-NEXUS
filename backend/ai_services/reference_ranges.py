@@ -134,6 +134,8 @@ _KB_FILES = {
     'microbiology_ast':     'microbiology_ast_reference.json',
     'toxicology':           'toxicology_reference.json',
     'hematology_neoplasms': 'hematology_neoplasms.json',
+    'staining':             'staining_methods.json',
+    'preservation':         'specimen_preservation.json',
     # vision detector maps — folded in so RAG/LLM can search their disease knowledge too
     'pbs_morphology':       'pbs_disorders.json',
     'leukaemia':            'leukemia_disorders.json',
@@ -158,12 +160,15 @@ def knowledge(topic: Optional[str] = None):
 
 
 def search_kb(query: str, limit: int = 8) -> list:
-    """Keyword search across all interpretation KBs -> compact hits (topic, key,
-    name, disease, significance, note) for injecting as LLM/RAG context."""
+    """Token-scored search across all interpretation KBs -> compact hits (topic,
+    key, name, disease, significance, note), ranked by how many distinct query
+    tokens each entry contains. Used to inject LLM/RAG context."""
+    import re
     q = str(query or '').strip().lower()
-    if not q:
+    tokens = {t for t in re.split(r'[^a-z0-9]+', q) if len(t) > 2}
+    if not tokens:
         return []
-    hits = []
+    scored = []
     for topic, data in KB.items():
         for group, entries in (data or {}).items():
             if group == '_meta' or not isinstance(entries, dict):
@@ -172,13 +177,13 @@ def search_kb(query: str, limit: int = 8) -> list:
                 if not isinstance(info, dict):
                     continue
                 blob = (key + ' ' + json.dumps(info, ensure_ascii=False)).lower()
-                if q in blob:
-                    hits.append({'topic': topic, 'key': key, 'name': info.get('name', key),
-                                 'disease': info.get('disease') or info.get('disorders'),
-                                 'significance': info.get('significance'), 'note': info.get('note')})
-                    if len(hits) >= limit:
-                        return hits
-    return hits
+                score = sum(1 for t in tokens if t in blob)
+                if score:
+                    scored.append((score, {'topic': topic, 'key': key, 'name': info.get('name', key),
+                                           'disease': info.get('disease') or info.get('disorders'),
+                                           'significance': info.get('significance'), 'note': info.get('note')}))
+    scored.sort(key=lambda x: -x[0])
+    return [h for _, h in scored[:limit]]
 
 
 def _range_for(key, sex):
