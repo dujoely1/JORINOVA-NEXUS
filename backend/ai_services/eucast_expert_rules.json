@@ -1,0 +1,38 @@
+{
+  "_meta": {
+    "purpose": "Antibiogram / EUCAST expert rules -> intrinsic resistance, alert phenotypes, and reporting rules. Feeds the AI interpretation + RAG so susceptibility reports are sense-checked. Decision support; the microbiologist authorises. Confirm against the CURRENT EUCAST/CLSI breakpoint tables.",
+    "consumed_by": ["reference_ranges.KB", "cloud_llm", "medical_rag", "module interpretation"],
+    "source": "EUCAST Expert Rules v3.x + Intrinsic Resistance tables; CLSI M100. Curated for JORINOVA NEXUS."
+  },
+
+  "intrinsic_resistance": {
+    "staphylococcus":        {"name": "Staphylococcus spp.", "resistant_to": ["aztreonam", "temocillin", "polymyxins", "nalidixic acid"], "note": "Never report the above as susceptible."},
+    "enterococcus":          {"name": "Enterococcus spp.", "resistant_to": ["cephalosporins (all)", "aminoglycosides (low-level, monotherapy)", "clindamycin", "co-trimoxazole (in vivo)"], "note": "Cephalosporins are INEFFECTIVE even if the disc looks susceptible — never report S."},
+    "enterococcus_faecium":  {"name": "E. faecium", "resistant_to": ["ampicillin (usually)", "imipenem"], "note": "More resistant than E. faecalis; check ampicillin + vancomycin."},
+    "escherichia_coli":      {"name": "E. coli / Enterobacterales", "resistant_to": ["penicillin G", "glycopeptides (vancomycin/teicoplanin)", "macrolides", "clindamycin", "linezolid", "daptomycin"], "note": "Gram-negative — Gram-positive-only agents never apply."},
+    "klebsiella":            {"name": "Klebsiella spp.", "resistant_to": ["ampicillin", "amoxicillin"], "note": "Intrinsic SHV -> ampicillin R always."},
+    "proteus_mirabilis":     {"name": "Proteus / Morganella / Providencia", "resistant_to": ["colistin/polymyxins", "nitrofurantoin", "tetracyclines"], "note": "Never report colistin S for Proteae."},
+    "pseudomonas_aeruginosa":{"name": "P. aeruginosa", "resistant_to": ["ampicillin", "amoxi-clav", "1st/2nd gen cephalosporins", "cefotaxime/ceftriaxone", "ertapenem", "co-trimoxazole", "tetracyclines"], "note": "Only anti-pseudomonal agents apply (ceftazidime, cefepime, pip-tazo, meropenem, aminoglycosides, ciprofloxacin, colistin)."},
+    "stenotrophomonas":      {"name": "Stenotrophomonas maltophilia", "resistant_to": ["carbapenems (ALL)", "aminoglycosides", "most beta-lactams"], "note": "Treat with co-trimoxazole; carbapenems are ineffective — a carbapenem-S result is an ERROR."},
+    "acinetobacter":         {"name": "Acinetobacter baumannii", "resistant_to": ["ampicillin", "1st/2nd gen cephalosporins", "ertapenem", "aztreonam"], "note": "Often MDR; check carbapenem + colistin."},
+    "anaerobes":             {"name": "Anaerobes (Bacteroides...)", "resistant_to": ["aminoglycosides", "aztreonam", "fluoroquinolones (variable)"], "note": "Aminoglycosides never work on anaerobes."}
+  },
+
+  "alert_phenotypes": {
+    "mrsa":                  {"name": "MRSA (cefoxitin R / mecA+)", "significance": "critical", "rule": "Report resistant to ALL beta-lactams EXCEPT anti-MRSA agents (ceftaroline/ceftobiprole)", "note": "Infection-control alert; do NOT report other beta-lactams as S."},
+    "esbl":                  {"name": "ESBL producer", "significance": "critical", "rule": "Resistant to penicillins + all cephalosporins + aztreonam (report per current EUCAST — report as tested, but flag ESBL)", "note": "Carbapenems / pip-tazo may remain active; infection-control alert."},
+    "carbapenemase_cre":     {"name": "Carbapenemase / CRE", "significance": "critical", "rule": "Any carbapenem non-susceptible Enterobacterales -> confirm carbapenemase (mCIM/PCR)", "note": "Urgent infection-control notification; limited options (ceftazidime-avibactam, colistin)."},
+    "vre":                   {"name": "VRE (vancomycin-resistant Enterococcus)", "significance": "critical", "rule": "vanA/vanB — confirm + isolate", "note": "Options: linezolid, daptomycin (not for pneumonia)."},
+    "vrsa_visa":             {"name": "VISA/VRSA", "significance": "critical", "rule": "Reduced vancomycin susceptibility in S. aureus -> refer/confirm", "note": "Very rare; notify immediately."},
+    "hlar_enterococcus":     {"name": "High-level aminoglycoside resistance (HLAR)", "significance": "significant", "rule": "If HLAR, aminoglycoside SYNERGY with a cell-wall agent is lost", "note": "Affects endocarditis therapy."},
+    "inducible_clindamycin": {"name": "Inducible clindamycin resistance (D-test+)", "significance": "significant", "rule": "Erythromycin-R + clindamycin-S with positive D-zone -> REPORT clindamycin RESISTANT", "note": "Staph/Strep; treatment failure otherwise."},
+    "penicillin_resistant_pneumococcus": {"name": "Penicillin-non-susceptible S. pneumoniae", "significance": "significant", "rule": "Use oxacillin screen -> confirm with penicillin MIC; meningitis vs non-meningitis breakpoints differ", "note": "Use the correct site-specific breakpoint."}
+  },
+
+  "reporting_rules": {
+    "no_susceptible_over_ineffective": {"name": "Do not report S for intrinsically-resistant agents", "rule": "Suppress/override any 'S' that contradicts intrinsic resistance", "significance": "critical"},
+    "cascade_reporting":     {"name": "Cascade/selective reporting", "rule": "Report narrow-spectrum first; reveal broad-spectrum only if resistant — antimicrobial stewardship", "significance": "significant"},
+    "urine_only_agents":     {"name": "Urine-only agents", "rule": "Nitrofurantoin, fosfomycin, pivmecillinam -> report ONLY for uncomplicated cystitis", "significance": "significant"},
+    "verify_unusual":        {"name": "Verify unusual/exceptional results", "rule": "Confirm exceptional phenotypes (e.g. carbapenem-R that is normally S, colistin-R) before reporting", "significance": "critical"}
+  }
+}

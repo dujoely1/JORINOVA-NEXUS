@@ -1,0 +1,26 @@
+{
+  "_meta": {
+    "purpose": "Westgard multirule QC -> trigger, error type, and action (warning vs reject). Feeds the AI + RAG so QC violations are explained with the right corrective action. The QC engine (backend quality) enforces; this KB explains. Decision support.",
+    "consumed_by": ["reference_ranges.KB", "cloud_llm", "medical_rag", "quality engine"],
+    "significance_levels": ["warning", "reject"],
+    "source": "Westgard J.O. multirule QC (1-2s/1-3s/2-2s/R-4s/4-1s/10x...)."
+  },
+
+  "rules": {
+    "1_2s":  {"name": "1-2s", "trigger": "One control result outside mean ± 2SD", "error_type": "warning", "action": "warning", "interpretation": "WARNING only — do NOT reject the run; use it as a trigger to inspect the reject rules below.", "note": "Rejecting on 1-2s alone gives ~5% false rejection per level."},
+    "1_3s":  {"name": "1-3s", "trigger": "One control result outside mean ± 3SD", "error_type": "random", "action": "reject", "interpretation": "RANDOM error -> reject the run.", "note": "Classic first reject rule."},
+    "2_2s":  {"name": "2-2s", "trigger": "Two consecutive results outside the same mean ± 2SD (within a run across levels, or across runs for one level)", "error_type": "systematic", "action": "reject", "interpretation": "SYSTEMATIC error (bias) -> reject.", "note": "Check calibration / reagent lot."},
+    "r_4s":  {"name": "R-4s", "trigger": "Range between two controls in a run exceeds 4SD (one at +2SD, the other at -2SD)", "error_type": "random", "action": "reject", "interpretation": "RANDOM error (imprecision) -> reject.", "note": "Apply within-run only."},
+    "4_1s":  {"name": "4-1s", "trigger": "Four consecutive results outside the same mean ± 1SD", "error_type": "systematic", "action": "reject", "interpretation": "SYSTEMATIC error / drift -> reject.", "note": "Often a warning-level rule; investigate trend."},
+    "10x":   {"name": "10x", "trigger": "Ten consecutive results on the same side of the mean", "error_type": "systematic", "action": "reject", "interpretation": "SYSTEMATIC shift/bias -> reject.", "note": "Recalibrate / check reagent + control lot."},
+    "2of3_2s":{"name": "2of3-2s", "trigger": "Two of three consecutive results outside the same mean ± 2SD", "error_type": "systematic", "action": "reject", "interpretation": "Systematic error (multilevel QC).", "note": "Used with 3-level QC."},
+    "3_1s":  {"name": "3-1s", "trigger": "Three consecutive results outside the same mean ± 1SD", "error_type": "systematic", "action": "reject", "interpretation": "Systematic error (multilevel QC)."},
+    "6x":    {"name": "6x", "trigger": "Six consecutive results on the same side of the mean", "error_type": "systematic", "action": "reject", "interpretation": "Systematic shift.", "note": "Some labs use 8x/9x/12x variants."},
+    "7t":    {"name": "7-T (trend)", "trigger": "Seven consecutive results trending in the same direction", "error_type": "systematic", "action": "reject", "interpretation": "Progressive drift -> reject.", "note": "Reagent deterioration / electrode ageing."}
+  },
+
+  "corrective_action": {
+    "random_error":     {"name": "Random error (1-3s, R-4s)", "check": ["repeat control", "bubbles/clots/short sample", "reagent mixing", "instrument imprecision/maintenance"], "note": "Poor precision — look at the analytical step, not calibration."},
+    "systematic_error": {"name": "Systematic error (2-2s, 4-1s, 10x, trends)", "check": ["calibration", "new reagent/control lot", "temperature", "lamp/electrode ageing", "carryover"], "note": "Bias/shift/drift — recalibrate and re-run controls before releasing patients."}
+  }
+}

@@ -100,7 +100,8 @@ def _merge_numeric_ranges():
     the existing tested defaults always win); capture notes + panel tags."""
     for fname in ('clinical_chemistry_reference.json',
                   'endocrinology_reference.json',
-                  'coagulation_reference.json'):
+                  'coagulation_reference.json',
+                  'hematology_reference.json'):
         for key, info in (_load_json(fname).get('analytes') or {}).items():
             if not isinstance(info, dict):
                 continue
@@ -136,6 +137,9 @@ _KB_FILES = {
     'hematology_neoplasms': 'hematology_neoplasms.json',
     'staining':             'staining_methods.json',
     'preservation':         'specimen_preservation.json',
+    'hematology':           'hematology_reference.json',
+    'eucast':               'eucast_expert_rules.json',
+    'westgard':             'westgard_rules.json',
     # vision detector maps — folded in so RAG/LLM can search their disease knowledge too
     'pbs_morphology':       'pbs_disorders.json',
     'leukaemia':            'leukemia_disorders.json',

@@ -1,0 +1,28 @@
+{
+  "_meta": {
+    "purpose": "Full blood count (CBC) + indices reference ranges -> merged into reference_ranges.RANGES (add-only; tested defaults win) and searchable KB. Adult ranges; apply age/sex + local validation. Decision support.",
+    "consumed_by": ["reference_ranges._merge_numeric_ranges", "reference_ranges.KB"],
+    "source": "Dacie & Lewis Practical Haematology; typical adult ranges (validate locally)."
+  },
+
+  "analytes": {
+    "hb":            {"name": "Haemoglobin", "units": "g/dL", "ref_low": 13.0, "ref_high": 17.0, "critical_low": 7.0, "critical_high": 20.0, "panel": "cbc", "note": "Female 12.0-15.0; <7 usually needs transfusion review; >20 -> polycythaemia/dehydration."},
+    "rbc":           {"name": "Red cell count", "units": "10^12/L", "ref_low": 4.5, "ref_high": 5.9, "panel": "cbc", "note": "Female 4.0-5.2. High RBC + low MCV -> think thalassaemia trait."},
+    "hct":           {"name": "Haematocrit / PCV", "units": "%", "ref_low": 40, "ref_high": 52, "critical_low": 20, "critical_high": 60, "panel": "cbc", "note": "Female 36-48. Hct >55% falsely prolongs coag (citrate ratio)."},
+    "mcv":           {"name": "Mean cell volume", "units": "fL", "ref_low": 80, "ref_high": 100, "panel": "cbc", "note": "<80 microcytic (iron def / thalassaemia / ACD); >100 macrocytic (B12/folate, alcohol, hypothyroid, MDS)."},
+    "mch":           {"name": "Mean cell haemoglobin", "units": "pg", "ref_low": 27, "ref_high": 33, "panel": "cbc", "note": "Tracks MCV; low -> hypochromia."},
+    "mchc":          {"name": "Mean cell Hb concentration", "units": "g/dL", "ref_low": 32, "ref_high": 36, "panel": "cbc", "note": "High MCHC -> spherocytosis / cold agglutinins / lipaemia artefact."},
+    "rdw":           {"name": "Red cell distribution width", "units": "%", "ref_low": 11.5, "ref_high": 14.5, "panel": "cbc", "note": "High RDW (anisocytosis): iron deficiency vs thalassaemia (normal RDW), mixed deficiency."},
+    "wbc":           {"name": "White cell count", "units": "10^9/L", "ref_low": 4.0, "ref_high": 11.0, "critical_low": 1.0, "critical_high": 30.0, "panel": "cbc", "note": "WBC <1.0 (or ANC <0.5) neutropenic sepsis risk; very high -> leukaemia, review PBS."},
+    "neutrophils":   {"name": "Neutrophils (absolute)", "units": "10^9/L", "ref_low": 2.0, "ref_high": 7.5, "critical_low": 0.5, "panel": "cbc", "note": "ANC <0.5 = severe neutropenia -> urgent, isolate, PBS."},
+    "lymphocytes":   {"name": "Lymphocytes (absolute)", "units": "10^9/L", "ref_low": 1.0, "ref_high": 4.0, "panel": "cbc", "note": "High -> viral/CLL (review PBS/flow); low -> HIV, steroids, sepsis."},
+    "monocytes":     {"name": "Monocytes (absolute)", "units": "10^9/L", "ref_low": 0.2, "ref_high": 1.0, "panel": "cbc", "note": "Persistent monocytosis >1.0 -> consider CMML."},
+    "eosinophils":   {"name": "Eosinophils (absolute)", "units": "10^9/L", "ref_low": 0.0, "ref_high": 0.5, "panel": "cbc", "note": "High -> allergy, parasites (stool O&P), drug reaction, HES."},
+    "basophils":     {"name": "Basophils (absolute)", "units": "10^9/L", "ref_low": 0.0, "ref_high": 0.1, "panel": "cbc", "note": "Basophilia -> CML / MPN."},
+    "platelets":     {"name": "Platelets", "units": "10^9/L", "ref_low": 150, "ref_high": 450, "critical_low": 20, "critical_high": 1000, "panel": "cbc", "note": "<20 spontaneous bleeding risk; if low, exclude EDTA clumping (review film/citrate); >1000 -> MPN vs reactive."},
+    "mpv":           {"name": "Mean platelet volume", "units": "fL", "ref_low": 7.5, "ref_high": 11.5, "panel": "cbc", "note": "High MPV with low platelets -> peripheral destruction (ITP)."},
+    "reticulocytes": {"name": "Reticulocytes", "units": "%", "ref_low": 0.5, "ref_high": 2.5, "panel": "cbc", "note": "High -> haemolysis/blood loss response; low with anaemia -> hypoproliferative marrow."},
+    "esr":           {"name": "ESR", "units": "mm/hr", "ref_low": 0, "ref_high": 20, "panel": "inflammation", "note": "Non-specific; markedly high -> infection, inflammation, myeloma, malignancy."},
+    "nrbc":          {"name": "Nucleated RBC", "units": "/100 WBC", "ref_low": 0, "ref_high": 0, "panel": "cbc", "note": "Any nRBC in an adult is abnormal -> marrow stress/infiltration; WBC auto-count must be corrected."}
+  }
+}
