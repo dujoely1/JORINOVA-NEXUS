@@ -1,0 +1,12 @@
+venv
+.venv
+__pycache__
+*.pyc
+.git
+node_modules
+# The root Dockerfile builds only the backend — keep the Cloud Build upload small.
+frontend
+ml
+dissertation
+*.docx
+.next
