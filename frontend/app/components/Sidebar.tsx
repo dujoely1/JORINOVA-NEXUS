@@ -60,6 +60,7 @@ const NAV: readonly NavItem[] = [
   { href: '/modules/forecast',      icon: '📈', labelKey: 'nav.forecast',    roles: ['lab_manager', 'super_admin'], groupKey: 'nav.group.ops' },
   { href: '/modules/billing',       icon: '💳', labelKey: 'nav.billing',      roles: ['receptionist', 'lab_manager', 'super_admin'], groupKey: 'nav.group.ops' },
   { href: '/modules/staffhub',      icon: '🧑‍⚕️', labelKey: 'nav.staffhub',     roles: ['lab_manager', 'super_admin'], groupKey: 'nav.group.ops' },
+  { href: '/modules/mobile',        icon: '📱', labelKey: 'nav.mobile',       roles: ['*'], groupKey: 'nav.group.ops' },
   { href: '/modules/connectivity',  icon: '🌐', labelKey: 'nav.connectivity', roles: ['lab_manager', 'it_admin', 'super_admin'], groupKey: 'nav.group.ops' },
 
   // ── Portals ─────────────────────────────────────────────────────────────

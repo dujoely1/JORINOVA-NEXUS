@@ -126,6 +126,7 @@ const D = {
   'nav.inventory':      { en: 'Smart Inventory', fr: 'Inventaire intelligent', rw: 'Ububiko bw’ubwenge' },
   'nav.billing':        { en: 'Billing & MoMo', fr: 'Facturation & MoMo', rw: 'Ifatura & MoMo' },
   'nav.staffhub':       { en: 'StaffHub',     fr: 'StaffHub',     rw: 'Abakozi' },
+  'nav.mobile':         { en: 'Mobile Hub',  fr: 'Hub Mobile',   rw: 'Terefone' },
   'nav.connectivity':   { en: 'Connectivity', fr: 'Connectivité', rw: 'Guhuza' },
   'nav.doctor':         { en: 'Doctor portal',fr: 'Portail médecin', rw: 'Urubuga rw’umuganga' },
   'nav.rbc':            { en: 'RBC surveillance', fr: 'Surveillance RBC', rw: 'RBC ibyitabirwa' },
